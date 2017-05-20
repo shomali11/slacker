@@ -1,6 +1,14 @@
 # slacker [![Go Report Card](https://goreportcard.com/badge/github.com/shomali11/slacker)](https://goreportcard.com/report/github.com/shomali11/slacker) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and optional parameters.
+Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and extract parameters.
+
+## Features
+
+* Easy definitions of commands and their input
+* Simple parsing of String, Integer, Float and Boolean parameters
+* Built-in `help` command
+* Bot responds to mentions and direct messages
+* Full access to the Slack API (https://github.com/nlopes/slack)
 
 # Examples
 
@@ -158,15 +166,18 @@ package main
 import (
 	"github.com/shomali11/slacker"
 	"log"
+	"time"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("ping", "Ping!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("time", "Server time!", func(request *slacker.Request, response *slacker.Response) {
 		response.Typing()
 
-		response.Reply("pong")
+		time.Sleep(time.Second)
+		
+		response.Reply(time.Now().Format(time.RFC1123))
 	})
 
 	err := bot.Listen()
