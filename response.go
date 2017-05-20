@@ -1,7 +1,12 @@
 package slacker
 
 import (
+	"fmt"
 	"github.com/nlopes/slack"
+)
+
+const (
+	errorFormat = "*Error:* _%s_"
 )
 
 // NewResponse creates a new response structure
@@ -15,9 +20,14 @@ type Response struct {
 	rtm     *slack.RTM
 }
 
-// Reply send a message back to the channel where we received an event from
+// Reply send a message back to the channel where we received the event from
 func (r *Response) Reply(text string) {
 	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(text, r.channel))
+}
+
+// ReportError sends back a formatted error message to the channel where we received the event from
+func (r *Response) ReportError(err error) {
+	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.channel))
 }
 
 // Typing send a typing indicator

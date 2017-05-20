@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/nlopes/slack"
+	"errors"
 	"github.com/shomali11/slacker"
 	"log"
 )
@@ -9,10 +9,8 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response *slacker.Response) {
-		word := request.Param("word")
-		channel := request.Event.Channel
-		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+	bot.Command("test", "Tests something", func(request *slacker.Request, response *slacker.Response) {
+		response.ReportError(errors.New("Oops!"))
 	})
 
 	err := bot.Listen()

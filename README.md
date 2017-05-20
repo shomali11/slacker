@@ -128,14 +128,13 @@ func main() {
 
 ## Example 5
 
-Showcasing the ability to access the https://github.com/nlopes/slack API. 
-_In this example, we upload a file using the Slack API._
+Send an error message to the Slack channel
 
 ```go
 package main
 
 import (
-	"github.com/nlopes/slack"
+	"errors"
 	"github.com/shomali11/slacker"
 	"log"
 )
@@ -143,10 +142,8 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response *slacker.Response) {
-		word := request.Param("word")
-		channel := request.Event.Channel
-		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+	bot.Command("test", "Tests something", func(request *slacker.Request, response *slacker.Response) {
+		response.ReportError(errors.New("Oops!"))
 	})
 
 	err := bot.Listen()
@@ -178,6 +175,36 @@ func main() {
 		time.Sleep(time.Second)
 		
 		response.Reply(time.Now().Format(time.RFC1123))
+	})
+
+	err := bot.Listen()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## Example 7
+
+Showcasing the ability to access the https://github.com/nlopes/slack API. 
+_In this example, we upload a file using the Slack API._
+
+```go
+package main
+
+import (
+	"github.com/nlopes/slack"
+	"github.com/shomali11/slacker"
+	"log"
+)
+
+func main() {
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+
+	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response *slacker.Response) {
+		word := request.Param("word")
+		channel := request.Event.Channel
+		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 
 	err := bot.Listen()

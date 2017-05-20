@@ -89,14 +89,8 @@ func (s *Slacker) Listen() error {
 	return nil
 }
 
-// SendMessage sends a message to a specific channel
-func (s *Slacker) SendMessage(text string, channel string) {
+func (s *Slacker) sendMessage(text string, channel string) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, channel))
-}
-
-// Typing send a Typing indicator to a channel
-func (s *Slacker) Typing(channel string) {
-	s.rtm.SendMessage(s.rtm.NewTypingMessage(channel))
 }
 
 func (s *Slacker) isFromBot(event *slack.MessageEvent) bool {
@@ -119,7 +113,7 @@ func (s *Slacker) isHelpRequest(event *slack.MessageEvent) bool {
 
 func (s *Slacker) handleHelp(channel string) {
 	if len(s.commands) == 0 {
-		s.SendMessage(underscore+noCommandsAvailable+underscore, channel)
+		s.sendMessage(underscore+noCommandsAvailable+underscore, channel)
 		return
 	}
 
@@ -136,7 +130,7 @@ func (s *Slacker) handleHelp(channel string) {
 		helpMessage += dash + space + underscore + command.description + underscore + newLine
 	}
 
-	s.SendMessage(helpMessage, channel)
+	s.sendMessage(helpMessage, channel)
 }
 
 func (s *Slacker) handleMessage(event *slack.MessageEvent) {
