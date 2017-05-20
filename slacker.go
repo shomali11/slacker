@@ -50,8 +50,8 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 }
 
 // Command define a new command and append it to the list of existing commands
-func (s *Slacker) Command(cmd string, description string, handler func(request *Request, response *Response)) {
-	s.commands = append(s.commands, NewCommand(cmd, description, handler))
+func (s *Slacker) Command(usage string, description string, handler func(request *Request, response *Response)) {
+	s.commands = append(s.commands, NewCommand(usage, description, handler))
 }
 
 // Listen receives events from Slack and each is handled as needed
@@ -125,7 +125,7 @@ func (s *Slacker) handleHelp(channel string) {
 
 	helpMessage := empty
 	for _, command := range s.commands {
-		tokens := strings.Split(command.cmd, space)
+		tokens := strings.Split(command.usage, space)
 		for _, token := range tokens {
 			if expression.IsParameter(token) {
 				helpMessage += tick + token[1:len(token)-1] + tick + space
