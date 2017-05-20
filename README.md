@@ -1,6 +1,6 @@
 # slacker [![Go Report Card](https://goreportcard.com/badge/github.com/shomali11/slacker)](https://goreportcard.com/report/github.com/shomali11/slacker) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily build Slack Bots.
+Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and optional parameters.
 
 # Examples
 
