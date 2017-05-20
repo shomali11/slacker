@@ -1,6 +1,6 @@
 # slacker [![Go Report Card](https://goreportcard.com/badge/github.com/shomali11/slacker)](https://goreportcard.com/report/github.com/shomali11/slacker)
 
-Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging protocol to easily build Slack Bots.
+Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily build Slack Bots.
 
 # Examples
 
@@ -8,7 +8,7 @@ Built on top of the Slack API https://github.com/nlopes/slack with the idea to s
 
 Defining a command using slacker
 
-```
+```go
 package main
 
 import (
@@ -34,7 +34,7 @@ func main() {
 
 Adding handlers to when the bot is connected and encounters an error
 
-```
+```go
 package main
 
 import (
@@ -64,7 +64,7 @@ func main() {
 
 Defining a command with a parameter
 
-```
+```go
 package main
 
 import (
@@ -92,7 +92,7 @@ func main() {
 Defining a command with two parameters. Parsing one as a string and the other as an integer. 
 _(The second parameter is the default value in case no parameter was passed or could not parse the value)_
 
-```
+```go
 package main
 
 import (
@@ -123,7 +123,7 @@ func main() {
 Showcasing the ability to access the https://github.com/nlopes/slack API. 
 _In this example, we upload a file using the Slack API._
 
-```
+```go
 package main
 
 import (
