@@ -14,6 +14,7 @@ const (
 	wordPattern      = "(\\S+)?"
 )
 
+// Match takes in the command and the text received, attempts to find the pattern and extract the parameters
 func Match(command string, text string) (bool, map[string]string) {
 	parameters := make(map[string]string)
 	pattern := extractPattern(command)
@@ -47,6 +48,7 @@ func Match(command string, text string) (bool, map[string]string) {
 	return true, parameters
 }
 
+// IsParameter determines whether a string value satisfies the parameter pattern
 func IsParameter(text string) bool {
 	valueRegex := regexp.MustCompile(parameterPattern)
 	return valueRegex.MatchString(text)

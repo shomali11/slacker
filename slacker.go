@@ -22,6 +22,7 @@ const (
 	noCommandsAvailable = "No commands were setup."
 )
 
+// NewClient creates a new client using the Slack API
 func NewClient(token string) *Slacker {
 	client := slack.New(token)
 	rtm := client.NewRTM()
@@ -29,6 +30,7 @@ func NewClient(token string) *Slacker {
 	return &Slacker{Client: client, rtm: rtm}
 }
 
+// Slacker contains the Slack API, commands, and handlers
 type Slacker struct {
 	Client       *slack.Client
 	rtm          *slack.RTM
@@ -37,18 +39,22 @@ type Slacker struct {
 	errorHandler func(err string)
 }
 
+// Init handle the event when the bot is first connected
 func (s *Slacker) Init(initHandler func()) {
 	s.initHandler = initHandler
 }
 
+// Err handle when errors are encountered
 func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
 }
 
+// Command define a new command and append it to the list of existing commands
 func (s *Slacker) Command(cmd string, description string, handler func(request *Request, response *Response)) {
 	s.commands = append(s.commands, NewCommand(cmd, description, handler))
 }
 
+// Listen receives events from Slack and each is handled as needed
 func (s *Slacker) Listen() error {
 	go s.rtm.ManageConnection()
 
@@ -83,10 +89,12 @@ func (s *Slacker) Listen() error {
 	return nil
 }
 
+// SendMessage sends a message to a specific channel
 func (s *Slacker) SendMessage(text string, channel string) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, channel))
 }
 
+// Typing send a Typing indicator to a channel
 func (s *Slacker) Typing(channel string) {
 	s.rtm.SendMessage(s.rtm.NewTypingMessage(channel))
 }

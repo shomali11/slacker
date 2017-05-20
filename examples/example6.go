@@ -9,7 +9,9 @@ func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	bot.Command("ping", "Ping!", func(request *slacker.Request, response *slacker.Response) {
-		response.Reply("Pong")
+		response.Typing()
+
+		response.Reply("pong")
 	})
 
 	err := bot.Listen()

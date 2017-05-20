@@ -20,7 +20,7 @@ func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	bot.Command("ping", "Ping!", func(request *slacker.Request, response *slacker.Response) {
-		response.Reply("Pong")
+		response.Reply("pong")
 	})
 
 	err := bot.Listen()
@@ -139,6 +139,34 @@ func main() {
 		word := request.Param("word")
 		channel := request.Event.Channel
 		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+	})
+
+	err := bot.Listen()
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## Example 6
+
+Send a "Typing" indicator
+
+```go
+package main
+
+import (
+	"github.com/shomali11/slacker"
+	"log"
+)
+
+func main() {
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+
+	bot.Command("ping", "Ping!", func(request *slacker.Request, response *slacker.Response) {
+		response.Typing()
+
+		response.Reply("pong")
 	})
 
 	err := bot.Listen()
