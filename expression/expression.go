@@ -57,12 +57,12 @@ func IsParameter(text string) bool {
 func extractPattern(command string) string {
 	command = strings.TrimSpace(command)
 	tokens := strings.Split(command, space)
-	if len(tokens) == 0 {
-		return empty
-	}
-
 	pattern := empty
 	for _, token := range tokens {
+		if len(token) == 0 {
+			continue
+		}
+
 		isMatch := IsParameter(token)
 		if isMatch {
 			pattern += wordPattern
@@ -70,6 +70,10 @@ func extractPattern(command string) string {
 			pattern += token
 		}
 		pattern += spacePattern
+	}
+
+	if len(pattern) == 0 {
+		return empty
 	}
 	return ignoreCase + pattern
 }
