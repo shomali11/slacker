@@ -10,15 +10,15 @@ import (
 
 const (
 	space               = " "
-	star                = "*"
-	tick                = "`"
 	dash                = "-"
-	underscore          = "_"
 	newLine             = "\n"
 	invalidToken        = "Invalid token"
 	helpCommand         = "help"
 	directChannelMarker = "D"
 	userMentionFormat   = "<@%s>"
+	codeMessageFormat   = "`%s`"
+	boldMessageFormat   = "*%s*"
+	italicMessageFormat = "_%s_"
 	noCommandsAvailable = "No commands were setup."
 )
 
@@ -113,7 +113,7 @@ func (s *Slacker) isHelpRequest(event *slack.MessageEvent) bool {
 
 func (s *Slacker) handleHelp(channel string) {
 	if len(s.commands) == 0 {
-		s.sendMessage(underscore+noCommandsAvailable+underscore, channel)
+		s.sendMessage(fmt.Sprintf(italicMessageFormat, noCommandsAvailable), channel)
 		return
 	}
 
@@ -122,12 +122,12 @@ func (s *Slacker) handleHelp(channel string) {
 		tokens := strings.Split(command.usage, space)
 		for _, token := range tokens {
 			if expression.IsParameter(token) {
-				helpMessage += tick + token[1:len(token)-1] + tick + space
+				helpMessage += fmt.Sprintf(codeMessageFormat, token[1:len(token)-1]) + space
 			} else {
-				helpMessage += star + token + star + space
+				helpMessage += fmt.Sprintf(boldMessageFormat, token) + space
 			}
 		}
-		helpMessage += dash + space + underscore + command.description + underscore + newLine
+		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
 	}
 
 	s.sendMessage(helpMessage, channel)

@@ -22,11 +22,7 @@ func Match(command string, text string) (bool, map[string]string) {
 		return false, parameters
 	}
 
-	compiledExpression, err := regexp.Compile(pattern)
-	if err != nil {
-		return false, parameters
-	}
-
+	compiledExpression := regexp.MustCompile(pattern)
 	result := strings.TrimSpace(compiledExpression.FindString(text))
 	if len(result) == 0 {
 		return false, parameters
