@@ -8,6 +8,7 @@ Built on top of the Slack API https://github.com/nlopes/slack with the idea to s
 * Simple parsing of String, Integer, Float and Boolean parameters
 * Built-in `help` command
 * Bot responds to mentions and direct messages
+* Handlers run concurrently via goroutines
 * Full access to the Slack API (https://github.com/nlopes/slack)
 
 # Examples
