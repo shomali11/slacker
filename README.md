@@ -11,7 +11,7 @@ Built on top of the Slack API [github.com/nlopes/slack](https://github.com/nlope
 * Handlers run concurrently via goroutines
 * Full access to the Slack API [github.com/nlopes/slack](https://github.com/nlopes/slack)
 
-# Setup
+# Usage
 
 Using `govendor` [github.com/kardianos/govendor](https://github.com/kardianos/govendor):
 
