@@ -1,6 +1,6 @@
 # slacker [![Go Report Card](https://goreportcard.com/badge/github.com/shomali11/slacker)](https://goreportcard.com/report/github.com/shomali11/slacker) [![GoDoc](https://godoc.org/github.com/shomali11/slacker?status.svg)](https://godoc.org/github.com/shomali11/slacker) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Built on top of the Slack API https://github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and extract parameters.
+Built on top of the Slack API github.com/nlopes/slack with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and extract parameters.
 
 ## Features
 
@@ -9,7 +9,22 @@ Built on top of the Slack API https://github.com/nlopes/slack with the idea to s
 * Built-in `help` command
 * Bot responds to mentions and direct messages
 * Handlers run concurrently via goroutines
-* Full access to the Slack API (https://github.com/nlopes/slack)
+* Full access to the Slack API (github.com/nlopes/slack)
+
+# Setup
+
+Using `govendor` (github.com/kardianos/govendor):
+
+```
+govendor fetch github.com/shomali11/slacker
+```
+
+Using `go get`:
+
+```
+go get github.com/shomali11/slacker
+go get github.com/nlopes/slack
+```
 
 # Examples
 
@@ -187,7 +202,7 @@ func main() {
 
 ## Example 7
 
-Showcasing the ability to access the https://github.com/nlopes/slack API. 
+Showcasing the ability to access the github.com/nlopes/slack API. 
 _In this example, we upload a file using the Slack API._
 
 ```go
