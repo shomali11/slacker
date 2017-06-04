@@ -19,13 +19,6 @@ Using `govendor` [github.com/kardianos/govendor](https://github.com/kardianos/go
 govendor fetch github.com/shomali11/slacker
 ```
 
-Using `go get`:
-
-```
-go get github.com/shomali11/slacker
-go get github.com/nlopes/slack
-```
-
 # Examples
 
 ## Example 1
