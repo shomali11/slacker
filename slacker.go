@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/nlopes/slack"
-	"github.com/shomali11/slacker/expression"
+	"github.com/shomali11/commander"
 	"strings"
 )
 
@@ -19,7 +19,7 @@ const (
 	codeMessageFormat   = "`%s`"
 	boldMessageFormat   = "*%s*"
 	italicMessageFormat = "_%s_"
-	noCommandsAvailable = "No commands were setup."
+	noCommandsAvailable = "No botCommands were setup."
 )
 
 // NewClient creates a new client using the Slack API
@@ -30,11 +30,11 @@ func NewClient(token string) *Slacker {
 	return &Slacker{Client: client, rtm: rtm}
 }
 
-// Slacker contains the Slack API, commands, and handlers
+// Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
 	Client       *slack.Client
 	rtm          *slack.RTM
-	commands     []*Command
+	botCommands  []*BotCommand
 	initHandler  func()
 	errorHandler func(err string)
 }
@@ -51,7 +51,7 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 
 // Command define a new command and append it to the list of existing commands
 func (s *Slacker) Command(usage string, description string, handler func(request *Request, response *Response)) {
-	s.commands = append(s.commands, NewCommand(usage, description, handler))
+	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
 }
 
 // Listen receives events from Slack and each is handled as needed
@@ -112,16 +112,16 @@ func (s *Slacker) isHelpRequest(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) handleHelp(channel string) {
-	if len(s.commands) == 0 {
+	if len(s.botCommands) == 0 {
 		s.sendMessage(fmt.Sprintf(italicMessageFormat, noCommandsAvailable), channel)
 		return
 	}
 
 	helpMessage := empty
-	for _, command := range s.commands {
+	for _, command := range s.botCommands {
 		tokens := strings.Split(command.usage, space)
 		for _, token := range tokens {
-			if expression.IsParameter(token) {
+			if commander.IsParameter(token) {
 				helpMessage += fmt.Sprintf(codeMessageFormat, token[1:len(token)-1]) + space
 			} else {
 				helpMessage += fmt.Sprintf(boldMessageFormat, token) + space
@@ -139,13 +139,13 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 		return
 	}
 
-	for _, cmd := range s.commands {
-		isMatch, parameters := cmd.Match(event.Text)
+	for _, cmd := range s.botCommands {
+		properties, isMatch := cmd.Match(event.Text)
 		if !isMatch {
 			continue
 		}
 
-		cmd.Execute(NewRequest(event, parameters), NewResponse(event.Channel, s.rtm))
+		cmd.Execute(NewRequest(event, properties), NewResponse(event.Channel, s.rtm))
 		return
 	}
 }

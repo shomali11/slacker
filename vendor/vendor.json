@@ -21,6 +21,18 @@
 			"revisionTime": "2016-01-10T10:55:54Z"
 		},
 		{
+			"checksumSHA1": "61tFnRlyBut2AB85MIPNhPron5g=",
+			"path": "github.com/shomali11/commander",
+			"revision": "64a7dba18ca257d3d4ad24f88a8e4b827e98b4c5",
+			"revisionTime": "2017-06-10T01:57:17Z"
+		},
+		{
+			"checksumSHA1": "61CEOpcUkg2wdc+huYJloWHJopk=",
+			"path": "github.com/shomali11/properties",
+			"revision": "54715227178bf5bdac6b038a51e61d422c100d59",
+			"revisionTime": "2017-06-10T01:23:05Z"
+		},
+		{
 			"checksumSHA1": "K0crHygPTP42i1nLKWphSlvOQJw=",
 			"path": "github.com/stretchr/objx",
 			"revision": "1a9d0bb9f541897e62256577b352fdbc1fb4fd94",

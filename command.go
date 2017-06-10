@@ -1,25 +1,30 @@
 package slacker
 
-import "github.com/shomali11/slacker/expression"
+import (
+	"github.com/shomali11/commander"
+	"github.com/shomali11/properties"
+)
 
-// NewCommand creates a new command structure
-func NewCommand(usage string, description string, handler func(request *Request, response *Response)) *Command {
-	return &Command{usage: usage, description: description, handler: handler}
+// NewBotCommand creates a new bot command object
+func NewBotCommand(usage string, description string, handler func(request *Request, response *Response)) *BotCommand {
+	command := commander.NewCommand(usage)
+	return &BotCommand{usage: usage, description: description, handler: handler, command: command}
 }
 
-// Command structure contains the command, description and handler
-type Command struct {
+// BotCommand structure contains the bot's command, description and handler
+type BotCommand struct {
 	usage       string
 	description string
 	handler     func(request *Request, response *Response)
+	command     *commander.Command
 }
 
 // Match determines whether the bot should respond based on the text received
-func (c *Command) Match(text string) (bool, map[string]string) {
-	return expression.Match(c.usage, text)
+func (c *BotCommand) Match(text string) (*properties.Properties, bool) {
+	return c.command.Match(text)
 }
 
 // Execute executes the handler logic
-func (c *Command) Execute(request *Request, response *Response) {
+func (c *BotCommand) Execute(request *Request, response *Response) {
 	c.handler(request, response)
 }

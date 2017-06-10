@@ -1,10 +1,20 @@
-package parser
+package properties
 
 import "strconv"
 
+// NewProperties creates a new Properties object
+func NewProperties(m map[string]string) *Properties {
+	return &Properties{propertyMap: m}
+}
+
+// Properties is a string map decorator
+type Properties struct {
+	propertyMap map[string]string
+}
+
 // StringParam attempts to look up a string value by key. If not found, return the default string value
-func StringParam(key string, parameters map[string]string, defaultValue string) string {
-	value, ok := parameters[key]
+func (p *Properties) StringParam(key string, defaultValue string) string {
+	value, ok := p.propertyMap[key]
 	if !ok {
 		return defaultValue
 	}
@@ -12,8 +22,8 @@ func StringParam(key string, parameters map[string]string, defaultValue string) 
 }
 
 // BooleanParam attempts to look up a boolean value by key. If not found, return the default boolean value
-func BooleanParam(key string, parameters map[string]string, defaultValue bool) bool {
-	value, ok := parameters[key]
+func (p *Properties) BooleanParam(key string, defaultValue bool) bool {
+	value, ok := p.propertyMap[key]
 	if !ok {
 		return defaultValue
 	}
@@ -26,8 +36,8 @@ func BooleanParam(key string, parameters map[string]string, defaultValue bool) b
 }
 
 // IntegerParam attempts to look up a integer value by key. If not found, return the default integer value
-func IntegerParam(key string, parameters map[string]string, defaultValue int) int {
-	value, ok := parameters[key]
+func (p *Properties) IntegerParam(key string, defaultValue int) int {
+	value, ok := p.propertyMap[key]
 	if !ok {
 		return defaultValue
 	}
@@ -40,8 +50,8 @@ func IntegerParam(key string, parameters map[string]string, defaultValue int) in
 }
 
 // FloatParam attempts to look up a float value by key. If not found, return the default float value
-func FloatParam(key string, parameters map[string]string, defaultValue float64) float64 {
-	value, ok := parameters[key]
+func (p *Properties) FloatParam(key string, defaultValue float64) float64 {
+	value, ok := p.propertyMap[key]
 	if !ok {
 		return defaultValue
 	}
