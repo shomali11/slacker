@@ -16,6 +16,10 @@ func main() {
 		log.Println(err)
 	})
 
+	bot.Default(func(request *slacker.Request, response *slacker.Response) {
+		response.Reply("Say what?")
+	})
+
 	err := bot.Listen()
 	if err != nil {
 		log.Fatal(err)

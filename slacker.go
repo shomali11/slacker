@@ -6,6 +6,7 @@ import (
 	"github.com/nlopes/slack"
 	"github.com/shomali11/commander"
 	"strings"
+	"github.com/shomali11/properties"
 )
 
 const (
@@ -37,6 +38,7 @@ type Slacker struct {
 	botCommands  []*BotCommand
 	initHandler  func()
 	errorHandler func(err string)
+	defaultHandler func(request *Request, response *Response)
 }
 
 // Init handle the event when the bot is first connected
@@ -47,6 +49,11 @@ func (s *Slacker) Init(initHandler func()) {
 // Err handle when errors are encountered
 func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
+}
+
+// Default handle when none of the commands are matched
+func (s *Slacker) Default(defaultHandler func(request *Request, response *Response)) {
+	s.defaultHandler = defaultHandler
 }
 
 // Command define a new command and append it to the list of existing commands
@@ -139,13 +146,16 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 		return
 	}
 
+	response := NewResponse(event.Channel, s.rtm)
 	for _, cmd := range s.botCommands {
-		properties, isMatch := cmd.Match(event.Text)
+		parameters, isMatch := cmd.Match(event.Text)
 		if !isMatch {
 			continue
 		}
 
-		cmd.Execute(NewRequest(event, properties), NewResponse(event.Channel, s.rtm))
+		cmd.Execute(NewRequest(event, parameters), response)
 		return
 	}
+
+	s.defaultHandler(NewRequest(event, &properties.Properties{}), response)
 }
