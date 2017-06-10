@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/shomali11/commander"
-	"strings"
 	"github.com/shomali11/properties"
+	"strings"
 )
 
 const (
@@ -33,11 +33,11 @@ func NewClient(token string) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	Client       *slack.Client
-	rtm          *slack.RTM
-	botCommands  []*BotCommand
-	initHandler  func()
-	errorHandler func(err string)
+	Client         *slack.Client
+	rtm            *slack.RTM
+	botCommands    []*BotCommand
+	initHandler    func()
+	errorHandler   func(err string)
 	defaultHandler func(request *Request, response *Response)
 }
 
