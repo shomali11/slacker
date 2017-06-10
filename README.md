@@ -49,7 +49,7 @@ func main() {
 
 ## Example 2
 
-Adding handlers to when the bot is connected and encounters an error
+Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match
 
 ```go
 package main
