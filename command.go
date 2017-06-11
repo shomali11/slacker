@@ -2,7 +2,7 @@ package slacker
 
 import (
 	"github.com/shomali11/commander"
-	"github.com/shomali11/properties"
+	"github.com/shomali11/proper"
 )
 
 // NewBotCommand creates a new bot command object
@@ -20,7 +20,7 @@ type BotCommand struct {
 }
 
 // Match determines whether the bot should respond based on the text received
-func (c *BotCommand) Match(text string) (*properties.Properties, bool) {
+func (c *BotCommand) Match(text string) (*proper.Properties, bool) {
 	return c.command.Match(text)
 }
 

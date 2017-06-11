@@ -2,7 +2,7 @@ package slacker
 
 import (
 	"github.com/nlopes/slack"
-	"github.com/shomali11/properties"
+	"github.com/shomali11/proper"
 )
 
 const (
@@ -10,14 +10,14 @@ const (
 )
 
 // NewRequest creates a new Request structure
-func NewRequest(event *slack.MessageEvent, properties *properties.Properties) *Request {
+func NewRequest(event *slack.MessageEvent, properties *proper.Properties) *Request {
 	return &Request{Event: event, properties: properties}
 }
 
 // Request contains the Event received and parameters
 type Request struct {
 	Event      *slack.MessageEvent
-	properties *properties.Properties
+	properties *proper.Properties
 }
 
 // Param attempts to look up a string value by key. If not found, return the an empty string

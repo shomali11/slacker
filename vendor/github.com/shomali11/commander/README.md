@@ -2,15 +2,76 @@
 
 Command evaluator and parser
 
+## Features
+
+* Matches commands against provided text
+* Extracts parameters from matching input
+* Provides default values for missing parameters
+* Supports String, Integer, Float and Boolean parameters
+
+## Usage
+
+Using `govendor` [github.com/kardianos/govendor](https://github.com/kardianos/govendor):
+
+```
+govendor fetch github.com/shomali11/commander
+```
+
+## Dependencies
+
+* `proper` [github.com/shomali11/proper](https://github.com/shomali11/proper)
+
+
 # Examples
 
-```go
-properties, isMatch = NewCommand("ping").Match("ping")
-assert.True(t, isMatch)
-assert.NotNil(t, properties)
+## Example 1
 
-properties, isMatch = NewCommand("repeat <word> <number>").Match("repeat hey 5")
-assert.True(t, isMatch)
-assert.Equal(t, properties.StringParam("word", ""), "hey")
-assert.Equal(t, properties.IntegerParam("number", 0), 5)
+In this example, we are matching a few strings against a command format, then parsing parameters if found or returning default values.
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/shomali11/commander"
+)
+
+func main() {
+	properties, isMatch := commander.NewCommand("echo <word>").Match("echo hey")
+	fmt.Println(isMatch)                             // true
+	fmt.Println(properties.StringParam("word", ""))  // hey
+
+	properties, isMatch = commander.NewCommand("repeat <word> <number>").Match("repeat hey 5")
+	fmt.Println(isMatch)                              // true
+	fmt.Println(properties.StringParam("word", ""))   // hey
+	fmt.Println(properties.IntegerParam("number", 0)) // 5
+
+	properties, isMatch = commander.NewCommand("repeat <word> <number>").Match("repeat hey")
+	fmt.Println(isMatch)                              // true
+	fmt.Println(properties.StringParam("word", ""))   // hey
+	fmt.Println(properties.IntegerParam("number", 0)) // 0
+}
+```
+
+## Example 2
+
+In this example, we are determining whether a token of the command format is a "Parameter". Parameters are surrounded by `<` and `>`
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/shomali11/commander"
+)
+
+func main() {
+	fmt.Println(commander.IsParameter("<value>"))     // true
+	fmt.Println(commander.IsParameter("<123>"))       // true
+	fmt.Println(commander.IsParameter("<value123>"))  // true
+	fmt.Println(commander.IsParameter("value>"))      // false
+	fmt.Println(commander.IsParameter("<value"))      // false
+	fmt.Println(commander.IsParameter("value"))       // false
+	fmt.Println(commander.IsParameter(""))            // false
+}
 ```

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/nlopes/slack"
 	"github.com/shomali11/commander"
-	"github.com/shomali11/properties"
+	"github.com/shomali11/proper"
 	"strings"
 )
 
@@ -157,5 +157,5 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 		return
 	}
 
-	s.defaultHandler(NewRequest(event, &properties.Properties{}), response)
+	s.defaultHandler(NewRequest(event, &proper.Properties{}), response)
 }

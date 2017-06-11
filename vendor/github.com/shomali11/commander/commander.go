@@ -1,7 +1,7 @@
 package commander
 
 import (
-	"github.com/shomali11/properties"
+	"github.com/shomali11/proper"
 	"regexp"
 	"strings"
 )
@@ -34,7 +34,7 @@ type Command struct {
 }
 
 // Match takes in the command and the text received, attempts to find the pattern and extract the parameters
-func (c *Command) Match(text string) (*properties.Properties, bool) {
+func (c *Command) Match(text string) (*proper.Properties, bool) {
 	if c.expression == nil {
 		return nil, false
 	}
@@ -56,7 +56,7 @@ func (c *Command) Match(text string) (*properties.Properties, bool) {
 
 		parameters[commandToken[1:len(commandToken)-1]] = resultToken
 	}
-	return properties.NewProperties(parameters), true
+	return proper.NewProperties(parameters), true
 }
 
 // IsParameter determines whether a string value satisfies the parameter pattern
