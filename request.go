@@ -1,6 +1,8 @@
 package slacker
 
 import (
+	"context"
+
 	"github.com/nlopes/slack"
 	"github.com/shomali11/proper"
 )
@@ -10,12 +12,13 @@ const (
 )
 
 // NewRequest creates a new Request structure
-func NewRequest(event *slack.MessageEvent, properties *proper.Properties) *Request {
-	return &Request{Event: event, properties: properties}
+func NewRequest(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) *Request {
+	return &Request{Context: ctx, Event: event, properties: properties}
 }
 
 // Request contains the Event received and parameters
 type Request struct {
+	Context    context.Context
 	Event      *slack.MessageEvent
 	properties *proper.Properties
 }

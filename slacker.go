@@ -1,6 +1,7 @@
 package slacker
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -29,7 +30,10 @@ func NewClient(token string) *Slacker {
 	client := slack.New(token)
 	rtm := client.NewRTM()
 
-	return &Slacker{Client: client, rtm: rtm}
+	return &Slacker{
+		Client: client,
+		rtm:    rtm,
+	}
 }
 
 // Slacker contains the Slack API, botCommands, and handlers
@@ -146,17 +150,19 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 		s.handleHelp(event.Channel)
 		return
 	}
-
 	response := NewResponse(event.Channel, s.rtm)
+	ctx := context.Background()
+
 	for _, cmd := range s.botCommands {
 		parameters, isMatch := cmd.Match(event.Text)
 		if !isMatch {
 			continue
 		}
 
-		cmd.Execute(NewRequest(event, parameters), response)
+		cmd.Execute(NewRequest(ctx, event, parameters), response)
 		return
+
 	}
 
-	s.defaultHandler(NewRequest(event, &proper.Properties{}), response)
+	s.defaultHandler(NewRequest(ctx, event, &proper.Properties{}), response)
 }
