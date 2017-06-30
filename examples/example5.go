@@ -2,14 +2,15 @@ package main
 
 import (
 	"errors"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("test", "Tests something", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("test", "Tests something", func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.ReportError(errors.New("Oops!"))
 	})
 

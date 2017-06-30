@@ -3,10 +3,11 @@ package slacker
 import (
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/nlopes/slack"
 	"github.com/shomali11/commander"
 	"github.com/shomali11/proper"
-	"strings"
 )
 
 const (
@@ -38,7 +39,7 @@ type Slacker struct {
 	botCommands    []*BotCommand
 	initHandler    func()
 	errorHandler   func(err string)
-	defaultHandler func(request *Request, response *Response)
+	defaultHandler func(request *Request, response ResponseWriter)
 }
 
 // Init handle the event when the bot is first connected
@@ -52,12 +53,12 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 }
 
 // Default handle when none of the commands are matched
-func (s *Slacker) Default(defaultHandler func(request *Request, response *Response)) {
+func (s *Slacker) Default(defaultHandler func(request *Request, response ResponseWriter)) {
 	s.defaultHandler = defaultHandler
 }
 
 // Command define a new command and append it to the list of existing commands
-func (s *Slacker) Command(usage string, description string, handler func(request *Request, response *Response)) {
+func (s *Slacker) Command(usage string, description string, handler func(request *Request, response ResponseWriter)) {
 	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
 }
 

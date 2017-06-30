@@ -2,12 +2,20 @@ package slacker
 
 import (
 	"fmt"
+
 	"github.com/nlopes/slack"
 )
 
 const (
 	errorFormat = "*Error:* _%s_"
 )
+
+// A ResponseWriter interface is used to respond to an event
+type ResponseWriter interface {
+	Reply(text string)
+	ReportError(err error)
+	Typing()
+}
 
 // NewResponse creates a new response structure
 func NewResponse(channel string, rtm *slack.RTM) *Response {
