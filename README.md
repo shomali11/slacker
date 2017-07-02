@@ -42,7 +42,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("ping", "Ping!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("ping", "Ping!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("pong")
 	})
 
@@ -76,7 +76,7 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.Default(func(request *slacker.Request, response *slacker.Response) {
+	bot.Default(func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
 
@@ -102,7 +102,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("echo <word>", "Echo a word!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("echo <word>", "Echo a word!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
 		response.Reply(word)
 	})
@@ -130,7 +130,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("repeat <word> <number>", "Repeat a word a number of times!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("repeat <word> <number>", "Repeat a word a number of times!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		word := request.StringParam("word", "Hello!")
 		number := request.IntegerParam("number", 1)
 		for i := 0; i < number; i++ {
@@ -161,7 +161,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("test", "Tests something", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("test", "Tests something", func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.ReportError(errors.New("Oops!"))
 	})
 
@@ -188,7 +188,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("time", "Server time!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("time", "Server time!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.Typing()
 
 		time.Sleep(time.Second)
@@ -220,7 +220,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
 		channel := request.Event.Channel
 		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})

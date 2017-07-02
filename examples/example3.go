@@ -1,14 +1,15 @@
 package main
 
 import (
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("echo <word>", "Echo a word!", func(request *slacker.Request, response *slacker.Response) {
+	bot.Command("echo <word>", "Echo a word!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
 		response.Reply(word)
 	})

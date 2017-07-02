@@ -6,7 +6,7 @@ import (
 )
 
 // NewBotCommand creates a new bot command object
-func NewBotCommand(usage string, description string, handler func(request *Request, response *Response)) *BotCommand {
+func NewBotCommand(usage string, description string, handler func(request *Request, response ResponseWriter)) *BotCommand {
 	command := commander.NewCommand(usage)
 	return &BotCommand{usage: usage, description: description, handler: handler, command: command}
 }
@@ -15,7 +15,7 @@ func NewBotCommand(usage string, description string, handler func(request *Reque
 type BotCommand struct {
 	usage       string
 	description string
-	handler     func(request *Request, response *Response)
+	handler     func(request *Request, response ResponseWriter)
 	command     *commander.Command
 }
 
@@ -25,6 +25,6 @@ func (c *BotCommand) Match(text string) (*proper.Properties, bool) {
 }
 
 // Execute executes the handler logic
-func (c *BotCommand) Execute(request *Request, response *Response) {
+func (c *BotCommand) Execute(request *Request, response ResponseWriter) {
 	c.handler(request, response)
 }

@@ -1,8 +1,9 @@
 package main
 
 import (
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -16,7 +17,7 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.Default(func(request *slacker.Request, response *slacker.Response) {
+	bot.Default(func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
 
