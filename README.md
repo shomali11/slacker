@@ -7,6 +7,7 @@ Built on top of the Slack API [github.com/nlopes/slack](https://github.com/nlope
 * Easy definitions of commands and their input
 * Available bot initialization, errors and default handlers
 * Simple parsing of String, Integer, Float and Boolean parameters
+* Contains support for `context.Context`
 * Built-in `help` command
 * Bot responds to mentions and direct messages
 * Handlers run concurrently via goroutines
