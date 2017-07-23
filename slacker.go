@@ -120,7 +120,7 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) isHelpRequest(event *slack.MessageEvent) bool {
-	return strings.Contains(strings.ToLower(event.Text), helpCommand)
+	return strings.HasPrefix(strings.TrimSpace(strings.ToLower(event.Text)), helpCommand)
 }
 
 func (s *Slacker) handleHelp(channel string) {
