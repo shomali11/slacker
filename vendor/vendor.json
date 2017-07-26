@@ -9,10 +9,10 @@
 			"revisionTime": "2016-10-29T20:57:26Z"
 		},
 		{
-			"checksumSHA1": "kEuS6hbYWOde2eHiqPdsitxzfDg=",
+			"checksumSHA1": "HYgTWn4FgVbvSBYVO4DxUPWfCz0=",
 			"path": "github.com/nlopes/slack",
-			"revision": "72d15a0fc0b773a59c00f78b9e7d97eeb8c4281f",
-			"revisionTime": "2017-04-26T19:14:31Z"
+			"revision": "5cde21b8b96a43fc3435a1f514123d14fd7eabdc",
+			"revisionTime": "2017-07-25T12:17:30Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
@@ -31,12 +31,6 @@
 			"path": "github.com/shomali11/proper",
 			"revision": "79071eec369a986268da8f403ed001173d29a961",
 			"revisionTime": "2017-06-11T18:01:37Z"
-		},
-		{
-			"checksumSHA1": "61CEOpcUkg2wdc+huYJloWHJopk=",
-			"path": "github.com/shomali11/properties",
-			"revision": "54715227178bf5bdac6b038a51e61d422c100d59",
-			"revisionTime": "2017-06-10T01:23:05Z"
 		},
 		{
 			"checksumSHA1": "K0crHygPTP42i1nLKWphSlvOQJw=",
