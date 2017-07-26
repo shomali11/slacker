@@ -250,7 +250,7 @@ import (
 )
 
 func main() {
-	bot := slacker.NewClient("xoxb-184465220628-vY4dQzMjzsLMg6feXKqwUdZv")
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	bot.Command("process", "Process!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		timedContext, cancel := context.WithTimeout(request.Context, time.Second)

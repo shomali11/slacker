@@ -24,6 +24,11 @@ func (c *BotCommand) Match(text string) (*proper.Properties, bool) {
 	return c.command.Match(text)
 }
 
+// Tokenize returns the command format's tokens
+func (c *BotCommand) Tokenize() []*commander.Token {
+	return c.command.Tokenize()
+}
+
 // Execute executes the handler logic
 func (c *BotCommand) Execute(request *Request, response ResponseWriter) {
 	c.handler(request, response)

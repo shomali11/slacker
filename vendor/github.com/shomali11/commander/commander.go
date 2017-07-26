@@ -1,6 +1,7 @@
 package commander
 
 import (
+	"fmt"
 	"github.com/shomali11/proper"
 	"regexp"
 	"strings"
@@ -12,7 +13,8 @@ const (
 	ignoreCase       = "(?i)"
 	parameterPattern = "<\\S+>"
 	spacePattern     = "\\s*"
-	wordPattern      = "(\\S+)?"
+	wordPattern      = "\\b(\\S+)?\\b"
+	boundaryFormat   = "\\b%s\\b"
 )
 
 var parameterRegex *regexp.Regexp
@@ -25,6 +27,12 @@ func init() {
 func NewCommand(format string) *Command {
 	expression := compile(format)
 	return &Command{format: format, expression: expression}
+}
+
+// Token represents the Token object
+type Token struct {
+	Word        string
+	IsParameter bool
 }
 
 // Command represents the Command object
@@ -50,7 +58,7 @@ func (c *Command) Match(text string) (*proper.Properties, bool) {
 
 	for i, resultToken := range resultTokens {
 		commandToken := commandTokens[i]
-		if !IsParameter(commandToken) {
+		if !isParameter(commandToken) {
 			continue
 		}
 
@@ -59,8 +67,21 @@ func (c *Command) Match(text string) (*proper.Properties, bool) {
 	return proper.NewProperties(parameters), true
 }
 
-// IsParameter determines whether a string value satisfies the parameter pattern
-func IsParameter(text string) bool {
+// Tokenize returns Command info as tokens
+func (c *Command) Tokenize() []*Token {
+	words := strings.Split(c.format, space)
+	tokens := make([]*Token, len(words))
+	for i, word := range words {
+		if isParameter(word) {
+			tokens[i] = &Token{Word: word[1 : len(word)-1], IsParameter: true}
+		} else {
+			tokens[i] = &Token{Word: word, IsParameter: false}
+		}
+	}
+	return tokens
+}
+
+func isParameter(text string) bool {
 	return parameterRegex.MatchString(text)
 }
 
@@ -73,10 +94,10 @@ func compile(commandFormat string) *regexp.Regexp {
 			continue
 		}
 
-		if IsParameter(token) {
+		if isParameter(token) {
 			pattern += wordPattern
 		} else {
-			pattern += token
+			pattern += fmt.Sprintf(boundaryFormat, token)
 		}
 		pattern += spacePattern
 	}

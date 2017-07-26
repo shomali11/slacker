@@ -55,7 +55,7 @@ func main() {
 
 ## Example 2
 
-In this example, we are determining whether a token of the command format is a "Parameter". Parameters are surrounded by `<` and `>`
+In this example, we are tokenizing the command format and returning each token with a boolean that determines whether it is a parameter or not
 
 ```go
 package main
@@ -66,12 +66,15 @@ import (
 )
 
 func main() {
-	fmt.Println(commander.IsParameter("<value>"))     // true
-	fmt.Println(commander.IsParameter("<123>"))       // true
-	fmt.Println(commander.IsParameter("<value123>"))  // true
-	fmt.Println(commander.IsParameter("value>"))      // false
-	fmt.Println(commander.IsParameter("<value"))      // false
-	fmt.Println(commander.IsParameter("value"))       // false
-	fmt.Println(commander.IsParameter(""))            // false
+	tokens := commander.NewCommand("echo <word>").Tokenize()
+	for _, token := range tokens {
+		fmt.Println(token)
+	}
 }
+```
+
+Output:
+```
+&{echo false}
+&{word true}
 ```

@@ -4,11 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
-
 	"github.com/nlopes/slack"
-	"github.com/shomali11/commander"
 	"github.com/shomali11/proper"
+	"strings"
 )
 
 const (
@@ -22,7 +20,6 @@ const (
 	codeMessageFormat   = "`%s`"
 	boldMessageFormat   = "*%s*"
 	italicMessageFormat = "_%s_"
-	noCommandsAvailable = "No botCommands were setup."
 )
 
 // NewClient creates a new client using the Slack API
@@ -30,10 +27,28 @@ func NewClient(token string) *Slacker {
 	client := slack.New(token)
 	rtm := client.NewRTM()
 
-	return &Slacker{
+	slacker := &Slacker{
 		Client: client,
 		rtm:    rtm,
 	}
+
+	slacker.Command(helpCommand, helpCommand, func(request *Request, response ResponseWriter) {
+		helpMessage := empty
+		for _, command := range slacker.botCommands {
+			tokens := command.Tokenize()
+			for _, token := range tokens {
+				if token.IsParameter {
+					helpMessage += fmt.Sprintf(codeMessageFormat, token.Word) + space
+				} else {
+					helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
+				}
+			}
+			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
+		}
+		response.Reply(helpMessage)
+	})
+
+	return slacker
 }
 
 // Slacker contains the Slack API, botCommands, and handlers
@@ -119,37 +134,7 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 	return strings.HasPrefix(event.Channel, directChannelMarker)
 }
 
-func (s *Slacker) isHelpRequest(event *slack.MessageEvent) bool {
-	return strings.Contains(strings.ToLower(event.Text), helpCommand)
-}
-
-func (s *Slacker) handleHelp(channel string) {
-	if len(s.botCommands) == 0 {
-		s.sendMessage(fmt.Sprintf(italicMessageFormat, noCommandsAvailable), channel)
-		return
-	}
-
-	helpMessage := empty
-	for _, command := range s.botCommands {
-		tokens := strings.Split(command.usage, space)
-		for _, token := range tokens {
-			if commander.IsParameter(token) {
-				helpMessage += fmt.Sprintf(codeMessageFormat, token[1:len(token)-1]) + space
-			} else {
-				helpMessage += fmt.Sprintf(boldMessageFormat, token) + space
-			}
-		}
-		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
-	}
-
-	s.sendMessage(helpMessage, channel)
-}
-
 func (s *Slacker) handleMessage(event *slack.MessageEvent) {
-	if s.isHelpRequest(event) {
-		s.handleHelp(event.Channel)
-		return
-	}
 	response := NewResponse(event.Channel, s.rtm)
 	ctx := context.Background()
 
@@ -164,5 +149,7 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 
 	}
 
-	s.defaultHandler(NewRequest(ctx, event, &proper.Properties{}), response)
+	if s.defaultHandler != nil {
+		s.defaultHandler(NewRequest(ctx, event, &proper.Properties{}), response)
+	}
 }
