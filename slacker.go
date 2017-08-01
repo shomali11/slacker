@@ -122,7 +122,7 @@ func (s *Slacker) sendMessage(text string, channel string) {
 
 func (s *Slacker) isFromBot(event *slack.MessageEvent) bool {
 	info := s.rtm.GetInfo()
-	return event.User == info.User.ID
+	return event.User == info.User.ID || event.BotID != ""
 }
 
 func (s *Slacker) isBotMentioned(event *slack.MessageEvent) bool {
