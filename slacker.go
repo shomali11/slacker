@@ -134,7 +134,8 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 	return strings.HasPrefix(event.Channel, directChannelMarker)
 }
 
-func (s *Slacker) handleMessage(event *slack.MessageEvent) {
+// HandleMessage will handle a new Slack message event and call the appropriate command.
+func (s *Slacker) HandleMessage(event *slack.MessageEvent) {
 	response := NewResponse(event.Channel, s.rtm)
 	ctx := context.Background()
 
