@@ -101,7 +101,7 @@ func (s *Slacker) Listen() error {
 			if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
 				continue
 			}
-			go s.handleMessage(event)
+			go s.HandleMessage(event)
 
 		case *slack.RTMError:
 			if s.errorHandler == nil {
