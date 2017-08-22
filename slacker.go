@@ -101,7 +101,7 @@ func (s *Slacker) Listen() error {
 			if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
 				continue
 			}
-			go s.handleMessage(event)
+			go s.HandleMessage(event)
 
 		case *slack.RTMError:
 			if s.errorHandler == nil {
@@ -134,7 +134,8 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 	return strings.HasPrefix(event.Channel, directChannelMarker)
 }
 
-func (s *Slacker) handleMessage(event *slack.MessageEvent) {
+// HandleMessage will handle a new Slack message event and call the appropriate command.
+func (s *Slacker) HandleMessage(event *slack.MessageEvent) {
 	response := NewResponse(event.Channel, s.rtm)
 	ctx := context.Background()
 
