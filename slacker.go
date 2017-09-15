@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/nlopes/slack"
 	"github.com/shomali11/proper"
-	"strings"
 )
 
 const (
@@ -53,12 +54,13 @@ func NewClient(token string) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	Client         *slack.Client
-	rtm            *slack.RTM
-	botCommands    []*BotCommand
-	initHandler    func()
-	errorHandler   func(err string)
-	defaultHandler func(request *Request, response ResponseWriter)
+	Client           *slack.Client
+	rtm              *slack.RTM
+	botCommands      []*BotCommand
+	initHandler      func()
+	errorHandler     func(err string)
+	defaultHandler   func(request *Request, response ResponseWriter)
+	unhandledHandler func(interface{})
 }
 
 // Init handle the event when the bot is first connected
@@ -79,6 +81,11 @@ func (s *Slacker) Default(defaultHandler func(request *Request, response Respons
 // Command define a new command and append it to the list of existing commands
 func (s *Slacker) Command(usage string, description string, handler func(request *Request, response ResponseWriter)) {
 	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
+}
+
+// Unhandled handler when an unknown handled is seen
+func (s *Slacker) Unhandled(unhandledHandler func(interface{})) {
+	s.unhandledHandler = unhandledHandler
 }
 
 // Listen receives events from Slack and each is handled as needed
@@ -111,6 +118,12 @@ func (s *Slacker) Listen() error {
 
 		case *slack.InvalidAuthEvent:
 			return errors.New(invalidToken)
+
+		default:
+			if s.unhandledHandler == nil {
+				continue
+			}
+			go s.unhandledHandler(event)
 		}
 	}
 	return nil
