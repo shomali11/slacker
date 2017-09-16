@@ -13,7 +13,7 @@ const (
 	space               = " "
 	dash                = "-"
 	newLine             = "\n"
-	invalidToken        = "Invalid token"
+	invalidToken        = "invalid token"
 	helpCommand         = "help"
 	directChannelMarker = "D"
 	userMentionFormat   = "<@%s>"
@@ -122,7 +122,7 @@ func (s *Slacker) sendMessage(text string, channel string) {
 
 func (s *Slacker) isFromBot(event *slack.MessageEvent) bool {
 	info := s.rtm.GetInfo()
-	return event.User == info.User.ID || event.BotID != ""
+	return event.User == info.User.ID || len(event.BotID) > 0
 }
 
 func (s *Slacker) isBotMentioned(event *slack.MessageEvent) bool {
