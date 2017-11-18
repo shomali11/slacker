@@ -13,7 +13,7 @@ const (
 	ignoreCase       = "(?i)"
 	parameterPattern = "<\\S+>"
 	spacePattern     = "\\s*"
-	wordPattern      = "\\b(\\S+)?\\b"
+	wordPattern      = "(\\S+)?"
 	boundaryFormat   = "\\b%s\\b"
 )
 
