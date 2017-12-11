@@ -14,7 +14,7 @@ const (
 	parameterPattern = "<\\S+>"
 	spacePattern     = "\\s*"
 	wordPattern      = "(\\S+)?"
-	boundaryFormat   = "\\b%s\\b"
+	boundaryFormat   = "(\\s|^)%s(\\s|$)"
 )
 
 var parameterRegex *regexp.Regexp
