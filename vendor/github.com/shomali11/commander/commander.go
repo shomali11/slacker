@@ -1,32 +1,31 @@
 package commander
 
 import (
-	"fmt"
 	"github.com/shomali11/proper"
 	"regexp"
 	"strings"
 )
 
 const (
-	empty            = ""
-	space            = " "
-	ignoreCase       = "(?i)"
-	parameterPattern = "<\\S+>"
-	spacePattern     = "\\s*"
-	wordPattern      = "(\\S+)?"
-	boundaryFormat   = "(\\s|^)%s(\\s|$)"
+	escapeCharacter      = "\\"
+	ignoreCase           = "(?i)"
+	parameterPattern     = "<\\S+>"
+	spacePattern         = "\\s+"
+	optionalSpacePattern = "\\s*"
+	inputPattern         = "(\\S+)?"
+	preCommandPattern    = "(\\s|^)"
+	postCommandPattern   = "(\\s|$)"
 )
 
-var parameterRegex *regexp.Regexp
-
-func init() {
-	parameterRegex = regexp.MustCompile(parameterPattern)
-}
+var (
+	regexCharacters = []string{"\\", "(", ")", "{", "}", "[", "]", "?", ".", "+", "|", "^", "$"}
+)
 
 // NewCommand creates a new Command object from the format passed in
 func NewCommand(format string) *Command {
-	expression := compile(format)
-	return &Command{format: format, expression: expression}
+	tokens := tokenize(format)
+	expression := compile(tokens)
+	return &Command{tokens: tokens, expression: expression}
 }
 
 // Token represents the Token object
@@ -37,7 +36,7 @@ type Token struct {
 
 // Command represents the Command object
 type Command struct {
-	format     string
+	tokens     []*Token
 	expression *regexp.Regexp
 }
 
@@ -53,26 +52,36 @@ func (c *Command) Match(text string) (*proper.Properties, bool) {
 	}
 
 	parameters := make(map[string]string)
-	commandTokens := strings.Split(c.format, space)
-	resultTokens := strings.Split(result, space)
-
+	resultTokens := strings.Fields(result)
 	for i, resultToken := range resultTokens {
-		commandToken := commandTokens[i]
-		if !isParameter(commandToken) {
+		commandToken := c.tokens[i]
+		if !commandToken.IsParameter {
 			continue
 		}
 
-		parameters[commandToken[1:len(commandToken)-1]] = resultToken
+		parameters[commandToken.Word] = resultToken
 	}
 	return proper.NewProperties(parameters), true
 }
 
 // Tokenize returns Command info as tokens
 func (c *Command) Tokenize() []*Token {
-	words := strings.Split(c.format, space)
+	return c.tokens
+}
+
+func escape(text string) string {
+	for _, character := range regexCharacters {
+		text = strings.Replace(text, character, escapeCharacter+character, -1)
+	}
+	return text
+}
+
+func tokenize(format string) []*Token {
+	parameterRegex := regexp.MustCompile(parameterPattern)
+	words := strings.Fields(format)
 	tokens := make([]*Token, len(words))
 	for i, word := range words {
-		if isParameter(word) {
+		if parameterRegex.MatchString(word) {
 			tokens[i] = &Token{Word: word[1 : len(word)-1], IsParameter: true}
 		} else {
 			tokens[i] = &Token{Word: word, IsParameter: false}
@@ -81,29 +90,32 @@ func (c *Command) Tokenize() []*Token {
 	return tokens
 }
 
-func isParameter(text string) bool {
-	return parameterRegex.MatchString(text)
-}
-
-func compile(commandFormat string) *regexp.Regexp {
-	commandFormat = strings.TrimSpace(commandFormat)
-	tokens := strings.Split(commandFormat, space)
-	pattern := empty
-	for _, token := range tokens {
-		if len(token) == 0 {
-			continue
-		}
-
-		if isParameter(token) {
-			pattern += wordPattern
-		} else {
-			pattern += fmt.Sprintf(boundaryFormat, token)
-		}
-		pattern += spacePattern
-	}
-
-	if len(pattern) == 0 {
+func compile(tokens []*Token) *regexp.Regexp {
+	if len(tokens) == 0 {
 		return nil
 	}
+
+	pattern := preCommandPattern
+	if tokens[0].IsParameter {
+		pattern += inputPattern
+	} else {
+		pattern += escape(tokens[0].Word)
+	}
+
+	for index := 1; index < len(tokens); index++ {
+		previousToken := tokens[index-1]
+		currentToken := tokens[index]
+
+		if !previousToken.IsParameter && !currentToken.IsParameter {
+			pattern += spacePattern + escape(currentToken.Word)
+		} else if previousToken.IsParameter && currentToken.IsParameter {
+			pattern += optionalSpacePattern + inputPattern
+		} else if previousToken.IsParameter && !currentToken.IsParameter {
+			pattern += optionalSpacePattern + escape(currentToken.Word)
+		} else {
+			pattern += optionalSpacePattern + inputPattern
+		}
+	}
+	pattern += postCommandPattern
 	return regexp.MustCompile(ignoreCase + pattern)
 }
