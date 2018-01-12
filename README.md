@@ -81,6 +81,10 @@ func main() {
 		response.Reply("Say what?")
 	})
 
+	bot.Help(func(request *slacker.Request, response slacker.ResponseWriter) {
+		response.Reply("Your own help function...")
+	})
+
 	err := bot.Listen()
 	if err != nil {
 		log.Fatal(err)
