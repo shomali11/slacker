@@ -62,7 +62,7 @@ func (s *Slacker) Default(defaultHandler func(request *Request, response Respons
 	s.defaultHandler = defaultHandler
 }
 
-// Helper handle the help message, it will use the default if not set
+// Help handle the help message, it will use the default if not set
 func (s *Slacker) Help(helpHandler func(request *Request, response ResponseWriter)) {
 	s.helpHandler = helpHandler
 }
