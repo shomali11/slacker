@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
+
 	"github.com/nlopes/slack"
 	"github.com/shomali11/proper"
-	"strings"
 )
 
 const (
@@ -32,22 +33,6 @@ func NewClient(token string) *Slacker {
 		rtm:    rtm,
 	}
 
-	slacker.Command(helpCommand, helpCommand, func(request *Request, response ResponseWriter) {
-		helpMessage := empty
-		for _, command := range slacker.botCommands {
-			tokens := command.Tokenize()
-			for _, token := range tokens {
-				if token.IsParameter {
-					helpMessage += fmt.Sprintf(codeMessageFormat, token.Word) + space
-				} else {
-					helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
-				}
-			}
-			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
-		}
-		response.Reply(helpMessage)
-	})
-
 	return slacker
 }
 
@@ -58,6 +43,7 @@ type Slacker struct {
 	botCommands    []*BotCommand
 	initHandler    func()
 	errorHandler   func(err string)
+	helpHandler    func(request *Request, response ResponseWriter)
 	defaultHandler func(request *Request, response ResponseWriter)
 }
 
@@ -76,6 +62,11 @@ func (s *Slacker) Default(defaultHandler func(request *Request, response Respons
 	s.defaultHandler = defaultHandler
 }
 
+// Help handle the help message, it will use the default if not set
+func (s *Slacker) Help(helpHandler func(request *Request, response ResponseWriter)) {
+	s.helpHandler = helpHandler
+}
+
 // Command define a new command and append it to the list of existing commands
 func (s *Slacker) Command(usage string, description string, handler func(request *Request, response ResponseWriter)) {
 	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
@@ -83,6 +74,8 @@ func (s *Slacker) Command(usage string, description string, handler func(request
 
 // Listen receives events from Slack and each is handled as needed
 func (s *Slacker) Listen() error {
+	s.prependHelpHandle()
+
 	go s.rtm.ManageConnection()
 
 	for msg := range s.rtm.IncomingEvents {
@@ -152,4 +145,27 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 	if s.defaultHandler != nil {
 		s.defaultHandler(NewRequest(ctx, event, &proper.Properties{}), response)
 	}
+}
+
+func (s *Slacker) defaultHelp(request *Request, response ResponseWriter) {
+	helpMessage := empty
+	for _, command := range s.botCommands {
+		tokens := command.Tokenize()
+		for _, token := range tokens {
+			if token.IsParameter {
+				helpMessage += fmt.Sprintf(codeMessageFormat, token.Word) + space
+			} else {
+				helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
+			}
+		}
+		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
+	}
+	response.Reply(helpMessage)
+}
+
+func (s *Slacker) prependHelpHandle() {
+	if s.helpHandler == nil {
+		s.helpHandler = s.defaultHelp
+	}
+	s.botCommands = append([]*BotCommand{NewBotCommand(helpCommand, helpCommand, s.helpHandler)}, s.botCommands...)
 }
