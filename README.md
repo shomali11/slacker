@@ -210,8 +210,8 @@ func main() {
 
 ## Example 7
 
-Showcasing the ability to access the [github.com/nlopes/slack](https://github.com/nlopes/slack) API. 
-_In this example, we upload a file using the Slack API._
+Showcasing the ability to access the [github.com/nlopes/slack](https://github.com/nlopes/slack) API and the Real-Time Messaging Protocol.
+_In this example, we are sending a message using RTM and uploading a file using the Slack API._
 
 ```go
 package main
@@ -228,6 +228,8 @@ func main() {
 	bot.Command("upload <word>", "Upload a word!", func(request *slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
 		channel := request.Event.Channel
+
+		bot.RTM.SendMessage(bot.RTM.NewOutgoingMessage("Uploading file ...", channel))
 		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 

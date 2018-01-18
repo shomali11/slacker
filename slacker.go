@@ -26,20 +26,17 @@ const (
 // NewClient creates a new client using the Slack API
 func NewClient(token string) *Slacker {
 	client := slack.New(token)
-	rtm := client.NewRTM()
-
 	slacker := &Slacker{
 		Client: client,
-		rtm:    rtm,
+		RTM:    client.NewRTM(),
 	}
-
 	return slacker
 }
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
 	Client         *slack.Client
-	rtm            *slack.RTM
+	RTM            *slack.RTM
 	botCommands    []*BotCommand
 	initHandler    func()
 	errorHandler   func(err string)
@@ -76,9 +73,9 @@ func (s *Slacker) Command(usage string, description string, handler func(request
 func (s *Slacker) Listen() error {
 	s.prependHelpHandle()
 
-	go s.rtm.ManageConnection()
+	go s.RTM.ManageConnection()
 
-	for msg := range s.rtm.IncomingEvents {
+	for msg := range s.RTM.IncomingEvents {
 		switch event := msg.Data.(type) {
 		case *slack.ConnectedEvent:
 			if s.initHandler == nil {
@@ -110,16 +107,16 @@ func (s *Slacker) Listen() error {
 }
 
 func (s *Slacker) sendMessage(text string, channel string) {
-	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, channel))
+	s.RTM.SendMessage(s.RTM.NewOutgoingMessage(text, channel))
 }
 
 func (s *Slacker) isFromBot(event *slack.MessageEvent) bool {
-	info := s.rtm.GetInfo()
+	info := s.RTM.GetInfo()
 	return event.User == info.User.ID || len(event.BotID) > 0
 }
 
 func (s *Slacker) isBotMentioned(event *slack.MessageEvent) bool {
-	info := s.rtm.GetInfo()
+	info := s.RTM.GetInfo()
 	return strings.Contains(event.Text, fmt.Sprintf(userMentionFormat, info.User.ID))
 }
 
@@ -128,7 +125,7 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) handleMessage(event *slack.MessageEvent) {
-	response := NewResponse(event.Channel, s.rtm)
+	response := NewResponse(event.Channel, s.RTM)
 	ctx := context.Background()
 
 	for _, cmd := range s.botCommands {
