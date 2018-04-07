@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"fmt"
 	"github.com/shomali11/slacker"
 )
 
@@ -17,8 +18,12 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.Default(func(request *slacker.Request, response slacker.ResponseWriter) {
+	bot.DefaultCommand(func(request *slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
+	})
+
+	bot.DefaultEvent(func(event interface{}) {
+		fmt.Println(event)
 	})
 
 	bot.Help(func(request *slacker.Request, response slacker.ResponseWriter) {

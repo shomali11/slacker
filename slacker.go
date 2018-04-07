@@ -35,13 +35,14 @@ func NewClient(token string) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	Client         *slack.Client
-	RTM            *slack.RTM
-	botCommands    []*BotCommand
-	initHandler    func()
-	errorHandler   func(err string)
-	helpHandler    func(request *Request, response ResponseWriter)
-	defaultHandler func(request *Request, response ResponseWriter)
+	Client                *slack.Client
+	RTM                   *slack.RTM
+	botCommands           []*BotCommand
+	initHandler           func()
+	errorHandler          func(err string)
+	helpHandler           func(request *Request, response ResponseWriter)
+	defaultMessageHandler func(request *Request, response ResponseWriter)
+	defaultEventHandler   func(interface{})
 }
 
 // Init handle the event when the bot is first connected
@@ -54,9 +55,14 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
 }
 
-// Default handle when none of the commands are matched
-func (s *Slacker) Default(defaultHandler func(request *Request, response ResponseWriter)) {
-	s.defaultHandler = defaultHandler
+// DefaultCommand handle messages when none of the commands are matched
+func (s *Slacker) DefaultCommand(defaultMessageHandler func(request *Request, response ResponseWriter)) {
+	s.defaultMessageHandler = defaultMessageHandler
+}
+
+// DefaultEvent handle events when an unknown event is seen
+func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
+	s.defaultEventHandler = defaultEventHandler
 }
 
 // Help handle the help message, it will use the default if not set
@@ -101,6 +107,12 @@ func (s *Slacker) Listen() error {
 
 		case *slack.InvalidAuthEvent:
 			return errors.New(invalidToken)
+
+		default:
+			if s.defaultEventHandler == nil {
+				continue
+			}
+			go s.defaultEventHandler(event)
 		}
 	}
 	return nil
@@ -139,8 +151,8 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 
 	}
 
-	if s.defaultHandler != nil {
-		s.defaultHandler(NewRequest(ctx, event, &proper.Properties{}), response)
+	if s.defaultMessageHandler != nil {
+		s.defaultMessageHandler(NewRequest(ctx, event, &proper.Properties{}), response)
 	}
 }
 
