@@ -21,6 +21,7 @@ const (
 	codeMessageFormat   = "`%s`"
 	boldMessageFormat   = "*%s*"
 	italicMessageFormat = "_%s_"
+	slackBotUser        = "USLACKBOT"
 )
 
 // NewClient creates a new client using the Slack API
@@ -124,7 +125,7 @@ func (s *Slacker) sendMessage(text string, channel string) {
 
 func (s *Slacker) isFromBot(event *slack.MessageEvent) bool {
 	info := s.RTM.GetInfo()
-	return event.User == info.User.ID || len(event.BotID) > 0
+	return len(event.User) == 0 || event.User == slackBotUser || event.User == info.User.ID || len(event.BotID) > 0
 }
 
 func (s *Slacker) isBotMentioned(event *slack.MessageEvent) bool {
