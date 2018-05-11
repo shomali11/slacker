@@ -41,8 +41,8 @@ type Slacker struct {
 	botCommands           []*BotCommand
 	initHandler           func()
 	errorHandler          func(err string)
-	helpHandler           func(request *Request, response ResponseWriter)
-	defaultMessageHandler func(request *Request, response ResponseWriter)
+	helpHandler           func(request Request, response ResponseWriter)
+	defaultMessageHandler func(request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
 }
 
@@ -57,7 +57,7 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 }
 
 // DefaultCommand handle messages when none of the commands are matched
-func (s *Slacker) DefaultCommand(defaultMessageHandler func(request *Request, response ResponseWriter)) {
+func (s *Slacker) DefaultCommand(defaultMessageHandler func(request Request, response ResponseWriter)) {
 	s.defaultMessageHandler = defaultMessageHandler
 }
 
@@ -67,12 +67,12 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 }
 
 // Help handle the help message, it will use the default if not set
-func (s *Slacker) Help(helpHandler func(request *Request, response ResponseWriter)) {
+func (s *Slacker) Help(helpHandler func(request Request, response ResponseWriter)) {
 	s.helpHandler = helpHandler
 }
 
 // Command define a new command and append it to the list of existing commands
-func (s *Slacker) Command(usage string, description string, handler func(request *Request, response ResponseWriter)) {
+func (s *Slacker) Command(usage string, description string, handler func(request Request, response ResponseWriter)) {
 	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
 }
 
@@ -138,7 +138,7 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) handleMessage(event *slack.MessageEvent) {
-	response := NewResponse(event.Channel, s.RTM)
+	response := NewResponse(event.Channel, s.Client, s.RTM)
 	ctx := context.Background()
 
 	for _, cmd := range s.botCommands {
@@ -157,7 +157,7 @@ func (s *Slacker) handleMessage(event *slack.MessageEvent) {
 	}
 }
 
-func (s *Slacker) defaultHelp(request *Request, response ResponseWriter) {
+func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 	helpMessage := empty
 	for _, command := range s.botCommands {
 		tokens := command.Tokenize()
