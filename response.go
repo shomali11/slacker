@@ -13,7 +13,7 @@ const (
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
 	Reply(text string)
-	PostMessage(channel, message string, attachments *[]slack.Attachment)
+	Reply(text string, attachments *[]slack.Attachment)
 	ReportError(err error)
 	Typing()
 	RTM() *slack.RTM
@@ -47,13 +47,13 @@ func (r *Response) Typing() {
 	r.rtm.SendMessage(r.rtm.NewTypingMessage(r.channel))
 }
 
-// PostMessage send a attachments to the current channel with a message
-func (r *Response) PostMessage(channel, message string, attachments *[]slack.Attachment) {
+// Reply send a attachments to the current channel with a message
+func (r *Response) Reply(text string, attachments *[]slack.Attachment) {
 	params := slack.PostMessageParameters{}
 	params.User = r.rtm.GetInfo().User.ID
 	params.AsUser = true
 	params.Attachments = *attachments
-	r.rtm.PostMessage(channel, message, params)
+	r.rtm.PostMessage(r.channel, message, params)
 }
 
 // RTM returns the RTM client
