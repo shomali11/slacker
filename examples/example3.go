@@ -9,7 +9,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("echo <word>", "Echo a word!", func(request *slacker.Request, response slacker.ResponseWriter) {
+	bot.Command("echo <word>", "Echo a word!", func(request slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
 		response.Reply(word)
 	})
