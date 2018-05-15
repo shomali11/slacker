@@ -10,21 +10,6 @@ const (
 	errorFormat = "*Error:* _%s_"
 )
 
-// DefaultsOption an option for default values
-type DefaultsOption func(*Defaults)
-
-// WithAttachments sets message attachments
-func WithAttachments(attachments []slack.Attachment) DefaultsOption {
-	return func(defaults *Defaults) {
-		defaults.Attachments = attachments
-	}
-}
-
-// Defaults configuration
-type Defaults struct {
-	Attachments []slack.Attachment
-}
-
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
 	Reply(text string, options ...DefaultsOption)
@@ -76,15 +61,4 @@ func (r *Response) RTM() *slack.RTM {
 // Client returns the slack client
 func (r *Response) Client() *slack.Client {
 	return r.client
-}
-
-func newDefaults(options ...DefaultsOption) *Defaults {
-	config := &Defaults{
-		Attachments: []slack.Attachment{},
-	}
-
-	for _, option := range options {
-		option(config)
-	}
-	return config
 }

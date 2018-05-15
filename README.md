@@ -223,9 +223,10 @@ _In this example, we are sending a message using RTM and uploading a file using 
 package main
 
 import (
+	"log"
+
 	"github.com/nlopes/slack"
 	"github.com/shomali11/slacker"
-	"log"
 )
 
 func main() {
@@ -235,8 +236,11 @@ func main() {
 		word := request.Param("word")
 		channel := request.Event().Channel
 
-		bot.RTM.SendMessage(bot.RTM.NewOutgoingMessage("Uploading file ...", channel))
-		bot.Client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+		rtm := response.RTM()
+		client := response.Client()
+
+		rtm.SendMessage(rtm.NewOutgoingMessage("Uploading file ...", channel))
+		client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 
 	err := bot.Listen()
@@ -244,6 +248,7 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
 ```
 
 ## Example 8
