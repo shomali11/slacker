@@ -10,10 +10,24 @@ const (
 	errorFormat = "*Error:* _%s_"
 )
 
+// DefaultsOption an option for default values
+type DefaultsOption func(*Defaults)
+
+// WithAttachments sets message attachments
+func WithAttachments(attachments []slack.Attachment) DefaultsOption {
+	return func(defaults *Defaults) {
+		defaults.Attachments = attachments
+	}
+}
+
+// Defaults configuration
+type Defaults struct {
+	Attachments []slack.Attachment
+}
+
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
-	Reply(text string)
-	Reply(text string, attachments *[]slack.Attachment)
+	Reply(text string, options ...DefaultsOption)
 	ReportError(err error)
 	Typing()
 	RTM() *slack.RTM
@@ -32,11 +46,6 @@ type Response struct {
 	rtm     *slack.RTM
 }
 
-// Reply send a message back to the channel where we received the event from
-func (r *Response) Reply(text string) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(text, r.channel))
-}
-
 // ReportError sends back a formatted error message to the channel where we received the event from
 func (r *Response) ReportError(err error) {
 	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.channel))
@@ -48,11 +57,14 @@ func (r *Response) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *Response) Reply(text string, attachments *[]slack.Attachment) {
+func (r *Response) Reply(message string, options ...DefaultsOption) {
+	defaults := newDefaults(options...)
+
 	params := slack.PostMessageParameters{}
 	params.User = r.rtm.GetInfo().User.ID
 	params.AsUser = true
-	params.Attachments = *attachments
+	params.Attachments = defaults.Attachments
+
 	r.rtm.PostMessage(r.channel, message, params)
 }
 
@@ -64,4 +76,15 @@ func (r *Response) RTM() *slack.RTM {
 // Client returns the slack client
 func (r *Response) Client() *slack.Client {
 	return r.client
+}
+
+func newDefaults(options ...DefaultsOption) *Defaults {
+	config := &Defaults{
+		Attachments: []slack.Attachment{},
+	}
+
+	for _, option := range options {
+		option(config)
+	}
+	return config
 }

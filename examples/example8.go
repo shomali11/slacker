@@ -13,7 +13,7 @@ func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	bot.Command("process", "Process!", func(request slacker.Request, response slacker.ResponseWriter) {
-		timedContext, cancel := context.WithTimeout(request.Context, time.Second)
+		timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
 		defer cancel()
 
 		select {
