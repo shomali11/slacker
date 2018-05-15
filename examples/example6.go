@@ -10,7 +10,7 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("time", "Server time!", func(request *slacker.Request, response slacker.ResponseWriter) {
+	bot.Command("time", "Server time!", func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Typing()
 
 		time.Sleep(time.Second)

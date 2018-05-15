@@ -18,7 +18,7 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.DefaultCommand(func(request *slacker.Request, response slacker.ResponseWriter) {
+	bot.DefaultCommand(func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
 
@@ -26,7 +26,7 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.Help(func(request *slacker.Request, response slacker.ResponseWriter) {
+	bot.Help(func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Your own help function...")
 	})
 
