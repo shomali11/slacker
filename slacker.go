@@ -119,6 +119,11 @@ func (s *Slacker) Listen() error {
 	return nil
 }
 
+// GetUserInfo retrieve complete user information
+func (s *Slacker) GetUserInfo(user string) (*slack.User, error) {
+	return s.client.GetUserInfo(user)
+}
+
 func (s *Slacker) sendMessage(text string, channel string) {
 	s.rtm.SendMessage(s.rtm.NewOutgoingMessage(text, channel))
 }
