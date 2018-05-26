@@ -46,6 +46,7 @@ type Slacker struct {
 	defaultEventHandler   func(interface{})
 }
 
+// BotCommands returns Bot Commands
 func (s *Slacker) BotCommands() []BotCommand {
 	return s.botCommands
 }
