@@ -38,12 +38,16 @@ func NewClient(token string) *Slacker {
 type Slacker struct {
 	client                *slack.Client
 	rtm                   *slack.RTM
-	botCommands           []*BotCommand
+	botCommands           []BotCommand
 	initHandler           func()
 	errorHandler          func(err string)
 	helpHandler           func(request Request, response ResponseWriter)
 	defaultMessageHandler func(request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
+}
+
+func (s *Slacker) BotCommands() []BotCommand {
+	return s.botCommands
 }
 
 // Init handle the event when the bot is first connected
@@ -173,7 +177,7 @@ func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 				helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
 			}
 		}
-		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.description) + newLine
+		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Description()) + newLine
 	}
 	response.Reply(helpMessage)
 }
@@ -182,5 +186,5 @@ func (s *Slacker) prependHelpHandle() {
 	if s.helpHandler == nil {
 		s.helpHandler = s.defaultHelp
 	}
-	s.botCommands = append([]*BotCommand{NewBotCommand(helpCommand, helpCommand, s.helpHandler)}, s.botCommands...)
+	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, helpCommand, s.helpHandler)}, s.botCommands...)
 }
