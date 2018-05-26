@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,29 +19,17 @@ import (
 	"time"
 )
 
-// HTTPRequester defines the minimal interface needed for an http.Client to be implemented.
-//
-// Use it in conjunction with the SetHTTPClient function to allow for other capabilities
-// like a tracing http.Client
-type HTTPRequester interface {
-	Do(*http.Request) (*http.Response, error)
+type SlackResponse struct {
+	Ok    bool   `json:"ok"`
+	Error string `json:"error"`
 }
 
-var customHTTPClient HTTPRequester
+func (t SlackResponse) Err() error {
+	if t.Ok {
+		return nil
+	}
 
-// HTTPClient sets a custom http.Client
-// deprecated: in favor of SetHTTPClient()
-var HTTPClient = &http.Client{}
-
-type WebResponse struct {
-	Ok    bool      `json:"ok"`
-	Error *WebError `json:"error"`
-}
-
-type WebError string
-
-func (s WebError) Error() string {
-	return string(s)
+	return errors.New(t.Error)
 }
 
 type RateLimitedError struct {
@@ -77,7 +66,7 @@ func fileUploadReq(ctx context.Context, path, fieldname, filename string, values
 	return req, nil
 }
 
-func parseResponseBody(body io.ReadCloser, intf *interface{}, debug bool) error {
+func parseResponseBody(body io.ReadCloser, intf interface{}, debug bool) error {
 	response, err := ioutil.ReadAll(body)
 	if err != nil {
 		return err
@@ -88,10 +77,10 @@ func parseResponseBody(body io.ReadCloser, intf *interface{}, debug bool) error 
 		logger.Printf("parseResponseBody: %s\n", string(response))
 	}
 
-	return json.Unmarshal(response, &intf)
+	return json.Unmarshal(response, intf)
 }
 
-func postLocalWithMultipartResponse(ctx context.Context, path, fpath, fieldname string, values url.Values, intf interface{}, debug bool) error {
+func postLocalWithMultipartResponse(ctx context.Context, client HTTPRequester, path, fpath, fieldname string, values url.Values, intf interface{}, debug bool) error {
 	fullpath, err := filepath.Abs(fpath)
 	if err != nil {
 		return err
@@ -101,16 +90,16 @@ func postLocalWithMultipartResponse(ctx context.Context, path, fpath, fieldname 
 		return err
 	}
 	defer file.Close()
-	return postWithMultipartResponse(ctx, path, filepath.Base(fpath), fieldname, values, file, intf, debug)
+	return postWithMultipartResponse(ctx, client, path, filepath.Base(fpath), fieldname, values, file, intf, debug)
 }
 
-func postWithMultipartResponse(ctx context.Context, path, name, fieldname string, values url.Values, r io.Reader, intf interface{}, debug bool) error {
+func postWithMultipartResponse(ctx context.Context, client HTTPRequester, path, name, fieldname string, values url.Values, r io.Reader, intf interface{}, debug bool) error {
 	req, err := fileUploadReq(ctx, SLACK_API+path, fieldname, name, values, r)
 	if err != nil {
 		return err
 	}
 	req = req.WithContext(ctx)
-	resp, err := getHTTPClient().Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -130,10 +119,10 @@ func postWithMultipartResponse(ctx context.Context, path, name, fieldname string
 		return fmt.Errorf("Slack server error: %s.", resp.Status)
 	}
 
-	return parseResponseBody(resp.Body, &intf, debug)
+	return parseResponseBody(resp.Body, intf, debug)
 }
 
-func postForm(ctx context.Context, endpoint string, values url.Values, intf interface{}, debug bool) error {
+func postForm(ctx context.Context, client HTTPRequester, endpoint string, values url.Values, intf interface{}, debug bool) error {
 	reqBody := strings.NewReader(values.Encode())
 	req, err := http.NewRequest("POST", endpoint, reqBody)
 	if err != nil {
@@ -142,7 +131,7 @@ func postForm(ctx context.Context, endpoint string, values url.Values, intf inte
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	req = req.WithContext(ctx)
-	resp, err := getHTTPClient().Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return err
 	}
@@ -162,16 +151,16 @@ func postForm(ctx context.Context, endpoint string, values url.Values, intf inte
 		return fmt.Errorf("Slack server error: %s.", resp.Status)
 	}
 
-	return parseResponseBody(resp.Body, &intf, debug)
+	return parseResponseBody(resp.Body, intf, debug)
 }
 
-func post(ctx context.Context, path string, values url.Values, intf interface{}, debug bool) error {
-	return postForm(ctx, SLACK_API+path, values, intf, debug)
+func post(ctx context.Context, client HTTPRequester, path string, values url.Values, intf interface{}, debug bool) error {
+	return postForm(ctx, client, SLACK_API+path, values, intf, debug)
 }
 
-func parseAdminResponse(ctx context.Context, method string, teamName string, values url.Values, intf interface{}, debug bool) error {
+func parseAdminResponse(ctx context.Context, client HTTPRequester, method string, teamName string, values url.Values, intf interface{}, debug bool) error {
 	endpoint := fmt.Sprintf(SLACK_WEB_API_FORMAT, teamName, method, time.Now().Unix())
-	return postForm(ctx, endpoint, values, intf, debug)
+	return postForm(ctx, client, endpoint, values, intf, debug)
 }
 
 func logResponse(resp *http.Response, debug bool) error {
@@ -187,17 +176,16 @@ func logResponse(resp *http.Response, debug bool) error {
 	return nil
 }
 
-func getHTTPClient() HTTPRequester {
-	if customHTTPClient != nil {
-		return customHTTPClient
-	}
-
-	return HTTPClient
+func okJsonHandler(rw http.ResponseWriter, r *http.Request) {
+	rw.Header().Set("Content-Type", "application/json")
+	response, _ := json.Marshal(SlackResponse{
+		Ok: true,
+	})
+	rw.Write(response)
 }
 
-// SetHTTPClient allows you to specify a custom http.Client
-// Use this instead of the package level HTTPClient variable if you want to use a custom client like the
-// Stackdriver Trace HTTPClient https://godoc.org/cloud.google.com/go/trace#HTTPClient
-func SetHTTPClient(client HTTPRequester) {
-	customHTTPClient = client
+type errorString string
+
+func (t errorString) Error() string {
+	return string(t)
 }

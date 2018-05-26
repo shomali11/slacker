@@ -9,10 +9,16 @@
 			"revisionTime": "2016-10-29T20:57:26Z"
 		},
 		{
-			"checksumSHA1": "tbjywCmVPr+twP4mc0RyFFMiYMk=",
+			"checksumSHA1": "mB5P3/XIC7r4Jc0/K86NA9Jq2CA=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "21ab95fa12b9bdd8fecf5fa3586aad941cc98785",
+			"revisionTime": "2018-04-20T17:16:12Z"
+		},
+		{
+			"checksumSHA1": "gfZcDHrsjNfvWFOFhiEdL+Kmszw=",
 			"path": "github.com/nlopes/slack",
-			"revision": "107290b5bbaf3e634833346bb4ff389b1c782bc7",
-			"revisionTime": "2017-12-31T22:58:23Z"
+			"revision": "372b354625964a2a904e54b2889cb01a69f4dfb3",
+			"revisionTime": "2018-05-07T05:25:18Z"
 		},
 		{
 			"checksumSHA1": "LuFv4/jlrmFNnDb/5SCSEPAM9vU=",
