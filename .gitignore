@@ -1,1 +1,5 @@
+# Vendoring
+vendor
+
+# IDE stuff
 .idea/
