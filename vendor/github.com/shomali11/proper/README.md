@@ -7,14 +7,6 @@ A `map[string]string` decorator offering a collection of helpful functions to ex
 * Retrieve data from a string map, in String, Integer, Float and Boolean types.
 * Return a default value in case of missing keys or invalid types
 
-## Usage
-
-Using `govendor` [github.com/kardianos/govendor](https://github.com/kardianos/govendor):
-
-```
-govendor fetch github.com/shomali11/proper
-```
-
 # Examples
 
 ```go
