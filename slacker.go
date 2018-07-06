@@ -87,10 +87,11 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 	go s.rtm.ManageConnection()
 
+loop:
 	for msg := range s.rtm.IncomingEvents {
 		select {
 		case <-ctx.Done():
-			break
+			break loop
 		default:
 			switch event := msg.Data.(type) {
 			case *slack.ConnectedEvent:
