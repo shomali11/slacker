@@ -82,43 +82,48 @@ func (s *Slacker) Command(usage string, description string, handler func(request
 }
 
 // Listen receives events from Slack and each is handled as needed
-func (s *Slacker) Listen() error {
+func (s *Slacker) Listen(ctx context.Context) error {
 	s.prependHelpHandle()
 
 	go s.rtm.ManageConnection()
 
 	for msg := range s.rtm.IncomingEvents {
-		switch event := msg.Data.(type) {
-		case *slack.ConnectedEvent:
-			if s.initHandler == nil {
-				continue
-			}
-			go s.initHandler()
-
-		case *slack.MessageEvent:
-			if s.isFromBot(event) {
-				continue
-			}
-
-			if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
-				continue
-			}
-			go s.handleMessage(event)
-
-		case *slack.RTMError:
-			if s.errorHandler == nil {
-				continue
-			}
-			go s.errorHandler(event.Error())
-
-		case *slack.InvalidAuthEvent:
-			return errors.New(invalidToken)
-
+		select {
+		case <-ctx.Done():
+			break
 		default:
-			if s.defaultEventHandler == nil {
-				continue
+			switch event := msg.Data.(type) {
+			case *slack.ConnectedEvent:
+				if s.initHandler == nil {
+					continue
+				}
+				go s.initHandler()
+
+			case *slack.MessageEvent:
+				if s.isFromBot(event) {
+					continue
+				}
+
+				if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
+					continue
+				}
+				go s.handleMessage(event)
+
+			case *slack.RTMError:
+				if s.errorHandler == nil {
+					continue
+				}
+				go s.errorHandler(event.Error())
+
+			case *slack.InvalidAuthEvent:
+				return errors.New(invalidToken)
+
+			default:
+				if s.defaultEventHandler == nil {
+					continue
+				}
+				go s.defaultEventHandler(event)
 			}
-			go s.defaultEventHandler(event)
 		}
 	}
 	return nil
