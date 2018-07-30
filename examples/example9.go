@@ -10,22 +10,21 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("echo <word>", "Echo a word!", func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.Command("upload <word>", "Upload a word!", func(request slacker.Request, response slacker.ResponseWriter) {
 		word := request.Param("word")
+		channel := request.Event().Channel
 
-		attachments := []slack.Attachment{}
-		attachments = append(attachments, slack.Attachment{
-			Color:      "red",
-			AuthorName: "Raed Shomali",
-			Title:      "Attachment Title",
-			Text:       "Attachment Text",
-		})
+		rtm := response.RTM()
+		client := response.Client()
 
-		response.Reply(word, slacker.WithAttachments(attachments))
+		rtm.SendMessage(rtm.NewOutgoingMessage("Uploading file ...", channel))
+		client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 
-	err := bot.Listen()
-	if err != nil {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	if err := bot.Listen(ctx); err != nil {
 		log.Fatal(err)
 	}
 }
