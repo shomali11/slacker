@@ -18,7 +18,7 @@ func NewRequest(ctx context.Context, event *slack.MessageEvent, properties *prop
 
 // request contains the Event received and parameters
 type request struct {
-	ctx    context.Context
+	ctx        context.Context
 	event      *slack.MessageEvent
 	properties *proper.Properties
 }
