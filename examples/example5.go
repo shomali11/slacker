@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"errors"
 	"github.com/shomali11/slacker"
 	"log"
@@ -13,10 +14,11 @@ func main() {
 		response.ReportError(errors.New("Oops!"))
 	})
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := bot.Listen(ctx); err != nil {
+	err := bot.Listen(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

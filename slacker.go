@@ -107,7 +107,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
 					continue
 				}
-				go s.handleMessage(event)
+				go s.handleMessage(ctx, event)
 
 			case *slack.RTMError:
 				if s.errorHandler == nil {
@@ -152,9 +152,8 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 	return strings.HasPrefix(event.Channel, directChannelMarker)
 }
 
-func (s *Slacker) handleMessage(event *slack.MessageEvent) {
+func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) {
 	response := NewResponse(event.Channel, s.client, s.rtm)
-	ctx := context.Background()
 
 	for _, cmd := range s.botCommands {
 		parameters, isMatch := cmd.Match(event.Text)

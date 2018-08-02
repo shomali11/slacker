@@ -1,31 +1,33 @@
 package main
 
 import (
-	"log"
-
-	"github.com/nlopes/slack"
+	"context"
+	"errors"
 	"github.com/shomali11/slacker"
+	"log"
 	"time"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("upload <word>", "Upload a word!", func(request slacker.Request, response slacker.ResponseWriter) {
-		word := request.Param("word")
-		channel := request.Event().Channel
+	bot.Command("process", "Process!", func(request slacker.Request, response slacker.ResponseWriter) {
+		timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
+		defer cancel()
 
-		rtm := response.RTM()
-		client := response.Client()
-
-		rtm.SendMessage(rtm.NewOutgoingMessage("Uploading file ...", channel))
-		client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+		select {
+		case <-timedContext.Done():
+			response.ReportError(errors.New("timed out"))
+		case <-time.After(time.Minute):
+			response.Reply("Processing done!")
+		}
 	})
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := bot.Listen(ctx); err != nil {
+	err := bot.Listen(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

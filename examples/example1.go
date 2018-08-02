@@ -1,8 +1,9 @@
 package main
 
 import (
-"github.com/shomali11/slacker"
-"log"
+	"context"
+	"github.com/shomali11/slacker"
+	"log"
 )
 
 func main() {
@@ -12,11 +13,11 @@ func main() {
 		response.Reply("pong")
 	})
 
-	ctx := context.Background()
-	// Call cancel() for graceful shutdown
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := bot.Listen(ctx); err != nil {
+	err := bot.Listen(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

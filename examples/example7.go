@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	"context"
 	"github.com/nlopes/slack"
 	"github.com/shomali11/slacker"
 )
@@ -21,10 +22,11 @@ func main() {
 		client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := bot.Listen(ctx); err != nil {
+	err := bot.Listen(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }

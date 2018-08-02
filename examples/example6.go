@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"github.com/shomali11/slacker"
 	"log"
 	"time"
@@ -17,10 +18,11 @@ func main() {
 		response.Reply(time.Now().Format(time.RFC1123))
 	})
 
-	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-	if err := bot.Listen(ctx); err != nil {
+	err := bot.Listen(ctx)
+	if err != nil {
 		log.Fatal(err)
 	}
 }
