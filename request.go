@@ -13,12 +13,12 @@ const (
 
 // NewRequest creates a new Request structure
 func NewRequest(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request {
-	return &request{context: ctx, event: event, properties: properties}
+	return &request{ctx: ctx, event: event, properties: properties}
 }
 
 // request contains the Event received and parameters
 type request struct {
-	context    context.Context
+	ctx        context.Context
 	event      *slack.MessageEvent
 	properties *proper.Properties
 }
@@ -62,7 +62,7 @@ func (r *request) FloatParam(key string, defaultValue float64) float64 {
 
 // Context returns the current context of the request
 func (r *request) Context() context.Context {
-	return r.context
+	return r.ctx
 }
 
 // Event returns the current event of the request

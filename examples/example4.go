@@ -1,9 +1,8 @@
 package main
 
 import (
-	"log"
-
 	"github.com/shomali11/slacker"
+	"log"
 )
 
 func main() {
@@ -17,8 +16,11 @@ func main() {
 		}
 	})
 
-	err := bot.Listen()
-	if err != nil {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	if err := bot.Listen(ctx); err != nil {
 		log.Fatal(err)
 	}
+
 }

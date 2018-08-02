@@ -1,10 +1,10 @@
 package main
 
 import (
-	"log"
+"log"
 
-	"fmt"
-	"github.com/shomali11/slacker"
+"fmt"
+"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -30,8 +30,10 @@ func main() {
 		response.Reply("Your own help function...")
 	})
 
-	err := bot.Listen()
-	if err != nil {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	if err := bot.Listen(ctx); err != nil {
 		log.Fatal(err)
 	}
 }

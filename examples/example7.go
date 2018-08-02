@@ -21,8 +21,10 @@ func main() {
 		client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
 	})
 
-	err := bot.Listen()
-	if err != nil {
+	ctx := context.Background()
+	ctx, cancel := context.WithCancel(ctx)
+
+	if err := bot.Listen(ctx); err != nil {
 		log.Fatal(err)
 	}
 }
