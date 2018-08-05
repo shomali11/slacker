@@ -39,6 +39,8 @@ type Slacker struct {
 	client                *slack.Client
 	rtm                   *slack.RTM
 	botCommands           []BotCommand
+	requestConstructor    func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request
+	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
 	helpHandler           func(request Request, response ResponseWriter)
@@ -59,6 +61,16 @@ func (s *Slacker) Init(initHandler func()) {
 // Err handle when errors are encountered
 func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
+}
+
+// CustomRequest creates a new request
+func (s *Slacker) CustomRequest(requestConstructor func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request) {
+	s.requestConstructor = requestConstructor
+}
+
+// CustomResponse creates a new response writer
+func (s *Slacker) CustomResponse(responseConstructor func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter) {
+	s.responseConstructor = responseConstructor
 }
 
 // DefaultCommand handle messages when none of the commands are matched
@@ -90,6 +102,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 	for msg := range s.rtm.IncomingEvents {
 		select {
 		case <-ctx.Done():
+			s.rtm.Disconnect()
 			return ctx.Err()
 		default:
 			switch event := msg.Data.(type) {
@@ -153,7 +166,15 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) {
-	response := NewResponse(event.Channel, s.client, s.rtm)
+	if s.requestConstructor == nil {
+		s.requestConstructor = NewRequest
+	}
+
+	if s.responseConstructor == nil {
+		s.responseConstructor = NewResponse
+	}
+
+	response := s.responseConstructor(event.Channel, s.client, s.rtm)
 
 	for _, cmd := range s.botCommands {
 		parameters, isMatch := cmd.Match(event.Text)
@@ -161,13 +182,15 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 			continue
 		}
 
-		cmd.Execute(NewRequest(ctx, event, parameters), response)
+		request := s.requestConstructor(ctx, event, parameters)
+		cmd.Execute(request, response)
 		return
 
 	}
 
 	if s.defaultMessageHandler != nil {
-		s.defaultMessageHandler(NewRequest(ctx, event, &proper.Properties{}), response)
+		request := s.requestConstructor(ctx, event, &proper.Properties{})
+		s.defaultMessageHandler(request, response)
 	}
 }
 

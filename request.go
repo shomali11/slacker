@@ -16,13 +16,6 @@ func NewRequest(ctx context.Context, event *slack.MessageEvent, properties *prop
 	return &request{ctx: ctx, event: event, properties: properties}
 }
 
-// request contains the Event received and parameters
-type request struct {
-	ctx        context.Context
-	event      *slack.MessageEvent
-	properties *proper.Properties
-}
-
 // Request interface that contains the Event received and parameters
 type Request interface {
 	Param(key string) string
@@ -33,6 +26,13 @@ type Request interface {
 	Context() context.Context
 	Event() *slack.MessageEvent
 	Properties() *proper.Properties
+}
+
+// request contains the Event received and parameters
+type request struct {
+	ctx        context.Context
+	event      *slack.MessageEvent
+	properties *proper.Properties
 }
 
 // Param attempts to look up a string value by key. If not found, return the an empty string
