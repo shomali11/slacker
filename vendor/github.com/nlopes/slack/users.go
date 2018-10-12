@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
 	"net/url"
 	"strconv"
 )
@@ -169,11 +168,11 @@ type TeamIdentity struct {
 }
 
 type userResponseFull struct {
-	Members      []User                  `json:"members,omitempty"` // ListUsers
-	User         `json:"user,omitempty"` // GetUserInfo
-	UserPresence                         // GetUserPresence
+	Members []User `json:"members,omitempty"`
+	User    `json:"user,omitempty"`
+	UserPresence
 	SlackResponse
-	Metadata ResponseMetadata
+	Metadata ResponseMetadata `json:"response_metadata"`
 }
 
 type UserSetPhotoParams struct {
@@ -190,16 +189,14 @@ func NewUserSetPhotoParams() UserSetPhotoParams {
 	}
 }
 
-func userRequest(ctx context.Context, client HTTPRequester, path string, values url.Values, debug bool) (*userResponseFull, error) {
+func userRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*userResponseFull, error) {
 	response := &userResponseFull{}
-	err := postForm(ctx, client, SLACK_API+path, values, response, debug)
+	err := postForm(ctx, client, APIURL+path, values, response, d)
 	if err != nil {
 		return nil, err
 	}
-	if !response.Ok {
-		return nil, errors.New(response.Error)
-	}
-	return response, nil
+
+	return response, response.Err()
 }
 
 // GetUserPresence will retrieve the current presence status of given user.
@@ -214,7 +211,7 @@ func (api *Client) GetUserPresenceContext(ctx context.Context, user string) (*Us
 		"user":  {user},
 	}
 
-	response, err := userRequest(ctx, api.httpclient, "users.getPresence", values, api.debug)
+	response, err := userRequest(ctx, api.httpclient, "users.getPresence", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -233,7 +230,7 @@ func (api *Client) GetUserInfoContext(ctx context.Context, user string) (*User, 
 		"user":  {user},
 	}
 
-	response, err := userRequest(ctx, api.httpclient, "users.info", values, api.debug)
+	response, err := userRequest(ctx, api.httpclient, "users.info", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -311,8 +308,7 @@ func (t UserPagination) Next(ctx context.Context) (_ UserPagination, err error) 
 		"cursor":   {t.previousResp.Cursor},
 	}
 
-	if resp, err = userRequest(ctx, t.c.httpclient, "users.list", values, t.c.debug); err != nil {
-		log.Println("error during user request", err)
+	if resp, err = userRequest(ctx, t.c.httpclient, "users.list", values, t.c); err != nil {
 		return t, err
 	}
 
@@ -357,7 +353,7 @@ func (api *Client) GetUserByEmailContext(ctx context.Context, email string) (*Us
 		"token": {api.token},
 		"email": {email},
 	}
-	response, err := userRequest(ctx, api.httpclient, "users.lookupByEmail", values, api.debug)
+	response, err := userRequest(ctx, api.httpclient, "users.lookupByEmail", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -375,7 +371,7 @@ func (api *Client) SetUserAsActiveContext(ctx context.Context) (err error) {
 		"token": {api.token},
 	}
 
-	_, err = userRequest(ctx, api.httpclient, "users.setActive", values, api.debug)
+	_, err = userRequest(ctx, api.httpclient, "users.setActive", values, api)
 	return err
 }
 
@@ -391,7 +387,7 @@ func (api *Client) SetUserPresenceContext(ctx context.Context, presence string) 
 		"presence": {presence},
 	}
 
-	_, err := userRequest(ctx, api.httpclient, "users.setPresence", values, api.debug)
+	_, err := userRequest(ctx, api.httpclient, "users.setPresence", values, api)
 	return err
 }
 
@@ -407,7 +403,7 @@ func (api *Client) GetUserIdentityContext(ctx context.Context) (*UserIdentityRes
 	}
 	response := &UserIdentityResponse{}
 
-	err := postForm(ctx, api.httpclient, SLACK_API+"users.identity", values, response, api.debug)
+	err := postForm(ctx, api.httpclient, APIURL+"users.identity", values, response, api)
 	if err != nil {
 		return nil, err
 	}
@@ -438,7 +434,7 @@ func (api *Client) SetUserPhotoContext(ctx context.Context, image string, params
 		values.Add("crop_w", strconv.Itoa(params.CropW))
 	}
 
-	err := postLocalWithMultipartResponse(ctx, api.httpclient, "users.setPhoto", image, "image", values, response, api.debug)
+	err := postLocalWithMultipartResponse(ctx, api.httpclient, "users.setPhoto", image, "image", values, response, api)
 	if err != nil {
 		return err
 	}
@@ -458,7 +454,7 @@ func (api *Client) DeleteUserPhotoContext(ctx context.Context) error {
 		"token": {api.token},
 	}
 
-	err := postForm(ctx, api.httpclient, SLACK_API+"users.deletePhoto", values, response, api.debug)
+	err := postForm(ctx, api.httpclient, APIURL+"users.deletePhoto", values, response, api)
 	if err != nil {
 		return err
 	}
@@ -508,7 +504,7 @@ func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, s
 	}
 
 	response := &userResponseFull{}
-	if err = postForm(ctx, api.httpclient, SLACK_API+"users.profile.set", values, response, api.debug); err != nil {
+	if err = postForm(ctx, api.httpclient, APIURL+"users.profile.set", values, response, api); err != nil {
 		return err
 	}
 
@@ -549,7 +545,7 @@ func (api *Client) GetUserProfileContext(ctx context.Context, userID string, inc
 	}
 	resp := &getUserProfileResponse{}
 
-	err := post(ctx, api.httpclient, "users.profile.get", values, &resp, api.debug)
+	err := postSlackMethod(ctx, api.httpclient, "users.profile.get", values, &resp, api)
 	if err != nil {
 		return nil, err
 	}
