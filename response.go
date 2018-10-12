@@ -44,12 +44,12 @@ func (r *response) Typing() {
 func (r *response) Reply(message string, options ...DefaultsOption) {
 	defaults := newDefaults(options...)
 
-	params := slack.PostMessageParameters{}
-	params.User = r.rtm.GetInfo().User.ID
-	params.AsUser = true
-	params.Attachments = defaults.Attachments
-
-	r.rtm.PostMessage(r.channel, message, params)
+	r.rtm.PostMessage(
+		r.channel,
+		slack.MsgOptionUser(r.rtm.GetInfo().User.ID),
+		slack.MsgOptionAsUser(true),
+		slack.MsgOptionAttachments(defaults.Attachments...),
+	)
 }
 
 // RTM returns the RTM client
