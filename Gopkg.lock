@@ -2,32 +2,55 @@
 
 
 [[projects]]
+  digest = "1:7b5c6e2eeaa9ae5907c391a91c132abfd5c9e8a784a341b5625e750c67e6825d"
   name = "github.com/gorilla/websocket"
   packages = ["."]
-  revision = "ea4d1f681babbce9545c9c5f3d5194a789c89f5b"
-  version = "v1.2.0"
+  pruneopts = "UT"
+  revision = "66b9c49e59c6c48f0ffce28c2d8b8a5678502c6d"
+  version = "v1.4.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:fbef95738b7ee4aed486dd54327c80241f584afedcfbe2a9f0ed9acafaa5c420"
   name = "github.com/nlopes/slack"
+  packages = [
+    ".",
+    "slackutilsx",
+  ]
+  pruneopts = "UT"
+  revision = "0f8db5050731c50359e319cf253af5b9997a2b1e"
+
+[[projects]]
+  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  name = "github.com/pkg/errors"
   packages = ["."]
-  revision = "372b354625964a2a904e54b2889cb01a69f4dfb3"
+  pruneopts = "UT"
+  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
+  version = "v0.8.0"
 
 [[projects]]
   branch = "master"
+  digest = "1:c6795766b23d66ac11871034c9f00a4e4d292284e935debc2db2bfe25b96304f"
   name = "github.com/shomali11/commander"
   packages = ["."]
+  pruneopts = "UT"
   revision = "384535f6562b1b98294d1e6db8d1d5365b79915c"
 
 [[projects]]
   branch = "master"
+  digest = "1:8664d72d77f415e581e40a85f936e204766464f4c2314f7db58f96d62841798d"
   name = "github.com/shomali11/proper"
   packages = ["."]
+  pruneopts = "UT"
   revision = "233a9a872c306ae145fed0a7d71afc128ad78394"
 
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "72a6935de6fb336eeadf0c9ebc33f355b35eecbe6168b751b960bf2a484c7c63"
+  input-imports = [
+    "github.com/nlopes/slack",
+    "github.com/shomali11/commander",
+    "github.com/shomali11/proper",
+  ]
   solver-name = "gps-cdcl"
   solver-version = 1
