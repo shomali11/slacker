@@ -46,6 +46,7 @@ func (r *response) Reply(message string, options ...DefaultsOption) {
 
 	r.rtm.PostMessage(
 		r.channel,
+		slack.MsgOptionText(message, false),
 		slack.MsgOptionUser(r.rtm.GetInfo().User.ID),
 		slack.MsgOptionAsUser(true),
 		slack.MsgOptionAttachments(defaults.Attachments...),
