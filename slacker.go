@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/nlopes/slack"
@@ -27,6 +28,9 @@ const (
 // NewClient creates a new client using the Slack API
 func NewClient(token string) *Slacker {
 	client := slack.New(token)
+	if os.Getenv("SLACKER_DEBUG") != "" {
+		client.SetDebug(true)
+	}
 	slacker := &Slacker{
 		client: client,
 		rtm:    client.NewRTM(),
