@@ -12,9 +12,17 @@ func WithAttachments(attachments []slack.Attachment) DefaultsOption {
 	}
 }
 
+// WithDebug sets message attachments
+func WithDebug(debug bool) DefaultsOption {
+	return func(defaults *Defaults) {
+		defaults.Debug = debug
+	}
+}
+
 // Defaults configuration
 type Defaults struct {
 	Attachments []slack.Attachment
+	Debug       bool
 }
 
 func newDefaults(options ...DefaultsOption) *Defaults {
