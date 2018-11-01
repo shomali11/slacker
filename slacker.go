@@ -25,12 +25,8 @@ const (
 )
 
 // NewClient creates a new client using the Slack API
-func NewClient(token string, options ...DefaultsOption) *Slacker {
-	defaults := newDefaults(options...)
-
+func NewClient(token string) *Slacker {
 	client := slack.New(token)
-	client.SetDebug(defaults.Debug) // must be set _before_ NewRTM() call
-
 	slacker := &Slacker{
 		client: client,
 		rtm:    client.NewRTM(),
