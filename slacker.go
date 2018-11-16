@@ -16,6 +16,7 @@ const (
 	newLine             = "\n"
 	invalidToken        = "invalid token"
 	helpCommand         = "help"
+	helpDescription     = "help"
 	directChannelMarker = "D"
 	userMentionFormat   = "<@%s>"
 	codeMessageFormat   = "`%s`"
@@ -43,6 +44,8 @@ type Slacker struct {
 	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
+	helpUsage             string
+	helpDescription       string
 	helpHandler           func(request Request, response ResponseWriter)
 	defaultMessageHandler func(request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
@@ -86,6 +89,16 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 // Help handle the help message, it will use the default if not set
 func (s *Slacker) Help(helpHandler func(request Request, response ResponseWriter)) {
 	s.helpHandler = helpHandler
+}
+
+// HelpUsage defines the usage for the Help command, it will use the default if not set
+func (s *Slacker) HelpUsage(helpUsage string) {
+	s.helpUsage = helpUsage
+}
+
+// HelpDescription defines the description for the Help command, it will use the default if not set
+func (s *Slacker) HelpDescription(helpDescription string) {
+	s.helpDescription = helpDescription
 }
 
 // Command define a new command and append it to the list of existing commands
@@ -214,5 +227,11 @@ func (s *Slacker) prependHelpHandle() {
 	if s.helpHandler == nil {
 		s.helpHandler = s.defaultHelp
 	}
-	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, helpCommand, s.helpHandler)}, s.botCommands...)
+	if s.helpUsage == empty {
+		s.helpUsage = helpCommand
+	}
+	if s.helpDescription == empty {
+		s.helpDescription = helpDescription
+	}
+	s.botCommands = append([]BotCommand{NewBotCommand(s.helpUsage, s.helpDescription, s.helpHandler)}, s.botCommands...)
 }
