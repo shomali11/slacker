@@ -3,6 +3,7 @@ package slack
 import (
 	"encoding/json"
 	"errors"
+	"net/url"
 	"sync"
 	"time"
 
@@ -54,6 +55,9 @@ type RTM struct {
 
 	// mu is mutex used to prevent RTM connection race conditions
 	mu *sync.Mutex
+
+	// connParams is a map of flags for connection parameters.
+	connParams url.Values
 }
 
 // Disconnect and wait, blocking until a successful disconnection.

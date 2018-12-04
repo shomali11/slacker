@@ -43,19 +43,18 @@ func (c chatResponseFull) getMessageTimestamp() string {
 
 // PostMessageParameters contains all the parameters necessary (including the optional ones) for a PostMessage() request
 type PostMessageParameters struct {
-	Username        string       `json:"username"`
-	AsUser          bool         `json:"as_user"`
-	Parse           string       `json:"parse"`
-	ThreadTimestamp string       `json:"thread_ts"`
-	ReplyBroadcast  bool         `json:"reply_broadcast"`
-	LinkNames       int          `json:"link_names"`
-	Attachments     []Attachment `json:"attachments"`
-	UnfurlLinks     bool         `json:"unfurl_links"`
-	UnfurlMedia     bool         `json:"unfurl_media"`
-	IconURL         string       `json:"icon_url"`
-	IconEmoji       string       `json:"icon_emoji"`
-	Markdown        bool         `json:"mrkdwn,omitempty"`
-	EscapeText      bool         `json:"escape_text"`
+	Username        string `json:"username"`
+	AsUser          bool   `json:"as_user"`
+	Parse           string `json:"parse"`
+	ThreadTimestamp string `json:"thread_ts"`
+	ReplyBroadcast  bool   `json:"reply_broadcast"`
+	LinkNames       int    `json:"link_names"`
+	UnfurlLinks     bool   `json:"unfurl_links"`
+	UnfurlMedia     bool   `json:"unfurl_media"`
+	IconURL         string `json:"icon_url"`
+	IconEmoji       string `json:"icon_emoji"`
+	Markdown        bool   `json:"mrkdwn,omitempty"`
+	EscapeText      bool   `json:"escape_text"`
 
 	// chat.postEphemeral support
 	Channel string `json:"channel"`
@@ -71,7 +70,6 @@ func NewPostMessageParameters() PostMessageParameters {
 		Parse:           DEFAULT_MESSAGE_PARSE,
 		ThreadTimestamp: DEFAULT_MESSAGE_THREAD_TIMESTAMP,
 		LinkNames:       DEFAULT_MESSAGE_LINK_NAMES,
-		Attachments:     nil,
 		UnfurlLinks:     DEFAULT_MESSAGE_UNFURL_LINKS,
 		UnfurlMedia:     DEFAULT_MESSAGE_UNFURL_MEDIA,
 		IconURL:         DEFAULT_MESSAGE_ICON_URL,
@@ -147,6 +145,11 @@ func (api *Client) UpdateMessageContext(ctx context.Context, channelID, timestam
 	return api.SendMessageContext(ctx, channelID, MsgOptionUpdate(timestamp), MsgOptionCompose(options...))
 }
 
+// UnfurlMessage unfurls a message in a channel
+func (api *Client) UnfurlMessage(channelID, timestamp string, unfurls map[string]Attachment, options ...MsgOption) (string, string, string, error) {
+	return api.SendMessageContext(context.Background(), channelID, MsgOptionUnfurl(timestamp, unfurls), MsgOptionCompose(options...))
+}
+
 // SendMessage more flexible method for configuring messages.
 func (api *Client) SendMessage(channel string, options ...MsgOption) (string, string, string, error) {
 	return api.SendMessageContext(context.Background(), channel, options...)
@@ -204,6 +207,7 @@ const (
 	chatDelete        sendMode = "chat.delete"
 	chatPostEphemeral sendMode = "chat.postEphemeral"
 	chatMeMessage     sendMode = "chat.meMessage"
+	chatUnfurl        sendMode = "chat.unfurl"
 )
 
 type sendConfig struct {
@@ -260,6 +264,19 @@ func MsgOptionDelete(timestamp string) MsgOption {
 	}
 }
 
+// MsgOptionUnfurl unfurls a message based on the timestamp.
+func MsgOptionUnfurl(timestamp string, unfurls map[string]Attachment) MsgOption {
+	return func(config *sendConfig) error {
+		config.endpoint = APIURL + string(chatUnfurl)
+		config.values.Add("ts", timestamp)
+		unfurlsStr, err := json.Marshal(unfurls)
+		if err == nil {
+			config.values.Add("unfurls", string(unfurlsStr))
+		}
+		return err
+	}
+}
+
 // MsgOptionAsUser whether or not to send the message as the user.
 func MsgOptionAsUser(b bool) MsgOption {
 	return func(config *sendConfig) error {
@@ -274,6 +291,14 @@ func MsgOptionAsUser(b bool) MsgOption {
 func MsgOptionUser(userID string) MsgOption {
 	return func(config *sendConfig) error {
 		config.values.Set("user", userID)
+		return nil
+	}
+}
+
+// MsgOptionUsername set the username for the message.
+func MsgOptionUsername(username string) MsgOption {
+	return func(config *sendConfig) error {
+		config.values.Set("username", username)
 		return nil
 	}
 }
