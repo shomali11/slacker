@@ -220,5 +220,9 @@ func (s *Slacker) prependHelpHandle() {
 	if s.helpHandler == nil {
 		s.helpHandler = s.defaultHelp
 	}
+
+	if s.helpDescription == empty {
+		s.helpDescription = helpCommand
+	}
 	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, s.helpDescription, s.helpHandler)}, s.botCommands...)
 }
