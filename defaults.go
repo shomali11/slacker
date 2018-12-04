@@ -2,10 +2,6 @@ package slacker
 
 import "github.com/nlopes/slack"
 
-const (
-	defaultHelpDescription = "help"
-)
-
 // ClientOption an option for client values
 type ClientOption func(*ClientDefaults)
 
@@ -82,10 +78,7 @@ type HelpDefaults struct {
 }
 
 func newHelpDefaults(options ...HelpOption) *HelpDefaults {
-	config := &HelpDefaults{
-		Description: defaultHelpDescription,
-		Handler:     nil,
-	}
+	config := &HelpDefaults{}
 
 	for _, option := range options {
 		option(config)
