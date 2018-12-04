@@ -21,7 +21,7 @@ func main() {
 
 	bot.Command("custom", "Custom!", func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("custom")
-		response.ReportError(errors.New("Opps"))
+		response.ReportError(errors.New("oops"))
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -56,7 +56,7 @@ func (r *MyCustomResponseWriter) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.DefaultsOption) {
+func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
 	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.channel))
 }
 

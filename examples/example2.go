@@ -27,9 +27,9 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.Help(func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.Help(slacker.WithHandler(func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Your own help function...")
-	})
+	}))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

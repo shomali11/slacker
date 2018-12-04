@@ -85,9 +85,9 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.Help(func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.Help(slacker.WithHandler(func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Your own help function...")
-	})
+	}))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -389,7 +389,7 @@ func main() {
 
 	bot.Command("custom", "Custom!", func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("custom")
-		response.ReportError(errors.New("Opps"))
+		response.ReportError(errors.New("oops"))
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -424,7 +424,7 @@ func (r *MyCustomResponseWriter) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.DefaultsOption) {
+func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
 	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.channel))
 }
 
@@ -436,6 +436,37 @@ func (r *MyCustomResponseWriter) RTM() *slack.RTM {
 // Client returns the slack client
 func (r *MyCustomResponseWriter) Client() *slack.Client {
 	return r.client
+}
+
+```
+
+## Example 11
+
+Showcasing the ability to toggle the slack Debug option via `WithDebug`
+
+```go
+package main
+
+import (
+	"context"
+	"github.com/shomali11/slacker"
+	"log"
+)
+
+func main() {
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>", slacker.WithDebug(true))
+
+	bot.Command("ping", "Ping!", func(request slacker.Request, response slacker.ResponseWriter) {
+		response.Reply("pong")
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 ```

@@ -25,8 +25,10 @@ const (
 )
 
 // NewClient creates a new client using the Slack API
-func NewClient(token string) *Slacker {
-	client := slack.New(token)
+func NewClient(token string, options ...ClientOption) *Slacker {
+	defaults := newClientDefaults(options...)
+
+	client := slack.New(token, slack.OptionDebug(defaults.Debug))
 	slacker := &Slacker{
 		client: client,
 		rtm:    client.NewRTM(),
@@ -43,6 +45,7 @@ type Slacker struct {
 	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
+	helpDescription       string
 	helpHandler           func(request Request, response ResponseWriter)
 	defaultMessageHandler func(request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
@@ -84,8 +87,11 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 }
 
 // Help handle the help message, it will use the default if not set
-func (s *Slacker) Help(helpHandler func(request Request, response ResponseWriter)) {
-	s.helpHandler = helpHandler
+func (s *Slacker) Help(options ...HelpOption) {
+	defaults := newHelpDefaults(options...)
+
+	s.helpDescription = defaults.Description
+	s.helpHandler = defaults.Handler
 }
 
 // Command define a new command and append it to the list of existing commands
@@ -214,5 +220,5 @@ func (s *Slacker) prependHelpHandle() {
 	if s.helpHandler == nil {
 		s.helpHandler = s.defaultHelp
 	}
-	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, helpCommand, s.helpHandler)}, s.botCommands...)
+	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, s.helpDescription, s.helpHandler)}, s.botCommands...)
 }

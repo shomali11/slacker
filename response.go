@@ -12,7 +12,7 @@ const (
 
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
-	Reply(text string, options ...DefaultsOption)
+	Reply(text string, options ...ReplyOption)
 	ReportError(err error)
 	Typing()
 	RTM() *slack.RTM
@@ -41,8 +41,8 @@ func (r *response) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *response) Reply(message string, options ...DefaultsOption) {
-	defaults := newDefaults(options...)
+func (r *response) Reply(message string, options ...ReplyOption) {
+	defaults := newReplyDefaults(options...)
 
 	r.rtm.PostMessage(
 		r.channel,
