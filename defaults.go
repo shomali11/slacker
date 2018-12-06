@@ -57,13 +57,6 @@ func newReplyDefaults(options ...ReplyOption) *ReplyDefaults {
 // HelpOption an option for help values
 type HelpOption func(*HelpDefaults)
 
-// WithDescription sets help description
-func WithDescription(description string) HelpOption {
-	return func(defaults *HelpDefaults) {
-		defaults.Description = description
-	}
-}
-
 // WithHandler sets help handler
 func WithHandler(handler func(request Request, response ResponseWriter)) HelpOption {
 	return func(defaults *HelpDefaults) {
@@ -73,8 +66,7 @@ func WithHandler(handler func(request Request, response ResponseWriter)) HelpOpt
 
 // HelpDefaults configuration
 type HelpDefaults struct {
-	Description string
-	Handler     func(request Request, response ResponseWriter)
+	Handler func(request Request, response ResponseWriter)
 }
 
 func newHelpDefaults(options ...HelpOption) *HelpDefaults {

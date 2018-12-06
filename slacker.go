@@ -87,10 +87,10 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 }
 
 // Help handle the help message, it will use the default if not set
-func (s *Slacker) Help(options ...HelpOption) {
+func (s *Slacker) Help(description string, options ...HelpOption) {
 	defaults := newHelpDefaults(options...)
 
-	s.helpDescription = defaults.Description
+	s.helpDescription = description
 	s.helpHandler = defaults.Handler
 }
 

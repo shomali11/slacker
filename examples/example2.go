@@ -27,7 +27,7 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.Help(slacker.WithHandler(func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.Help("help", slacker.WithHandler(func(request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Your own help function...")
 	}))
 
