@@ -13,6 +13,7 @@ import (
 const (
 	space               = " "
 	dash                = "-"
+	star                = "*"
 	newLine             = "\n"
 	invalidToken        = "invalid token"
 	helpCommand         = "help"
@@ -21,7 +22,13 @@ const (
 	codeMessageFormat   = "`%s`"
 	boldMessageFormat   = "*%s*"
 	italicMessageFormat = "_%s_"
+	quoteMessageFormat  = ">_*Example:* %s_"
+	authorizedUsersOnly = "Authorized users only"
 	slackBotUser        = "USLACKBOT"
+)
+
+var (
+	unAuthorizedError = errors.New("You are not authorized to execute this command")
 )
 
 // NewClient creates a new client using the Slack API
@@ -45,10 +52,10 @@ type Slacker struct {
 	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
-	helpDescription       string
-	helpHandler           func(request Request, response ResponseWriter)
+	helpDefinition        *CommandDefinition
 	defaultMessageHandler func(request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
+	unAuthorizedError     error
 }
 
 // BotCommands returns Bot Commands
@@ -86,17 +93,19 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 	s.defaultEventHandler = defaultEventHandler
 }
 
-// Help handle the help message, it will use the default if not set
-func (s *Slacker) Help(description string, options ...HelpOption) {
-	defaults := newHelpDefaults(options...)
+// UnAuthorizedError error message
+func (s *Slacker) UnAuthorizedError(unAuthorizedError error) {
+	s.unAuthorizedError = unAuthorizedError
+}
 
-	s.helpDescription = description
-	s.helpHandler = defaults.Handler
+// Help handle the help message, it will use the default if not set
+func (s *Slacker) Help(definition *CommandDefinition) {
+	s.helpDefinition = definition
 }
 
 // Command define a new command and append it to the list of existing commands
-func (s *Slacker) Command(usage string, description string, handler func(request Request, response ResponseWriter)) {
-	s.botCommands = append(s.botCommands, NewBotCommand(usage, description, handler))
+func (s *Slacker) Command(usage string, definition *CommandDefinition) {
+	s.botCommands = append(s.botCommands, NewBotCommand(usage, definition))
 }
 
 // Listen receives events from Slack and each is handled as needed
@@ -188,6 +197,11 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 			continue
 		}
 
+		if cmd.Definition().AuthorizationRequired && !contains(cmd.Definition().AuthorizedUsers, event.User) {
+			response.ReportError(unAuthorizedError)
+			return
+		}
+
 		request := s.requestConstructor(ctx, event, parameters)
 		cmd.Execute(request, response)
 		return
@@ -201,6 +215,7 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 }
 
 func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
+	authorizedCommandAvailable := false
 	helpMessage := empty
 	for _, command := range s.botCommands {
 		tokens := command.Tokenize()
@@ -211,18 +226,50 @@ func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 				helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
 			}
 		}
-		helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Description()) + newLine
+
+		if len(command.Definition().Description) > 0 {
+			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Description)
+		}
+
+		if command.Definition().AuthorizationRequired {
+			authorizedCommandAvailable = true
+			helpMessage += dash + space + fmt.Sprintf(codeMessageFormat, star)
+		}
+
+		helpMessage += newLine
+
+		if len(command.Definition().Example) > 0 {
+			helpMessage += fmt.Sprintf(quoteMessageFormat, command.Definition().Example) + newLine
+		}
+	}
+
+	if authorizedCommandAvailable {
+		helpMessage += fmt.Sprintf(codeMessageFormat, star+space+authorizedUsersOnly) + newLine
 	}
 	response.Reply(helpMessage)
 }
 
 func (s *Slacker) prependHelpHandle() {
-	if s.helpHandler == nil {
-		s.helpHandler = s.defaultHelp
+	if s.helpDefinition == nil {
+		s.helpDefinition = &CommandDefinition{}
 	}
 
-	if s.helpDescription == empty {
-		s.helpDescription = helpCommand
+	if s.helpDefinition.Handler == nil {
+		s.helpDefinition.Handler = s.defaultHelp
 	}
-	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, s.helpDescription, s.helpHandler)}, s.botCommands...)
+
+	if len(s.helpDefinition.Description) == 0 {
+		s.helpDefinition.Description = helpCommand
+	}
+
+	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, s.helpDefinition)}, s.botCommands...)
+}
+
+func contains(list []string, element string) bool {
+	for _, value := range list {
+		if value == element {
+			return true
+		}
+	}
+	return false
 }

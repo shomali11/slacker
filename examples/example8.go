@@ -11,17 +11,22 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("process", "Process!", func(request slacker.Request, response slacker.ResponseWriter) {
-		timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
-		defer cancel()
+	definition := &slacker.CommandDefinition{
+		Description: "Process!",
+		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+			timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
+			defer cancel()
 
-		select {
-		case <-timedContext.Done():
-			response.ReportError(errors.New("timed out"))
-		case <-time.After(time.Minute):
-			response.Reply("Processing done!")
-		}
-	})
+			select {
+			case <-timedContext.Done():
+				response.ReportError(errors.New("timed out"))
+			case <-time.After(time.Minute):
+				response.Reply("Processing done!")
+			}
+		},
+	}
+
+	bot.Command("process", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

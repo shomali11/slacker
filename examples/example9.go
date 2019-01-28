@@ -11,19 +11,24 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("echo <word>", "Echo a word!", func(request slacker.Request, response slacker.ResponseWriter) {
-		word := request.Param("word")
+	definition := &slacker.CommandDefinition{
+		Description: "Echo a word!",
+		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+			word := request.Param("word")
 
-		attachments := []slack.Attachment{}
-		attachments = append(attachments, slack.Attachment{
-			Color:      "red",
-			AuthorName: "Raed Shomali",
-			Title:      "Attachment Title",
-			Text:       "Attachment Text",
-		})
+			attachments := []slack.Attachment{}
+			attachments = append(attachments, slack.Attachment{
+				Color:      "red",
+				AuthorName: "Raed Shomali",
+				Title:      "Attachment Title",
+				Text:       "Attachment Text",
+			})
 
-		response.Reply(word, slacker.WithAttachments(attachments))
-	})
+			response.Reply(word, slacker.WithAttachments(attachments))
+		},
+	}
+
+	bot.Command("echo <word>", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

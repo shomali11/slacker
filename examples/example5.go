@@ -10,9 +10,14 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	bot.Command("test", "Tests something", func(request slacker.Request, response slacker.ResponseWriter) {
-		response.ReportError(errors.New("Oops!"))
-	})
+	definition := &slacker.CommandDefinition{
+		Description: "Tests errors",
+		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+			response.ReportError(errors.New("Oops!"))
+		},
+	}
+
+	bot.Command("test", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

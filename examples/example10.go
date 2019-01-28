@@ -19,10 +19,15 @@ func main() {
 
 	bot.CustomResponse(NewCustomResponseWriter)
 
-	bot.Command("custom", "Custom!", func(request slacker.Request, response slacker.ResponseWriter) {
-		response.Reply("custom")
-		response.ReportError(errors.New("oops"))
-	})
+	definition := &slacker.CommandDefinition{
+		Description: "Custom!",
+		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("custom")
+			response.ReportError(errors.New("oops"))
+		},
+	}
+
+	bot.Command("custom", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -9,15 +9,16 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
-	definition := &slacker.CommandDefinition{
-		Description: "Ping!",
-		Example:     "ping",
+	authorizedDefinition := &slacker.CommandDefinition{
+		Description:           "Very secret stuff",
+		AuthorizationRequired: true,
+		AuthorizedUsers:       []string{},
 		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
-			response.Reply("pong")
+			response.Reply("You are authorized!")
 		},
 	}
 
-	bot.Command("ping", definition)
+	bot.Command("secret", authorizedDefinition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

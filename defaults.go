@@ -53,27 +53,3 @@ func newReplyDefaults(options ...ReplyOption) *ReplyDefaults {
 	}
 	return config
 }
-
-// HelpOption an option for help values
-type HelpOption func(*HelpDefaults)
-
-// WithHandler sets help handler
-func WithHandler(handler func(request Request, response ResponseWriter)) HelpOption {
-	return func(defaults *HelpDefaults) {
-		defaults.Handler = handler
-	}
-}
-
-// HelpDefaults configuration
-type HelpDefaults struct {
-	Handler func(request Request, response ResponseWriter)
-}
-
-func newHelpDefaults(options ...HelpOption) *HelpDefaults {
-	config := &HelpDefaults{}
-
-	for _, option := range options {
-		option(config)
-	}
-	return config
-}
