@@ -233,7 +233,7 @@ func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 
 		if command.Definition().AuthorizationRequired {
 			authorizedCommandAvailable = true
-			helpMessage += dash + space + fmt.Sprintf(codeMessageFormat, star)
+			helpMessage += space + fmt.Sprintf(codeMessageFormat, star)
 		}
 
 		helpMessage += newLine
