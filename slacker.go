@@ -113,13 +113,15 @@ func (s *Slacker) Listen(ctx context.Context) error {
 	s.prependHelpHandle()
 
 	go s.rtm.ManageConnection()
-
-	for msg := range s.rtm.IncomingEvents {
+	for {
 		select {
 		case <-ctx.Done():
 			s.rtm.Disconnect()
-			return ctx.Err()
-		default:
+			return nil // ctx.Err() was uninterprable because it has no specific type- It's not a problem for me to cancel the context
+		case msg, ok := <-s.rtm.IncomingEvents:
+			if !ok {
+				return nil // TODO: not really sure if this should return an error
+			}
 			switch event := msg.Data.(type) {
 			case *slack.ConnectedEvent:
 				if s.initHandler == nil {
