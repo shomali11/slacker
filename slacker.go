@@ -117,10 +117,10 @@ func (s *Slacker) Listen(ctx context.Context) error {
 		select {
 		case <-ctx.Done():
 			s.rtm.Disconnect()
-			return nil // ctx.Err() was uninterprable because it has no specific type- It's not a problem for me to cancel the context
+			return ctx.Err()
 		case msg, ok := <-s.rtm.IncomingEvents:
 			if !ok {
-				return nil // TODO: not really sure if this should return an error
+				return nil
 			}
 			switch event := msg.Data.(type) {
 			case *slack.ConnectedEvent:
