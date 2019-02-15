@@ -55,8 +55,8 @@ func (c *botCommand) Definition() *CommandDefinition {
 
 // Match determines whether the bot should respond based on the text received
 func (c *botCommand) Match(text string) (*proper.Properties, bool) {
-	if c.CustomParser != nil {
-		return c.CustomerParser(text)
+	if c.definition.CustomParser != nil {
+		return c.definition.CustomParser(text)
 	}
 	return c.command.Match(text)
 }
