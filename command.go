@@ -12,6 +12,7 @@ type CommandDefinition struct {
 	AuthorizationRequired bool
 	AuthorizedUsers       []string
 	AuthorizationFunc     func(request Request) bool
+	CustomParser          func(text string) (*proper.Properties, bool)
 	Handler               func(request Request, response ResponseWriter)
 }
 
@@ -54,6 +55,9 @@ func (c *botCommand) Definition() *CommandDefinition {
 
 // Match determines whether the bot should respond based on the text received
 func (c *botCommand) Match(text string) (*proper.Properties, bool) {
+	if c.CustomParser != nil {
+		return c.CustomerParser(text)
+	}
 	return c.command.Match(text)
 }
 
