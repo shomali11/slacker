@@ -11,6 +11,7 @@ type CommandDefinition struct {
 	Example               string
 	AuthorizationRequired bool
 	AuthorizedUsers       []string
+	AuthorizationFunc     func(request Request) bool
 	Handler               func(request Request, response ResponseWriter)
 }
 

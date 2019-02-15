@@ -199,15 +199,14 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 			continue
 		}
 
-		if cmd.Definition().AuthorizationRequired && !contains(cmd.Definition().AuthorizedUsers, event.User) {
+		request := s.requestConstructor(ctx, event, parameters)
+		if cmd.Definition().AuthorizationRequired && !(contains(cmd.Definition().AuthorizedUsers, event.User) || cmd.Definition().AuthorizationFunc(request)) {
 			response.ReportError(unAuthorizedError)
 			return
 		}
 
-		request := s.requestConstructor(ctx, event, parameters)
 		cmd.Execute(request, response)
 		return
-
 	}
 
 	if s.defaultMessageHandler != nil {

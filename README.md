@@ -518,6 +518,9 @@ func main() {
 	authorizedDefinition := &slacker.CommandDefinition{
 		Description:           "Very secret stuff",
 		AuthorizationRequired: true,
+		// Either AuthorizationFunc OR AuthorizedUsers can be used to grant access
+		// They are OR'ed together.
+		AuthorizationFunc: func(request slacker.Request) { return true },
 		AuthorizedUsers:       []string{},
 		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("You are authorized!")
