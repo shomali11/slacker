@@ -200,10 +200,8 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 		}
 
 		request := s.requestConstructor(ctx, event, parameters)
-		if cmd.Definition().AuthorizationRequired {
-			if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
-				response.ReportError(unAuthorizedError)
-			}
+		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
+			response.ReportError(unAuthorizedError)
 		}
 
 		cmd.Execute(request, response)
@@ -233,7 +231,7 @@ func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Description)
 		}
 
-		if command.Definition().AuthorizationRequired {
+		if command.Definition().AuthorizationFunc != nil {
 			authorizedCommandAvailable = true
 			helpMessage += space + fmt.Sprintf(codeMessageFormat, star)
 		}
