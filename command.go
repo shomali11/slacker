@@ -7,12 +7,10 @@ import (
 
 // CommandDefinition structure contains definition of the bot command
 type CommandDefinition struct {
-	Description           string
-	Example               string
-	AuthorizationRequired bool
-	AuthorizedUsers       []string
-	AuthorizationFunc     func(request Request) bool
-	Handler               func(request Request, response ResponseWriter)
+	Description       string
+	Example           string
+	AuthorizationFunc func(request Request) bool
+	Handler           func(request Request, response ResponseWriter)
 }
 
 // NewBotCommand creates a new bot command object
