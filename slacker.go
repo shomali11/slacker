@@ -201,15 +201,8 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 
 		request := s.requestConstructor(ctx, event, parameters)
 		if cmd.Definition().AuthorizationRequired {
-			authFunc := cmd.Definition().AuthorizationFunc
-			authList := cmd.Definition().AuthorizedUsers
-			if authList != nil && contains(authList, event.User) {
-				// User auth'ed
-			} else if authFunc != nil && authFunc(request) {
-				// User auth'ed
-			} else {
+			if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
 				response.ReportError(unAuthorizedError)
-				return
 			}
 		}
 
