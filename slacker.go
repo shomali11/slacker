@@ -264,12 +264,3 @@ func (s *Slacker) prependHelpHandle() {
 
 	s.botCommands = append([]BotCommand{NewBotCommand(helpCommand, s.helpDefinition)}, s.botCommands...)
 }
-
-func contains(list []string, element string) bool {
-	for _, value := range list {
-		if value == element {
-			return true
-		}
-	}
-	return false
-}
