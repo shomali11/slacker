@@ -515,10 +515,13 @@ import (
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
+	authorizedUsers := []string{"<YOUR USERID>"}
+
 	authorizedDefinition := &slacker.CommandDefinition{
-		Description:           "Very secret stuff",
-		AuthorizationRequired: true,
-		AuthorizedUsers:       []string{},
+		Description: "Very secret stuff",
+		AuthorizationFunc: func(request slacker.Request) {
+			return contains(authorizedUsers, request.Event().user)
+		},
 		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("You are authorized!")
 		},
