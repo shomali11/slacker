@@ -63,6 +63,16 @@ func (s *Slacker) BotCommands() []BotCommand {
 	return s.botCommands
 }
 
+// Client returns the internal slack.Client of Slacker struct
+func (s *Slacker) Client() *slack.Client {
+	return s.client
+}
+
+// RTM returns returns the internal slack.RTM of Slacker struct
+func (s *Slacker) RTM() *slack.RTM {
+	return s.rtm
+}
+
 // Init handle the event when the bot is first connected
 func (s *Slacker) Init(initHandler func()) {
 	s.initHandler = initHandler
