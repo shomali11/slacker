@@ -11,14 +11,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7711bc85fa91b919713feda232ffe0bd4ebb0e8426b9c0de6c6f476e0eb9b7c2"
+  digest = "1:bce2e04677f0d9731bf0bcc7ae61657c653cbb4e1d0cd8ca41af1baa8e3251ac"
   name = "github.com/nlopes/slack"
   packages = [
     ".",
     "slackutilsx",
   ]
   pruneopts = "UT"
-  revision = "a7deeca7935c178aa865249bab511daf816288ba"
+  revision = "71a00675abf36a35bb4ff7c0fdd3172c9b191b23"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -30,11 +30,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:c6795766b23d66ac11871034c9f00a4e4d292284e935debc2db2bfe25b96304f"
+  digest = "1:ded58c39a41a0259125c4ef985d8aa8098f621bac34911ad52ae20ed42da4c7a"
   name = "github.com/shomali11/commander"
   packages = ["."]
   pruneopts = "UT"
-  revision = "384535f6562b1b98294d1e6db8d1d5365b79915c"
+  revision = "cde98353eb56e51db0c91c774965475b35c8a1dd"
 
 [[projects]]
   branch = "master"
