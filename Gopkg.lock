@@ -30,11 +30,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:ded58c39a41a0259125c4ef985d8aa8098f621bac34911ad52ae20ed42da4c7a"
+  digest = "1:c6795766b23d66ac11871034c9f00a4e4d292284e935debc2db2bfe25b96304f"
   name = "github.com/shomali11/commander"
   packages = ["."]
   pruneopts = "UT"
-  revision = "cde98353eb56e51db0c91c774965475b35c8a1dd"
+  revision = "57e7c4df59d61fd04c4b51fbe195c661e1740dfb"
 
 [[projects]]
   branch = "master"

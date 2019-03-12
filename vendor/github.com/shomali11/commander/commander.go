@@ -12,8 +12,8 @@ const (
 	parameterPattern   = "<\\S+>"
 	spacePattern       = "\\s+"
 	inputPattern       = "(.+)"
-	preCommandPattern  = "(^)"
-	postCommandPattern = "($)"
+	preCommandPattern  = "(\\s|^)"
+	postCommandPattern = "(\\s|$)"
 )
 
 var (
