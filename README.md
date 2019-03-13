@@ -4,20 +4,26 @@ Built on top of the Slack API [github.com/nlopes/slack](https://github.com/nlope
 
 ## Features
 
-* Easy definitions of commands and their input
-* Available bot initialization, errors and default handlers
-* Simple parsing of String, Integer, Float and Boolean parameters
-* Contains support for `context.Context`
-* Built-in `help` command
-* Supports authorization
-* Bot responds to mentions and direct messages
-* Handlers run concurrently via goroutines
-* Full access to the Slack API [github.com/nlopes/slack](https://github.com/nlopes/slack)
+- Easy definitions of commands and their input
+- Available bot initialization, errors and default handlers
+- Simple parsing of String, Integer, Float and Boolean parameters
+- Contains support for `context.Context`
+- Built-in `help` command
+- Supports authorization
+- Bot responds to mentions and direct messages
+- Handlers run concurrently via goroutines
+- Full access to the Slack API [github.com/nlopes/slack](https://github.com/nlopes/slack)
 
 ## Dependencies
 
-* `commander` [github.com/shomali11/commander](https://github.com/shomali11/commander)
-* `slack` [github.com/nlopes/slack](https://github.com/nlopes/slack)
+- `commander` [github.com/shomali11/commander](https://github.com/shomali11/commander)
+- `slack` [github.com/nlopes/slack](https://github.com/nlopes/slack)
+
+# Install
+
+```
+go get github.com/shomali11/slacker
+```
 
 # Examples
 
@@ -130,7 +136,7 @@ func main() {
 
 ## Example 4
 
-Defining a command with two parameters. Parsing one as a string and the other as an integer. 
+Defining a command with two parameters. Parsing one as a string and the other as an integer.
 _(The second parameter is the default value in case no parameter was passed or could not parse the value)_
 
 ```go
