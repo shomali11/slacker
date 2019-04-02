@@ -212,6 +212,7 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 		request := s.requestConstructor(ctx, event, parameters)
 		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
 			response.ReportError(unAuthorizedError)
+			return
 		}
 
 		cmd.Execute(request, response)
