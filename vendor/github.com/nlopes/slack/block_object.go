@@ -7,9 +7,15 @@ package slack
 // BlockObject defines an interface that all block object types should
 // implement.
 // @TODO: Is this interface needed?
-type blockObject interface {
+type BlockObject interface {
 	validateType() MessageObjectType
 }
+
+// BlockObject object types
+const (
+	MarkdownType  = "mrkdwn"
+	PlainTextType = "plain_text"
+)
 
 // ImageBlockObject An element to insert an image - this element can be used
 // in section and context blocks only. If you want a block with only an image

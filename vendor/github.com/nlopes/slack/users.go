@@ -3,7 +3,6 @@ package slack
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"net/url"
 	"strconv"
 )
@@ -12,7 +11,6 @@ const (
 	DEFAULT_USER_PHOTO_CROP_X = -1
 	DEFAULT_USER_PHOTO_CROP_Y = -1
 	DEFAULT_USER_PHOTO_CROP_W = -1
-	errPaginationComplete     = errorString("pagination complete")
 )
 
 // UserProfile contains all the information details of a given user
@@ -37,6 +35,7 @@ type UserProfile struct {
 	ApiAppID              string                  `json:"api_app_id,omitempty"`
 	StatusText            string                  `json:"status_text,omitempty"`
 	StatusEmoji           string                  `json:"status_emoji,omitempty"`
+	StatusExpiration      int                     `json:"status_expiration"`
 	Team                  string                  `json:"team"`
 	Fields                UserProfileCustomFields `json:"fields"`
 }
@@ -201,9 +200,9 @@ func NewUserSetPhotoParams() UserSetPhotoParams {
 	}
 }
 
-func userRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*userResponseFull, error) {
+func (api *Client) userRequest(ctx context.Context, path string, values url.Values) (*userResponseFull, error) {
 	response := &userResponseFull{}
-	err := postForm(ctx, client, APIURL+path, values, response, d)
+	err := api.postMethod(ctx, path, values, response)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +222,7 @@ func (api *Client) GetUserPresenceContext(ctx context.Context, user string) (*Us
 		"user":  {user},
 	}
 
-	response, err := userRequest(ctx, api.httpclient, "users.getPresence", values, api)
+	response, err := api.userRequest(ctx, "users.getPresence", values)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +242,7 @@ func (api *Client) GetUserInfoContext(ctx context.Context, user string) (*User, 
 		"include_locale": {strconv.FormatBool(true)},
 	}
 
-	response, err := userRequest(ctx, api.httpclient, "users.info", values, api)
+	response, err := api.userRequest(ctx, "users.info", values)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +321,7 @@ func (t UserPagination) Next(ctx context.Context) (_ UserPagination, err error) 
 		"include_locale": {strconv.FormatBool(true)},
 	}
 
-	if resp, err = userRequest(ctx, t.c.httpclient, "users.list", values, t.c); err != nil {
+	if resp, err = t.c.userRequest(ctx, "users.list", values); err != nil {
 		return t, err
 	}
 
@@ -367,7 +366,7 @@ func (api *Client) GetUserByEmailContext(ctx context.Context, email string) (*Us
 		"token": {api.token},
 		"email": {email},
 	}
-	response, err := userRequest(ctx, api.httpclient, "users.lookupByEmail", values, api)
+	response, err := api.userRequest(ctx, "users.lookupByEmail", values)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +384,7 @@ func (api *Client) SetUserAsActiveContext(ctx context.Context) (err error) {
 		"token": {api.token},
 	}
 
-	_, err = userRequest(ctx, api.httpclient, "users.setActive", values, api)
+	_, err = api.userRequest(ctx, "users.setActive", values)
 	return err
 }
 
@@ -401,7 +400,7 @@ func (api *Client) SetUserPresenceContext(ctx context.Context, presence string) 
 		"presence": {presence},
 	}
 
-	_, err := userRequest(ctx, api.httpclient, "users.setPresence", values, api)
+	_, err := api.userRequest(ctx, "users.setPresence", values)
 	return err
 }
 
@@ -417,13 +416,15 @@ func (api *Client) GetUserIdentityContext(ctx context.Context) (*UserIdentityRes
 	}
 	response := &UserIdentityResponse{}
 
-	err := postForm(ctx, api.httpclient, APIURL+"users.identity", values, response, api)
+	err := api.postMethod(ctx, "users.identity", values, response)
 	if err != nil {
 		return nil, err
 	}
-	if !response.Ok {
-		return nil, errors.New(response.Error)
+
+	if err := response.Err(); err != nil {
+		return nil, err
 	}
+
 	return response, nil
 }
 
@@ -448,7 +449,7 @@ func (api *Client) SetUserPhotoContext(ctx context.Context, image string, params
 		values.Add("crop_w", strconv.Itoa(params.CropW))
 	}
 
-	err := postLocalWithMultipartResponse(ctx, api.httpclient, "users.setPhoto", image, "image", values, response, api)
+	err := postLocalWithMultipartResponse(ctx, api.httpclient, api.endpoint+"users.setPhoto", image, "image", values, response, api)
 	if err != nil {
 		return err
 	}
@@ -468,7 +469,7 @@ func (api *Client) DeleteUserPhotoContext(ctx context.Context) error {
 		"token": {api.token},
 	}
 
-	err := postForm(ctx, api.httpclient, APIURL+"users.deletePhoto", values, response, api)
+	err := api.postMethod(ctx, "users.deletePhoto", values, response)
 	if err != nil {
 		return err
 	}
@@ -479,15 +480,16 @@ func (api *Client) DeleteUserPhotoContext(ctx context.Context) error {
 // SetUserCustomStatus will set a custom status and emoji for the currently
 // authenticated user. If statusEmoji is "" and statusText is not, the Slack API
 // will automatically set it to ":speech_balloon:". Otherwise, if both are ""
-// the Slack API will unset the custom status/emoji.
-func (api *Client) SetUserCustomStatus(statusText, statusEmoji string) error {
-	return api.SetUserCustomStatusContext(context.Background(), statusText, statusEmoji)
+// the Slack API will unset the custom status/emoji. If statusExpiration is set to 0
+// the status will not expire.
+func (api *Client) SetUserCustomStatus(statusText, statusEmoji string, statusExpiration int64) error {
+	return api.SetUserCustomStatusContext(context.Background(), statusText, statusEmoji, statusExpiration)
 }
 
 // SetUserCustomStatusContext will set a custom status and emoji for the currently authenticated user with a custom context
 //
 // For more information see SetUserCustomStatus
-func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, statusEmoji string) error {
+func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, statusEmoji string, statusExpiration int64) error {
 	// XXX(theckman): this anonymous struct is for making requests to the Slack
 	// API for setting and unsetting a User's Custom Status/Emoji. To change
 	// these values we must provide a JSON document as the profile POST field.
@@ -500,11 +502,13 @@ func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, s
 	// - https://api.slack.com/docs/presence-and-status#custom_status
 	profile, err := json.Marshal(
 		&struct {
-			StatusText  string `json:"status_text"`
-			StatusEmoji string `json:"status_emoji"`
+			StatusText       string `json:"status_text"`
+			StatusEmoji      string `json:"status_emoji"`
+			StatusExpiration int64  `json:"status_expiration"`
 		}{
-			StatusText:  statusText,
-			StatusEmoji: statusEmoji,
+			StatusText:       statusText,
+			StatusEmoji:      statusEmoji,
+			StatusExpiration: statusExpiration,
 		},
 	)
 
@@ -518,15 +522,11 @@ func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, s
 	}
 
 	response := &userResponseFull{}
-	if err = postForm(ctx, api.httpclient, APIURL+"users.profile.set", values, response, api); err != nil {
+	if err = api.postMethod(ctx, "users.profile.set", values, response); err != nil {
 		return err
 	}
 
-	if !response.Ok {
-		return errors.New(response.Error)
-	}
-
-	return nil
+	return response.Err()
 }
 
 // UnsetUserCustomStatus removes the custom status message for the currently
@@ -538,7 +538,7 @@ func (api *Client) UnsetUserCustomStatus() error {
 // UnsetUserCustomStatusContext removes the custom status message for the currently authenticated user
 // with a custom context. This is a convenience method that wraps (*Client).SetUserCustomStatus().
 func (api *Client) UnsetUserCustomStatusContext(ctx context.Context) error {
-	return api.SetUserCustomStatusContext(ctx, "", "")
+	return api.SetUserCustomStatusContext(ctx, "", "", 0)
 }
 
 // GetUserProfile retrieves a user's profile information.
@@ -559,12 +559,14 @@ func (api *Client) GetUserProfileContext(ctx context.Context, userID string, inc
 	}
 	resp := &getUserProfileResponse{}
 
-	err := postSlackMethod(ctx, api.httpclient, "users.profile.get", values, &resp, api)
+	err := api.postMethod(ctx, "users.profile.get", values, &resp)
 	if err != nil {
 		return nil, err
 	}
-	if !resp.Ok {
-		return nil, errors.New(resp.Error)
+
+	if err := resp.Err(); err != nil {
+		return nil, err
 	}
+
 	return resp.Profile, nil
 }
