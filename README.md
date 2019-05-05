@@ -22,7 +22,7 @@ Built on top of the Slack API [github.com/nlopes/slack](https://github.com/nlope
 # Install
 
 ```
-go get github.com/shomali11/slacker
+dep ensure -add github.com/shomali11/slacker
 ```
 
 # Examples
