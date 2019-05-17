@@ -38,14 +38,23 @@ func WithAttachments(attachments []slack.Attachment) ReplyOption {
 	}
 }
 
+// WithBlocks sets message blocks
+func WithBlocks(blocks []slack.Block) ReplyOption {
+	return func(defaults *ReplyDefaults) {
+		defaults.Blocks = blocks
+	}
+}
+
 // ReplyDefaults configuration
 type ReplyDefaults struct {
 	Attachments []slack.Attachment
+	Blocks      []slack.Block
 }
 
 func newReplyDefaults(options ...ReplyOption) *ReplyDefaults {
 	config := &ReplyDefaults{
 		Attachments: []slack.Attachment{},
+		Blocks:      []slack.Block{},
 	}
 
 	for _, option := range options {
