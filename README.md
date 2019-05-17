@@ -389,6 +389,50 @@ func main() {
 
 ## Example 10
 
+Showcasing the ability to add blocks to a `Reply`
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+
+	"github.com/nlopes/slack"
+	"github.com/shomali11/slacker"
+)
+
+func main() {
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+
+	definition := &slacker.CommandDefinition{
+		Description: "Echo a word!",
+		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+			word := request.Param("word")
+
+			attachments := []slack.Block{}
+			attachments = append(attachments, slack.NewContextBlock("1",
+				slack.NewTextBlockObject("mrkdwn", "Hi!", false, false)),
+			)
+
+			response.Reply(word, slacker.WithBlocks(attachments))
+		},
+	}
+
+	bot.Command("echo <word>", definition)
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
+## Example 11
+
 Showcasing the ability to create custom responses via `CustomResponse`
 
 ```go
@@ -470,7 +514,7 @@ func (r *MyCustomResponseWriter) Client() *slack.Client {
 }
 ```
 
-## Example 11
+## Example 12
 
 Showcasing the ability to toggle the slack Debug option via `WithDebug`
 
@@ -505,7 +549,7 @@ func main() {
 }
 ```
 
-## Example 12
+## Example 13
 
 Defining a command that can only be executed by authorized users
 
@@ -554,7 +598,7 @@ func contains(list []string, element string) bool {
 }
 ```
 
-## Example 13
+## Example 14
 
 Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match
 

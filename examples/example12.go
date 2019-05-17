@@ -7,21 +7,16 @@ import (
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>", slacker.WithDebug(true))
 
-	authorizedUsers := []string{"<USER ID>"}
-
-	authorizedDefinition := &slacker.CommandDefinition{
-		Description: "Very secret stuff",
-		AuthorizationFunc: func(request slacker.Request) bool {
-			return contains(authorizedUsers, request.Event().User)
-		},
+	definition := &slacker.CommandDefinition{
+		Description: "Ping!",
 		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
-			response.Reply("You are authorized!")
+			response.Reply("pong")
 		},
 	}
 
-	bot.Command("secret", authorizedDefinition)
+	bot.Command("ping", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -30,13 +25,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func contains(list []string, element string) bool {
-	for _, value := range list {
-		if value == element {
-			return true
-		}
-	}
-	return false
 }
