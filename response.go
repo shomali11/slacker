@@ -50,6 +50,7 @@ func (r *response) Reply(message string, options ...ReplyOption) {
 		slack.MsgOptionUser(r.rtm.GetInfo().User.ID),
 		slack.MsgOptionAsUser(true),
 		slack.MsgOptionAttachments(defaults.Attachments...),
+		slack.MsgOptionBlocks(defaults.Blocks...)
 	)
 }
 
