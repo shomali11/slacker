@@ -16,6 +16,7 @@ type OutgoingMessage struct {
 type Message struct {
 	Msg
 	SubMessage *Msg `json:"message,omitempty"`
+	PreviousMessage *Msg `json:"previous_message,omitempty"`
 }
 
 // Msg contains information about a slack message
@@ -94,7 +95,7 @@ type Msg struct {
 	DeleteOriginal  bool   `json:"delete_original"`
 
 	// Block type Message
-	Blocks []Block `json:"blocks,omitempty"`
+	Blocks Blocks `json:"blocks,omitempty"`
 }
 
 // Icon is used for bot messages

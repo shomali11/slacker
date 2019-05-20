@@ -7,45 +7,55 @@ package slack
 // MessageBlockType defines a named string type to define each block type
 // as a constant for use within the package.
 type MessageBlockType string
-type MessageElementType string
-type MessageObjectType string
 
 const (
-	mbtSection MessageBlockType = "section"
-	mbtDivider MessageBlockType = "divider"
-	mbtImage   MessageBlockType = "image"
-	mbtAction  MessageBlockType = "actions"
-	mbtContext MessageBlockType = "context"
-
-	metImage      MessageElementType = "image"
-	metButton     MessageElementType = "button"
-	metOverflow   MessageElementType = "overflow"
-	metDatepicker MessageElementType = "datepicker"
-	metSelect     MessageElementType = "static_select"
-
-	motImage        MessageObjectType = "image"
-	motConfirmation MessageObjectType = "confirmation"
-	motOption       MessageObjectType = "option"
-	motOptionGroup  MessageObjectType = "option_group"
+	MBTSection MessageBlockType = "section"
+	MBTDivider MessageBlockType = "divider"
+	MBTImage   MessageBlockType = "image"
+	MBTAction  MessageBlockType = "actions"
+	MBTContext MessageBlockType = "context"
 )
 
 // Block defines an interface all block types should implement
 // to ensure consistency between blocks.
 type Block interface {
-	blockType() MessageBlockType
+	BlockType() MessageBlockType
+}
+
+// Blocks is a convenience struct defined to allow dynamic unmarshalling of
+// the "blocks" value in Slack's JSON response, which varies depending on block type
+type Blocks struct {
+	BlockSet []Block `json:"blocks,omitempty"`
+}
+
+// BlockAction is the action callback sent when a block is interacted with
+type BlockAction struct {
+	ActionID string          `json:"action_id"`
+	BlockID  string          `json:"block_id"`
+	Text     TextBlockObject `json:"text"`
+	Value    string          `json:"value"`
+	Type     actionType      `json:"type"`
+	ActionTs string          `json:"action_ts"`
+}
+
+// actionType returns the type of the action
+func (b BlockAction) actionType() actionType {
+	return b.Type
 }
 
 // NewBlockMessage creates a new Message that contains one or more blocks to be displayed
 func NewBlockMessage(blocks ...Block) Message {
 	return Message{
 		Msg: Msg{
-			Blocks: blocks,
+			Blocks: Blocks{
+				BlockSet: blocks,
+			},
 		},
 	}
 }
 
 // AddBlockMessage appends a block to the end of the existing list of blocks
 func AddBlockMessage(message Message, newBlk Block) Message {
-	message.Msg.Blocks = append(message.Msg.Blocks, newBlk)
+	message.Msg.Blocks.BlockSet = append(message.Msg.Blocks.BlockSet, newBlk)
 	return message
 }

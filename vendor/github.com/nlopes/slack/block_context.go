@@ -5,21 +5,28 @@ package slack
 //
 // More Information: https://api.slack.com/reference/messaging/blocks#actions
 type ContextBlock struct {
-	Type     MessageBlockType `json:"type"`
-	BlockID  string           `json:"block_id,omitempty"`
-	Elements []BlockObject    `json:"elements"`
+	Type            MessageBlockType `json:"type"`
+	BlockID         string           `json:"block_id,omitempty"`
+	ContextElements ContextElements  `json:"elements"`
 }
 
-// blockType returns the type of the block
-func (s ContextBlock) blockType() MessageBlockType {
+// BlockType returns the type of the block
+func (s ContextBlock) BlockType() MessageBlockType {
 	return s.Type
 }
 
-// NewContextBlock returns a newinstance of a context block
-func NewContextBlock(blockID string, elements ...BlockObject) *ContextBlock {
+type ContextElements struct {
+	Elements []MixedElement
+}
+
+// NewContextBlock returns a new instance of a context block
+func NewContextBlock(blockID string, mixedElements ...MixedElement) *ContextBlock {
+	elements := ContextElements{
+		Elements: mixedElements,
+	}
 	return &ContextBlock{
-		Type:     mbtContext,
-		BlockID:  blockID,
-		Elements: elements,
+		Type:            MBTContext,
+		BlockID:         blockID,
+		ContextElements: elements,
 	}
 }

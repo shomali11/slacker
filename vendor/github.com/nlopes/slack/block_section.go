@@ -8,18 +8,18 @@ type SectionBlock struct {
 	Text      *TextBlockObject   `json:"text,omitempty"`
 	BlockID   string             `json:"block_id,omitempty"`
 	Fields    []*TextBlockObject `json:"fields,omitempty"`
-	Accessory BlockElement       `json:"accessory,omitempty"`
+	Accessory *Accessory         `json:"accessory,omitempty"`
 }
 
-// blockType returns the type of the block
-func (s SectionBlock) blockType() MessageBlockType {
+// BlockType returns the type of the block
+func (s SectionBlock) BlockType() MessageBlockType {
 	return s.Type
 }
 
 // NewSectionBlock returns a new instance of a section block to be rendered
-func NewSectionBlock(textObj *TextBlockObject, fields []*TextBlockObject, accessory BlockElement) *SectionBlock {
+func NewSectionBlock(textObj *TextBlockObject, fields []*TextBlockObject, accessory *Accessory) *SectionBlock {
 	return &SectionBlock{
-		Type:      mbtSection,
+		Type:      MBTSection,
 		Text:      textObj,
 		Fields:    fields,
 		Accessory: accessory,

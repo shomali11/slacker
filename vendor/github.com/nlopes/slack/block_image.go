@@ -11,15 +11,15 @@ type ImageBlock struct {
 	Title    *TextBlockObject `json:"title"`
 }
 
-// blockType returns the type of the block
-func (s ImageBlock) blockType() MessageBlockType {
+// BlockType returns the type of the block
+func (s ImageBlock) BlockType() MessageBlockType {
 	return s.Type
 }
 
 // NewImageBlock returns an instance of a new Image Block type
 func NewImageBlock(imageURL, altText, blockID string, title *TextBlockObject) *ImageBlock {
 	return &ImageBlock{
-		Type:     mbtImage,
+		Type:     MBTImage,
 		ImageURL: imageURL,
 		AltText:  altText,
 		BlockID:  blockID,
