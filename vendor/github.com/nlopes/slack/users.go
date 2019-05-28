@@ -3,6 +3,7 @@ package slack
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/url"
 	"strconv"
 )
@@ -11,6 +12,7 @@ const (
 	DEFAULT_USER_PHOTO_CROP_X = -1
 	DEFAULT_USER_PHOTO_CROP_Y = -1
 	DEFAULT_USER_PHOTO_CROP_W = -1
+	errPaginationComplete     = errorString("pagination complete")
 )
 
 // UserProfile contains all the information details of a given user
@@ -35,7 +37,6 @@ type UserProfile struct {
 	ApiAppID              string                  `json:"api_app_id,omitempty"`
 	StatusText            string                  `json:"status_text,omitempty"`
 	StatusEmoji           string                  `json:"status_emoji,omitempty"`
-	StatusExpiration      int                     `json:"status_expiration"`
 	Team                  string                  `json:"team"`
 	Fields                UserProfileCustomFields `json:"fields"`
 }
@@ -99,30 +100,28 @@ type UserProfileCustomField struct {
 
 // User contains all the information of a user
 type User struct {
-	ID                string         `json:"id"`
-	TeamID            string         `json:"team_id"`
-	Name              string         `json:"name"`
-	Deleted           bool           `json:"deleted"`
-	Color             string         `json:"color"`
-	RealName          string         `json:"real_name"`
-	TZ                string         `json:"tz,omitempty"`
-	TZLabel           string         `json:"tz_label"`
-	TZOffset          int            `json:"tz_offset"`
-	Profile           UserProfile    `json:"profile"`
-	IsBot             bool           `json:"is_bot"`
-	IsAdmin           bool           `json:"is_admin"`
-	IsOwner           bool           `json:"is_owner"`
-	IsPrimaryOwner    bool           `json:"is_primary_owner"`
-	IsRestricted      bool           `json:"is_restricted"`
-	IsUltraRestricted bool           `json:"is_ultra_restricted"`
-	IsStranger        bool           `json:"is_stranger"`
-	IsAppUser         bool           `json:"is_app_user"`
-	Has2FA            bool           `json:"has_2fa"`
-	HasFiles          bool           `json:"has_files"`
-	Presence          string         `json:"presence"`
-	Locale            string         `json:"locale"`
-	Updated           JSONTime       `json:"updated"`
-	Enterprise        EnterpriseUser `json:"enterprise_user,omitempty"`
+	ID                string      `json:"id"`
+	TeamID            string      `json:"team_id"`
+	Name              string      `json:"name"`
+	Deleted           bool        `json:"deleted"`
+	Color             string      `json:"color"`
+	RealName          string      `json:"real_name"`
+	TZ                string      `json:"tz,omitempty"`
+	TZLabel           string      `json:"tz_label"`
+	TZOffset          int         `json:"tz_offset"`
+	Profile           UserProfile `json:"profile"`
+	IsBot             bool        `json:"is_bot"`
+	IsAdmin           bool        `json:"is_admin"`
+	IsOwner           bool        `json:"is_owner"`
+	IsPrimaryOwner    bool        `json:"is_primary_owner"`
+	IsRestricted      bool        `json:"is_restricted"`
+	IsUltraRestricted bool        `json:"is_ultra_restricted"`
+	IsStranger        bool        `json:"is_stranger"`
+	IsAppUser         bool        `json:"is_app_user"`
+	Has2FA            bool        `json:"has_2fa"`
+	HasFiles          bool        `json:"has_files"`
+	Presence          string      `json:"presence"`
+	Locale            string      `json:"locale"`
 }
 
 // UserPresence contains details about a user online status
@@ -151,17 +150,6 @@ type UserIdentity struct {
 	Image72  string `json:"image_72"`
 	Image192 string `json:"image_192"`
 	Image512 string `json:"image_512"`
-}
-
-// EnterpriseUser is present when a user is part of Slack Enterprise Grid
-// https://api.slack.com/types/user#enterprise_grid_user_objects
-type EnterpriseUser struct {
-	ID             string   `json:"id"`
-	EnterpriseID   string   `json:"enterprise_id"`
-	EnterpriseName string   `json:"enterprise_name"`
-	IsAdmin        bool     `json:"is_admin"`
-	IsOwner        bool     `json:"is_owner"`
-	Teams          []string `json:"teams"`
 }
 
 type TeamIdentity struct {
@@ -201,9 +189,9 @@ func NewUserSetPhotoParams() UserSetPhotoParams {
 	}
 }
 
-func (api *Client) userRequest(ctx context.Context, path string, values url.Values) (*userResponseFull, error) {
+func userRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*userResponseFull, error) {
 	response := &userResponseFull{}
-	err := api.postMethod(ctx, path, values, response)
+	err := postForm(ctx, client, APIURL+path, values, response, d)
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +211,7 @@ func (api *Client) GetUserPresenceContext(ctx context.Context, user string) (*Us
 		"user":  {user},
 	}
 
-	response, err := api.userRequest(ctx, "users.getPresence", values)
+	response, err := userRequest(ctx, api.httpclient, "users.getPresence", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +231,7 @@ func (api *Client) GetUserInfoContext(ctx context.Context, user string) (*User, 
 		"include_locale": {strconv.FormatBool(true)},
 	}
 
-	response, err := api.userRequest(ctx, "users.info", values)
+	response, err := userRequest(ctx, api.httpclient, "users.info", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -322,7 +310,7 @@ func (t UserPagination) Next(ctx context.Context) (_ UserPagination, err error) 
 		"include_locale": {strconv.FormatBool(true)},
 	}
 
-	if resp, err = t.c.userRequest(ctx, "users.list", values); err != nil {
+	if resp, err = userRequest(ctx, t.c.httpclient, "users.list", values, t.c); err != nil {
 		return t, err
 	}
 
@@ -367,7 +355,7 @@ func (api *Client) GetUserByEmailContext(ctx context.Context, email string) (*Us
 		"token": {api.token},
 		"email": {email},
 	}
-	response, err := api.userRequest(ctx, "users.lookupByEmail", values)
+	response, err := userRequest(ctx, api.httpclient, "users.lookupByEmail", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -385,7 +373,7 @@ func (api *Client) SetUserAsActiveContext(ctx context.Context) (err error) {
 		"token": {api.token},
 	}
 
-	_, err = api.userRequest(ctx, "users.setActive", values)
+	_, err = userRequest(ctx, api.httpclient, "users.setActive", values, api)
 	return err
 }
 
@@ -401,7 +389,7 @@ func (api *Client) SetUserPresenceContext(ctx context.Context, presence string) 
 		"presence": {presence},
 	}
 
-	_, err := api.userRequest(ctx, "users.setPresence", values)
+	_, err := userRequest(ctx, api.httpclient, "users.setPresence", values, api)
 	return err
 }
 
@@ -417,15 +405,13 @@ func (api *Client) GetUserIdentityContext(ctx context.Context) (*UserIdentityRes
 	}
 	response := &UserIdentityResponse{}
 
-	err := api.postMethod(ctx, "users.identity", values, response)
+	err := postForm(ctx, api.httpclient, APIURL+"users.identity", values, response, api)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := response.Err(); err != nil {
-		return nil, err
+	if !response.Ok {
+		return nil, errors.New(response.Error)
 	}
-
 	return response, nil
 }
 
@@ -450,7 +436,7 @@ func (api *Client) SetUserPhotoContext(ctx context.Context, image string, params
 		values.Add("crop_w", strconv.Itoa(params.CropW))
 	}
 
-	err := postLocalWithMultipartResponse(ctx, api.httpclient, api.endpoint+"users.setPhoto", image, "image", values, response, api)
+	err := postLocalWithMultipartResponse(ctx, api.httpclient, "users.setPhoto", image, "image", values, response, api)
 	if err != nil {
 		return err
 	}
@@ -470,7 +456,7 @@ func (api *Client) DeleteUserPhotoContext(ctx context.Context) error {
 		"token": {api.token},
 	}
 
-	err := api.postMethod(ctx, "users.deletePhoto", values, response)
+	err := postForm(ctx, api.httpclient, APIURL+"users.deletePhoto", values, response, api)
 	if err != nil {
 		return err
 	}
@@ -481,16 +467,15 @@ func (api *Client) DeleteUserPhotoContext(ctx context.Context) error {
 // SetUserCustomStatus will set a custom status and emoji for the currently
 // authenticated user. If statusEmoji is "" and statusText is not, the Slack API
 // will automatically set it to ":speech_balloon:". Otherwise, if both are ""
-// the Slack API will unset the custom status/emoji. If statusExpiration is set to 0
-// the status will not expire.
-func (api *Client) SetUserCustomStatus(statusText, statusEmoji string, statusExpiration int64) error {
-	return api.SetUserCustomStatusContext(context.Background(), statusText, statusEmoji, statusExpiration)
+// the Slack API will unset the custom status/emoji.
+func (api *Client) SetUserCustomStatus(statusText, statusEmoji string) error {
+	return api.SetUserCustomStatusContext(context.Background(), statusText, statusEmoji)
 }
 
 // SetUserCustomStatusContext will set a custom status and emoji for the currently authenticated user with a custom context
 //
 // For more information see SetUserCustomStatus
-func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, statusEmoji string, statusExpiration int64) error {
+func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, statusEmoji string) error {
 	// XXX(theckman): this anonymous struct is for making requests to the Slack
 	// API for setting and unsetting a User's Custom Status/Emoji. To change
 	// these values we must provide a JSON document as the profile POST field.
@@ -503,13 +488,11 @@ func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, s
 	// - https://api.slack.com/docs/presence-and-status#custom_status
 	profile, err := json.Marshal(
 		&struct {
-			StatusText       string `json:"status_text"`
-			StatusEmoji      string `json:"status_emoji"`
-			StatusExpiration int64  `json:"status_expiration"`
+			StatusText  string `json:"status_text"`
+			StatusEmoji string `json:"status_emoji"`
 		}{
-			StatusText:       statusText,
-			StatusEmoji:      statusEmoji,
-			StatusExpiration: statusExpiration,
+			StatusText:  statusText,
+			StatusEmoji: statusEmoji,
 		},
 	)
 
@@ -523,11 +506,15 @@ func (api *Client) SetUserCustomStatusContext(ctx context.Context, statusText, s
 	}
 
 	response := &userResponseFull{}
-	if err = api.postMethod(ctx, "users.profile.set", values, response); err != nil {
+	if err = postForm(ctx, api.httpclient, APIURL+"users.profile.set", values, response, api); err != nil {
 		return err
 	}
 
-	return response.Err()
+	if !response.Ok {
+		return errors.New(response.Error)
+	}
+
+	return nil
 }
 
 // UnsetUserCustomStatus removes the custom status message for the currently
@@ -539,7 +526,7 @@ func (api *Client) UnsetUserCustomStatus() error {
 // UnsetUserCustomStatusContext removes the custom status message for the currently authenticated user
 // with a custom context. This is a convenience method that wraps (*Client).SetUserCustomStatus().
 func (api *Client) UnsetUserCustomStatusContext(ctx context.Context) error {
-	return api.SetUserCustomStatusContext(ctx, "", "", 0)
+	return api.SetUserCustomStatusContext(ctx, "", "")
 }
 
 // GetUserProfile retrieves a user's profile information.
@@ -560,14 +547,12 @@ func (api *Client) GetUserProfileContext(ctx context.Context, userID string, inc
 	}
 	resp := &getUserProfileResponse{}
 
-	err := api.postMethod(ctx, "users.profile.get", values, &resp)
+	err := postSlackMethod(ctx, api.httpclient, "users.profile.get", values, &resp, api)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := resp.Err(); err != nil {
-		return nil, err
+	if !resp.Ok {
+		return nil, errors.New(resp.Error)
 	}
-
 	return resp.Profile, nil
 }

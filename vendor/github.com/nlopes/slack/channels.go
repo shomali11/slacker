@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"errors"
 	"net/url"
 	"strconv"
 )
@@ -18,24 +19,22 @@ type channelResponseFull struct {
 
 // Channel contains information about the channel
 type Channel struct {
-	GroupConversation
+	groupConversation
 	IsChannel bool   `json:"is_channel"`
 	IsGeneral bool   `json:"is_general"`
 	IsMember  bool   `json:"is_member"`
 	Locale    string `json:"locale"`
 }
 
-func (api *Client) channelRequest(ctx context.Context, path string, values url.Values) (*channelResponseFull, error) {
+func channelRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*channelResponseFull, error) {
 	response := &channelResponseFull{}
-	err := postForm(ctx, api.httpclient, api.endpoint+path, values, response, api)
+	err := postForm(ctx, client, APIURL+path, values, response, d)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := response.Err(); err != nil {
-		return nil, err
+	if !response.Ok {
+		return nil, errors.New(response.Error)
 	}
-
 	return response, nil
 }
 
@@ -76,7 +75,7 @@ func (api *Client) ArchiveChannelContext(ctx context.Context, channelID string) 
 		"channel": {channelID},
 	}
 
-	_, err = api.channelRequest(ctx, "channels.archive", values)
+	_, err = channelRequest(ctx, api.httpclient, "channels.archive", values, api)
 	return err
 }
 
@@ -94,7 +93,7 @@ func (api *Client) UnarchiveChannelContext(ctx context.Context, channelID string
 		"channel": {channelID},
 	}
 
-	_, err = api.channelRequest(ctx, "channels.unarchive", values)
+	_, err = channelRequest(ctx, api.httpclient, "channels.unarchive", values, api)
 	return err
 }
 
@@ -112,7 +111,7 @@ func (api *Client) CreateChannelContext(ctx context.Context, channelName string)
 		"name":  {channelName},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.create", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.create", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -157,7 +156,7 @@ func (api *Client) GetChannelHistoryContext(ctx context.Context, channelID strin
 		}
 	}
 
-	response, err := api.channelRequest(ctx, "channels.history", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.history", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -179,7 +178,7 @@ func (api *Client) GetChannelInfoContext(ctx context.Context, channelID string) 
 		"include_locale": {strconv.FormatBool(true)},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.info", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.info", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -201,7 +200,7 @@ func (api *Client) InviteUserToChannelContext(ctx context.Context, channelID, us
 		"user":    {user},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.invite", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.invite", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -222,7 +221,7 @@ func (api *Client) JoinChannelContext(ctx context.Context, channelName string) (
 		"name":  {channelName},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.join", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.join", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -243,7 +242,7 @@ func (api *Client) LeaveChannelContext(ctx context.Context, channelID string) (b
 		"channel": {channelID},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.leave", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.leave", values, api)
 	if err != nil {
 		return false, err
 	}
@@ -266,7 +265,7 @@ func (api *Client) KickUserFromChannelContext(ctx context.Context, channelID, us
 		"user":    {user},
 	}
 
-	_, err = api.channelRequest(ctx, "channels.kick", values)
+	_, err = channelRequest(ctx, api.httpclient, "channels.kick", values, api)
 	return err
 }
 
@@ -294,7 +293,7 @@ func (api *Client) GetChannelsContext(ctx context.Context, excludeArchived bool,
 		}
 	}
 
-	response, err := api.channelRequest(ctx, "channels.list", config.values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.list", config.values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -321,7 +320,7 @@ func (api *Client) SetChannelReadMarkContext(ctx context.Context, channelID, ts 
 		"ts":      {ts},
 	}
 
-	_, err = api.channelRequest(ctx, "channels.mark", values)
+	_, err = channelRequest(ctx, api.httpclient, "channels.mark", values, api)
 	return err
 }
 
@@ -342,7 +341,7 @@ func (api *Client) RenameChannelContext(ctx context.Context, channelID, name str
 
 	// XXX: the created entry in this call returns a string instead of a number
 	// so I may have to do some workaround to solve it.
-	response, err := api.channelRequest(ctx, "channels.rename", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.rename", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -364,7 +363,7 @@ func (api *Client) SetChannelPurposeContext(ctx context.Context, channelID, purp
 		"purpose": {purpose},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.setPurpose", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.setPurpose", values, api)
 	if err != nil {
 		return "", err
 	}
@@ -386,7 +385,7 @@ func (api *Client) SetChannelTopicContext(ctx context.Context, channelID, topic 
 		"topic":   {topic},
 	}
 
-	response, err := api.channelRequest(ctx, "channels.setTopic", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.setTopic", values, api)
 	if err != nil {
 		return "", err
 	}
@@ -407,7 +406,7 @@ func (api *Client) GetChannelRepliesContext(ctx context.Context, channelID, thre
 		"channel":   {channelID},
 		"thread_ts": {thread_ts},
 	}
-	response, err := api.channelRequest(ctx, "channels.replies", values)
+	response, err := channelRequest(ctx, api.httpclient, "channels.replies", values, api)
 	if err != nil {
 		return nil, err
 	}
