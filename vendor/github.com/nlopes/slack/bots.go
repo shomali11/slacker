@@ -2,6 +2,7 @@ package slack
 
 import (
 	"context"
+	"errors"
 	"net/url"
 )
 
@@ -18,17 +19,15 @@ type botResponseFull struct {
 	SlackResponse
 }
 
-func (api *Client) botRequest(ctx context.Context, path string, values url.Values) (*botResponseFull, error) {
+func botRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*botResponseFull, error) {
 	response := &botResponseFull{}
-	err := api.postMethod(ctx, path, values, response)
+	err := postSlackMethod(ctx, client, path, values, response, d)
 	if err != nil {
 		return nil, err
 	}
-
-	if err := response.Err(); err != nil {
-		return nil, err
+	if !response.Ok {
+		return nil, errors.New(response.Error)
 	}
-
 	return response, nil
 }
 
@@ -44,7 +43,7 @@ func (api *Client) GetBotInfoContext(ctx context.Context, bot string) (*Bot, err
 		"bot":   {bot},
 	}
 
-	response, err := api.botRequest(ctx, "bots.info", values)
+	response, err := botRequest(ctx, api.httpclient, "bots.info", values, api)
 	if err != nil {
 		return nil, err
 	}

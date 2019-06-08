@@ -1,6 +1,7 @@
 package slack
 
 import (
+	"math"
 	"math/rand"
 	"time"
 )
@@ -13,42 +14,41 @@ import (
 // conjunction with the time package.
 type backoff struct {
 	attempts int
-	// Initial value to scale out
-	Initial time.Duration
-	// Jitter value randomizes an additional delay between 0 and Jitter
-	Jitter time.Duration
-	// Max maximum values of the backoff
-	Max time.Duration
+	//Factor is the multiplying factor for each increment step
+	Factor float64
+	//Jitter eases contention by randomizing backoff steps
+	Jitter bool
+	//Min and Max are the minimum and maximum values of the counter
+	Min, Max time.Duration
 }
 
 // Returns the current value of the counter and then multiplies it
 // Factor
-func (b *backoff) Duration() (dur time.Duration) {
-	// Zero-values are nonsensical, so we use
-	// them to apply defaults
+func (b *backoff) Duration() time.Duration {
+	//Zero-values are nonsensical, so we use
+	//them to apply defaults
+	if b.Min == 0 {
+		b.Min = 100 * time.Millisecond
+	}
 	if b.Max == 0 {
 		b.Max = 10 * time.Second
 	}
-
-	if b.Initial == 0 {
-		b.Initial = 100 * time.Millisecond
+	if b.Factor == 0 {
+		b.Factor = 2
 	}
-
-	// calculate this duration
-	if dur = time.Duration(1 << uint(b.attempts)); dur > 0 {
-		dur = dur * b.Initial
-	} else {
-		dur = b.Max
+	//calculate this duration
+	dur := float64(b.Min) * math.Pow(b.Factor, float64(b.attempts))
+	if b.Jitter {
+		dur = rand.Float64()*(dur-float64(b.Min)) + float64(b.Min)
 	}
-
-	if b.Jitter > 0 {
-		dur = dur + time.Duration(rand.Intn(int(b.Jitter)))
+	//cap!
+	if dur > float64(b.Max) {
+		return b.Max
 	}
-
-	// bump attempts count
+	//bump attempts count
 	b.attempts++
-
-	return dur
+	//return as a time.Duration
+	return time.Duration(dur)
 }
 
 //Resets the current value of the counter back to Min

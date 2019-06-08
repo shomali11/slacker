@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/nlopes/slack/internal/timex"
 )
 
 // ManageConnection can be called on a Slack RTM instance returned by the
@@ -39,7 +38,6 @@ func (rtm *RTM) ManageConnection() {
 		if info, conn, err = rtm.connect(connectionCount, rtm.useRTMStart); err != nil {
 			// when the connection is unsuccessful its fatal, and we need to bail out.
 			rtm.Debugf("Failed to connect with RTM on try %d: %s", connectionCount, err)
-			rtm.disconnect()
 			return
 		}
 
@@ -47,6 +45,7 @@ func (rtm *RTM) ManageConnection() {
 		// and conn.
 		rtm.mu.Lock()
 		rtm.conn = conn
+		rtm.isConnected = true
 		rtm.info = info
 		rtm.mu.Unlock()
 
@@ -57,19 +56,20 @@ func (rtm *RTM) ManageConnection() {
 
 		rtm.Debugf("RTM connection succeeded on try %d", connectionCount)
 
-		// we're now connected so we can set up listeners
-		go rtm.handleIncomingEvents()
+		keepRunning := make(chan bool)
+		// we're now connected (or have failed fatally) so we can set up
+		// listeners
+		go rtm.handleIncomingEvents(keepRunning)
 
 		// this should be a blocking call until the connection has ended
-		rtm.handleEvents()
+		rtm.handleEvents(keepRunning)
 
-		select {
-		case <-rtm.disconnected:
-			// after handle events returns we need to check if we're disconnected
+		// after being disconnected we need to check if it was intentional
+		// if not then we should try to reconnect
+		if rtm.wasIntentional {
 			return
-		default:
-			// otherwise continue and run the loop again to reconnect
 		}
+		// else continue and run the loop again to connect
 	}
 }
 
@@ -88,20 +88,18 @@ func (rtm *RTM) connect(connectionCount int, useRTMStart bool) (*Info, *websocke
 	// used to provide exponential backoff wait time with jitter before trying
 	// to connect to slack again
 	boff := &backoff{
-		Max: 5 * time.Minute,
+		Min:    100 * time.Millisecond,
+		Max:    5 * time.Minute,
+		Factor: 2,
+		Jitter: true,
 	}
 
 	for {
-		var (
-			backoff time.Duration
-		)
-
 		// send connecting event
 		rtm.IncomingEvents <- RTMEvent{"connecting", &ConnectingEvent{
 			Attempt:         boff.attempts + 1,
 			ConnectionCount: connectionCount,
 		}}
-
 		// attempt to start the connection
 		info, conn, err := rtm.startRTMAndDial(useRTMStart)
 		if err == nil {
@@ -111,48 +109,32 @@ func (rtm *RTM) connect(connectionCount int, useRTMStart bool) (*Info, *websocke
 		// check for fatal errors
 		switch err.Error() {
 		case errInvalidAuth, errInactiveAccount, errMissingAuthToken:
-			rtm.Debugf("invalid auth when connecting with RTM: %s", err)
+			rtm.Debugf("Invalid auth when connecting with RTM: %s", err)
 			rtm.IncomingEvents <- RTMEvent{"invalid_auth", &InvalidAuthEvent{}}
 			return nil, nil, err
 		default:
 		}
 
-		switch actual := err.(type) {
-		case statusCodeError:
-			if actual.Code == http.StatusNotFound {
-				rtm.Debugf("invalid auth when connecting with RTM: %s", err)
-				rtm.IncomingEvents <- RTMEvent{"invalid_auth", &InvalidAuthEvent{}}
-				return nil, nil, err
-			}
-		case *RateLimitedError:
-			backoff = actual.RetryAfter
-		default:
-		}
-
-		backoff = timex.Max(backoff, boff.Duration())
 		// any other errors are treated as recoverable and we try again after
 		// sending the event along the IncomingEvents channel
 		rtm.IncomingEvents <- RTMEvent{"connection_error", &ConnectionErrorEvent{
 			Attempt:  boff.attempts,
-			Backoff:  backoff,
 			ErrorObj: err,
 		}}
 
 		// check if Disconnect() has been invoked.
 		select {
-		case intentional := <-rtm.killChannel:
-			if intentional {
-				rtm.killConnection(intentional)
-				return nil, nil, ErrRTMDisconnected
-			}
 		case <-rtm.disconnected:
-			return nil, nil, ErrRTMDisconnected
+			rtm.IncomingEvents <- RTMEvent{"disconnected", &DisconnectedEvent{Intentional: true}}
+			return nil, nil, fmt.Errorf("disconnect received while trying to connect")
 		default:
 		}
 
 		// get time we should wait before attempting to connect again
-		rtm.Debugf("reconnection %d failed: %s reconnecting in %v\n", boff.attempts, err, backoff)
-		time.Sleep(backoff)
+		dur := boff.Duration()
+		rtm.Debugf("reconnection %d failed: %s", boff.attempts+1, err)
+		rtm.Debugln(" -> reconnecting in", dur)
+		time.Sleep(dur)
 	}
 }
 
@@ -205,19 +187,15 @@ func (rtm *RTM) startRTMAndDial(useRTMStart bool) (info *Info, _ *websocket.Conn
 //
 // This should not be called directly! Instead a boolean value (true for
 // intentional, false otherwise) should be sent to the killChannel on the RTM.
-func (rtm *RTM) killConnection(intentional bool) (err error) {
+func (rtm *RTM) killConnection(keepRunning chan bool, intentional bool) error {
 	rtm.Debugln("killing connection")
-
-	if rtm.conn != nil {
-		err = rtm.conn.Close()
+	if rtm.isConnected {
+		close(keepRunning)
 	}
-
+	rtm.isConnected = false
+	rtm.wasIntentional = intentional
+	err := rtm.conn.Close()
 	rtm.IncomingEvents <- RTMEvent{"disconnected", &DisconnectedEvent{intentional}}
-
-	if intentional {
-		rtm.disconnect()
-	}
-
 	return err
 }
 
@@ -226,29 +204,31 @@ func (rtm *RTM) killConnection(intentional bool) (err error) {
 // interval. This also sends outgoing messages that are received from the RTM's
 // outgoingMessages channel. This also handles incoming raw events from the RTM
 // rawEvents channel.
-func (rtm *RTM) handleEvents() {
+func (rtm *RTM) handleEvents(keepRunning chan bool) {
 	ticker := time.NewTicker(rtm.pingInterval)
 	defer ticker.Stop()
 	for {
 		select {
 		// catch "stop" signal on channel close
 		case intentional := <-rtm.killChannel:
-			_ = rtm.killConnection(intentional)
+			_ = rtm.killConnection(keepRunning, intentional)
 			return
+
 		// detect when the connection is dead.
 		case <-rtm.pingDeadman.C:
 			rtm.Debugln("deadman switch trigger disconnecting")
-			_ = rtm.killConnection(false)
-			return
+			_ = rtm.killConnection(keepRunning, false)
 		// send pings on ticker interval
 		case <-ticker.C:
-			if err := rtm.ping(); err != nil {
-				_ = rtm.killConnection(false)
+			err := rtm.ping()
+			if err != nil {
+				_ = rtm.killConnection(keepRunning, false)
 				return
 			}
 		case <-rtm.forcePing:
-			if err := rtm.ping(); err != nil {
-				_ = rtm.killConnection(false)
+			err := rtm.ping()
+			if err != nil {
+				_ = rtm.killConnection(keepRunning, false)
 				return
 			}
 		// listen for messages that need to be sent
@@ -258,8 +238,7 @@ func (rtm *RTM) handleEvents() {
 		case rawEvent := <-rtm.rawEvents:
 			switch rtm.handleRawEvent(rawEvent) {
 			case rtmEventTypeGoodbye:
-				_ = rtm.killConnection(false)
-				return
+				_ = rtm.killConnection(keepRunning, false)
 			default:
 			}
 		}
@@ -271,10 +250,17 @@ func (rtm *RTM) handleEvents() {
 //
 // This will stop executing once the RTM's keepRunning channel has been closed
 // or has anything sent to it.
-func (rtm *RTM) handleIncomingEvents() {
+func (rtm *RTM) handleIncomingEvents(keepRunning <-chan bool) {
 	for {
-		if err := rtm.receiveIncomingEvent(); err != nil {
+		// non-blocking listen to see if channel is closed
+		select {
+		// catch "stop" signal on channel close
+		case <-keepRunning:
 			return
+		default:
+			if err := rtm.receiveIncomingEvent(); err != nil {
+				return
+			}
 		}
 	}
 }
@@ -346,32 +332,20 @@ func (rtm *RTM) receiveIncomingEvent() error {
 		// 'PING' message
 
 		// trigger a 'PING' to detect potential websocket disconnect
-		select {
-		case rtm.forcePing <- true:
-		case <-rtm.disconnected:
-		}
+		rtm.forcePing <- true
 	case err != nil:
 		// All other errors from ReadJSON come from NextReader, and should
 		// kill the read loop and force a reconnect.
 		rtm.IncomingEvents <- RTMEvent{"incoming_error", &IncomingEventError{
 			ErrorObj: err,
 		}}
-
-		select {
-		case rtm.killChannel <- false:
-		case <-rtm.disconnected:
-		}
-
+		rtm.killChannel <- false
 		return err
 	case len(event) == 0:
 		rtm.Debugln("Received empty event")
 	default:
-		rtm.Debugln("Incoming Event:", string(event))
-		select {
-		case rtm.rawEvents <- event:
-		case <-rtm.disconnected:
-			rtm.Debugln("disonnected while attempting to send raw event")
-		}
+		rtm.Debugln("Incoming Event:", string(event[:]))
+		rtm.rawEvents <- event
 	}
 	return nil
 }

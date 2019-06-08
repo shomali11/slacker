@@ -40,9 +40,9 @@ type userGroupResponseFull struct {
 	SlackResponse
 }
 
-func (api *Client) userGroupRequest(ctx context.Context, path string, values url.Values) (*userGroupResponseFull, error) {
+func userGroupRequest(ctx context.Context, client httpClient, path string, values url.Values, d debug) (*userGroupResponseFull, error) {
 	response := &userGroupResponseFull{}
-	err := api.postMethod(ctx, path, values, response)
+	err := postSlackMethod(ctx, client, path, values, response, d)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func (api *Client) CreateUserGroupContext(ctx context.Context, userGroup UserGro
 		values["channels"] = []string{strings.Join(userGroup.Prefs.Channels, ",")}
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.create", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.create", values, api)
 	if err != nil {
 		return UserGroup{}, err
 	}
@@ -93,7 +93,7 @@ func (api *Client) DisableUserGroupContext(ctx context.Context, userGroup string
 		"usergroup": {userGroup},
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.disable", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.disable", values, api)
 	if err != nil {
 		return UserGroup{}, err
 	}
@@ -112,7 +112,7 @@ func (api *Client) EnableUserGroupContext(ctx context.Context, userGroup string)
 		"usergroup": {userGroup},
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.enable", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.enable", values, api)
 	if err != nil {
 		return UserGroup{}, err
 	}
@@ -176,7 +176,7 @@ func (api *Client) GetUserGroupsContext(ctx context.Context, options ...GetUserG
 		values.Add("include_users", "true")
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.list", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.list", values, api)
 	if err != nil {
 		return nil, err
 	}
@@ -206,12 +206,8 @@ func (api *Client) UpdateUserGroupContext(ctx context.Context, userGroup UserGro
 	if userGroup.Description != "" {
 		values["description"] = []string{userGroup.Description}
 	}
-	
-	if len(userGroup.Prefs.Channels) > 0 {
-		values["channels"] = []string{strings.Join(userGroup.Prefs.Channels, ",")}
-	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.update", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.update", values, api)
 	if err != nil {
 		return UserGroup{}, err
 	}
@@ -230,7 +226,7 @@ func (api *Client) GetUserGroupMembersContext(ctx context.Context, userGroup str
 		"usergroup": {userGroup},
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.users.list", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.users.list", values, api)
 	if err != nil {
 		return []string{}, err
 	}
@@ -250,7 +246,7 @@ func (api *Client) UpdateUserGroupMembersContext(ctx context.Context, userGroup 
 		"users":     {members},
 	}
 
-	response, err := api.userGroupRequest(ctx, "usergroups.users.update", values)
+	response, err := userGroupRequest(ctx, api.httpclient, "usergroups.users.update", values, api)
 	if err != nil {
 		return UserGroup{}, err
 	}

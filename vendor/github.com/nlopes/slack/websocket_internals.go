@@ -18,7 +18,6 @@ type ConnectedEvent struct {
 // ConnectionErrorEvent contains information about a connection error
 type ConnectionErrorEvent struct {
 	Attempt  int
-	Backoff  time.Duration // how long we'll wait before the next attempt
 	ErrorObj error
 }
 

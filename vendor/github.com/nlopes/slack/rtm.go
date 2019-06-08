@@ -38,7 +38,7 @@ func (api *Client) StartRTM() (info *Info, websocketURL string, err error) {
 // To have a fully managed Websocket connection, use `NewRTM`, and call `ManageConnection()` on it.
 func (api *Client) StartRTMContext(ctx context.Context) (info *Info, websocketURL string, err error) {
 	response := &infoResponseFull{}
-	err = api.postMethod(ctx, "rtm.start", url.Values{"token": {api.token}}, response)
+	err = postSlackMethod(ctx, api.httpclient, "rtm.start", url.Values{"token": {api.token}}, response, api)
 	if err != nil {
 		return nil, "", err
 	}
@@ -63,7 +63,7 @@ func (api *Client) ConnectRTM() (info *Info, websocketURL string, err error) {
 // To have a fully managed Websocket connection, use `NewRTM`, and call `ManageConnection()` on it.
 func (api *Client) ConnectRTMContext(ctx context.Context) (info *Info, websocketURL string, err error) {
 	response := &infoResponseFull{}
-	err = api.postMethod(ctx, "rtm.connect", url.Values{"token": {api.token}}, response)
+	err = postSlackMethod(ctx, api.httpclient, "rtm.connect", url.Values{"token": {api.token}}, response, api)
 	if err != nil {
 		api.Debugf("Failed to connect to RTM: %s", err)
 		return nil, "", err
@@ -112,13 +112,14 @@ func RTMOptionConnParams(connParams url.Values) RTMOption {
 func (api *Client) NewRTM(options ...RTMOption) *RTM {
 	result := &RTM{
 		Client:           *api,
+		wasIntentional:   true,
+		isConnected:      false,
 		IncomingEvents:   make(chan RTMEvent, 50),
 		outgoingMessages: make(chan OutgoingMessage, 20),
 		pingInterval:     defaultPingInterval,
 		pingDeadman:      time.NewTimer(deadmanDuration(defaultPingInterval)),
 		killChannel:      make(chan bool),
-		disconnected:     make(chan struct{}),
-		disconnectedm:    &sync.Once{},
+		disconnected:     make(chan struct{}, 1),
 		forcePing:        make(chan bool),
 		rawEvents:        make(chan json.RawMessage),
 		idGen:            NewSafeID(1),
