@@ -231,7 +231,7 @@ func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
 	for _, command := range s.botCommands {
 		tokens := command.Tokenize()
 		for _, token := range tokens {
-			if token.IsParameter {
+			if token.IsParameter() {
 				helpMessage += fmt.Sprintf(codeMessageFormat, token.Word) + space
 			} else {
 				helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
