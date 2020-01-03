@@ -45,17 +45,18 @@ func NewClient(token string, options ...ClientOption) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	client                *slack.Client
-	rtm                   *slack.RTM
-	botCommands           []BotCommand
-	requestConstructor    func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request
-	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
-	initHandler           func()
-	errorHandler          func(err string)
-	helpDefinition        *CommandDefinition
-	defaultMessageHandler func(request Request, response ResponseWriter)
-	defaultEventHandler   func(interface{})
-	unAuthorizedError     error
+	client                  *slack.Client
+	rtm                     *slack.RTM
+	botCommands             []BotCommand
+	requestConstructor      func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request
+	responseConstructor     func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
+	initHandler             func()
+	errorHandler            func(err string)
+	helpDefinition          *CommandDefinition
+	defaultMessageHandler   func(request Request, response ResponseWriter)
+	defaultEventHandler     func(interface{})
+	defaultAnalyticsHandler func(request Request, response ResponseWriter)
+	unAuthorizedError       error
 }
 
 // BotCommands returns Bot Commands
@@ -101,6 +102,11 @@ func (s *Slacker) DefaultCommand(defaultMessageHandler func(request Request, res
 // DefaultEvent handle events when an unknown event is seen
 func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 	s.defaultEventHandler = defaultEventHandler
+}
+
+// DefaultAnalytics intercepts the command call before the execution to allow you to collect analytics data from each of your command calls.
+func (s *Slacker) DefaultAnalytics(defaultAnalyticsHandler func(request Request, response ResponseWriter)) {
+	s.defaultAnalyticsHandler = defaultAnalyticsHandler
 }
 
 // UnAuthorizedError error message
@@ -213,6 +219,10 @@ func (s *Slacker) handleMessage(ctx context.Context, event *slack.MessageEvent) 
 		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
 			response.ReportError(unAuthorizedError)
 			return
+		}
+		
+		if s.defaultAnalyticsHandler != nil {
+			s.defaultAnalyticsHandler(request, response)
 		}
 
 		cmd.Execute(request, response)
