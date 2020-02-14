@@ -37,9 +37,10 @@ func NewClient(token string, options ...ClientOption) *Slacker {
 
 	client := slack.New(token, slack.OptionDebug(defaults.Debug))
 	slacker := &Slacker{
-		client:         client,
-		rtm:            client.NewRTM(),
-		commandChannel: make(chan *CommandEvent, 100),
+		client:            client,
+		rtm:               client.NewRTM(),
+		commandChannel:    make(chan *CommandEvent, 100),
+		unAuthorizedError: unAuthorizedError,
 	}
 	return slacker
 }
@@ -217,7 +218,7 @@ func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent
 
 		request := s.requestConstructor(ctx, message, parameters)
 		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
-			response.ReportError(unAuthorizedError)
+			response.ReportError(s.unAuthorizedError)
 			return
 		}
 
