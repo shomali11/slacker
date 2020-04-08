@@ -6,8 +6,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/nlopes/slack"
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 const (

@@ -3,8 +3,8 @@ package slacker
 import (
 	"time"
 
-	"github.com/nlopes/slack"
 	"github.com/shomali11/proper"
+	"github.com/slack-go/slack"
 )
 
 // NewCommandEvent creates a new command event

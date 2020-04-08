@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/nlopes/slack"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {

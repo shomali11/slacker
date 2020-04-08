@@ -3,7 +3,7 @@ package slacker
 import (
 	"fmt"
 
-	"github.com/nlopes/slack"
+	"github.com/slack-go/slack"
 )
 
 const (
