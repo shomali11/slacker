@@ -13,7 +13,7 @@ func main() {
 		Description: "Ping!",
 		Example:     "ping",
 		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
-			response.Reply("pong")
+			response.Reply("pong", slacker.WithThreadReply(true))
 		},
 	}
 
