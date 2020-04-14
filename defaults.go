@@ -45,10 +45,10 @@ func WithBlocks(blocks []slack.Block) ReplyOption {
 	}
 }
 
-// ThreadResponse specifies the reply to be inside a thread of the original message
-func ThreadResponse() ReplyOption {
+// WithThreadReply specifies the reply to be inside a thread of the original message
+func WithThreadReply(useThread bool) ReplyOption {
 	return func(defaults *ReplyDefaults) {
-		defaults.ThreadResponse = true
+		defaults.ThreadResponse = useThread
 	}
 }
 
@@ -80,10 +80,10 @@ type ReportErrorDefaults struct {
 	ThreadResponse bool
 }
 
-// ErrorThreadResponse specifies the reply to be inside a thread of the original message
-func ErrorThreadResponse() ReportErrorOption {
+// WithThreadError specifies the reply to be inside a thread of the original message
+func WithThreadError(useThread bool) ReportErrorOption {
 	return func(defaults *ReportErrorDefaults) {
-		defaults.ThreadResponse = true
+		defaults.ThreadResponse = useThread
 	}
 }
 
