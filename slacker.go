@@ -51,7 +51,7 @@ type Slacker struct {
 	rtm                   *slack.RTM
 	botCommands           []BotCommand
 	requestConstructor    func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request
-	responseConstructor   func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter
+	responseConstructor   func(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
 	helpDefinition        *CommandDefinition
@@ -92,7 +92,7 @@ func (s *Slacker) CustomRequest(requestConstructor func(ctx context.Context, eve
 }
 
 // CustomResponse creates a new response writer
-func (s *Slacker) CustomResponse(responseConstructor func(channel string, client *slack.Client, rtm *slack.RTM) ResponseWriter) {
+func (s *Slacker) CustomResponse(responseConstructor func(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) ResponseWriter) {
 	s.responseConstructor = responseConstructor
 }
 
@@ -208,7 +208,7 @@ func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent
 		s.responseConstructor = NewResponse
 	}
 
-	response := s.responseConstructor(message.Channel, s.client, s.rtm)
+	response := s.responseConstructor(message, s.client, s.rtm)
 
 	for _, cmd := range s.botCommands {
 		parameters, isMatch := cmd.Match(message.Text)
