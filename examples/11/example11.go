@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"
 )
@@ -39,30 +40,30 @@ func main() {
 }
 
 // NewCustomResponseWriter creates a new ResponseWriter structure
-func NewCustomResponseWriter(channel string, client *slack.Client, rtm *slack.RTM) slacker.ResponseWriter {
-	return &MyCustomResponseWriter{channel: channel, client: client, rtm: rtm}
+func NewCustomResponseWriter(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) slacker.ResponseWriter {
+	return &MyCustomResponseWriter{event: event, client: client, rtm: rtm}
 }
 
 // MyCustomResponseWriter a custom response writer
 type MyCustomResponseWriter struct {
-	channel string
-	client  *slack.Client
-	rtm     *slack.RTM
+	event  *slack.MessageEvent
+	client *slack.Client
+	rtm    *slack.RTM
 }
 
 // ReportError sends back a formatted error message to the channel where we received the event from
-func (r *MyCustomResponseWriter) ReportError(err error) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.channel))
+func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
+	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.event.Channel))
 }
 
 // Typing send a typing indicator
 func (r *MyCustomResponseWriter) Typing() {
-	r.rtm.SendMessage(r.rtm.NewTypingMessage(r.channel))
+	r.rtm.SendMessage(r.rtm.NewTypingMessage(r.event.Channel))
 }
 
 // Reply send a attachments to the current channel with a message
 func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.channel))
+	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.event.Channel))
 }
 
 // RTM returns the RTM client

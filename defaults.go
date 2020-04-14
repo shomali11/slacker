@@ -45,16 +45,51 @@ func WithBlocks(blocks []slack.Block) ReplyOption {
 	}
 }
 
+// ThreadResponse specifies the reply to be inside a thread of the original message
+func ThreadResponse() ReplyOption {
+	return func(defaults *ReplyDefaults) {
+		defaults.ThreadResponse = true
+	}
+}
+
 // ReplyDefaults configuration
 type ReplyDefaults struct {
-	Attachments []slack.Attachment
-	Blocks      []slack.Block
+	Attachments    []slack.Attachment
+	Blocks         []slack.Block
+	ThreadResponse bool
 }
 
 func newReplyDefaults(options ...ReplyOption) *ReplyDefaults {
 	config := &ReplyDefaults{
-		Attachments: []slack.Attachment{},
-		Blocks:      []slack.Block{},
+		Attachments:    []slack.Attachment{},
+		Blocks:         []slack.Block{},
+		ThreadResponse: false,
+	}
+
+	for _, option := range options {
+		option(config)
+	}
+	return config
+}
+
+// ReportErrorOption an option for report error values
+type ReportErrorOption func(*ReportErrorDefaults)
+
+// ReportErrorDefaults configuration
+type ReportErrorDefaults struct {
+	ThreadResponse bool
+}
+
+// ErrorThreadResponse specifies the reply to be inside a thread of the original message
+func ErrorThreadResponse() ReportErrorOption {
+	return func(defaults *ReportErrorDefaults) {
+		defaults.ThreadResponse = true
+	}
+}
+
+func newReportErrorDefaults(options ...ReportErrorOption) *ReportErrorDefaults {
+	config := &ReportErrorDefaults{
+		ThreadResponse: false,
 	}
 
 	for _, option := range options {
