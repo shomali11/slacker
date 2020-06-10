@@ -1,10 +1,7 @@
 package slacker
 
 import (
-	"context"
-
 	"github.com/shomali11/proper"
-	"github.com/slack-go/slack"
 )
 
 const (
@@ -12,8 +9,8 @@ const (
 )
 
 // NewRequest creates a new Request structure
-func NewRequest(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request {
-	return &request{ctx: ctx, event: event, properties: properties}
+func NewRequest(botCtx BotContext, properties *proper.Properties) Request {
+	return &request{botCtx: botCtx, properties: properties}
 }
 
 // Request interface that contains the Event received and parameters
@@ -23,15 +20,12 @@ type Request interface {
 	BooleanParam(key string, defaultValue bool) bool
 	IntegerParam(key string, defaultValue int) int
 	FloatParam(key string, defaultValue float64) float64
-	Context() context.Context
-	Event() *slack.MessageEvent
 	Properties() *proper.Properties
 }
 
 // request contains the Event received and parameters
 type request struct {
-	ctx        context.Context
-	event      *slack.MessageEvent
+	botCtx     BotContext
 	properties *proper.Properties
 }
 
@@ -58,16 +52,6 @@ func (r *request) IntegerParam(key string, defaultValue int) int {
 // FloatParam attempts to look up a float value by key. If not found, return the default float value
 func (r *request) FloatParam(key string, defaultValue float64) float64 {
 	return r.properties.FloatParam(key, defaultValue)
-}
-
-// Context returns the current context of the request
-func (r *request) Context() context.Context {
-	return r.ctx
-}
-
-// Event returns the current event of the request
-func (r *request) Event() *slack.MessageEvent {
-	return r.event
 }
 
 // Properties returns the properties of the request

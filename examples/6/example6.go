@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
 	"time"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Server time!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Typing()
 
 			time.Sleep(time.Second)

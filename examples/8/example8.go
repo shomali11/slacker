@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/shomali11/slacker"
 	"log"
 	"time"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -13,8 +14,8 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
-			timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			timedContext, cancel := context.WithTimeout(botCtx.Context(), time.Second)
 			defer cancel()
 
 			select {

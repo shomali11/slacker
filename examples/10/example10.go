@@ -13,7 +13,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 
 			attachments := []slack.Block{}

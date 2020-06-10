@@ -8,7 +8,6 @@ import (
 	"fmt"
 
 	"github.com/shomali11/slacker"
-	"github.com/slack-go/slack"
 )
 
 const (
@@ -22,7 +21,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Custom!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("custom")
 			response.ReportError(errors.New("oops"))
 		},
@@ -40,38 +39,32 @@ func main() {
 }
 
 // NewCustomResponseWriter creates a new ResponseWriter structure
-func NewCustomResponseWriter(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) slacker.ResponseWriter {
-	return &MyCustomResponseWriter{event: event, client: client, rtm: rtm}
+func NewCustomResponseWriter(botCtx slacker.BotContext) slacker.ResponseWriter {
+	return &MyCustomResponseWriter{botCtx: botCtx}
 }
 
 // MyCustomResponseWriter a custom response writer
 type MyCustomResponseWriter struct {
-	event  *slack.MessageEvent
-	client *slack.Client
-	rtm    *slack.RTM
+	botCtx slacker.BotContext
 }
 
 // ReportError sends back a formatted error message to the channel where we received the event from
 func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.event.Channel))
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel))
 }
 
 // Typing send a typing indicator
 func (r *MyCustomResponseWriter) Typing() {
-	r.rtm.SendMessage(r.rtm.NewTypingMessage(r.event.Channel))
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewTypingMessage(event.Channel))
 }
 
 // Reply send a attachments to the current channel with a message
 func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.event.Channel))
-}
-
-// RTM returns the RTM client
-func (r *MyCustomResponseWriter) RTM() *slack.RTM {
-	return r.rtm
-}
-
-// Client returns the slack client
-func (r *MyCustomResponseWriter) Client() *slack.Client {
-	return r.client
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewOutgoingMessage(message, event.Channel))
 }

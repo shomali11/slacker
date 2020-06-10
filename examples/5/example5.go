@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -12,14 +13,14 @@ func main() {
 
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.ReportError(errors.New("Oops!"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.ReportError(errors.New("Oops!"), slacker.WithThreadError(true))
 		},
 	}

@@ -11,7 +11,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	}

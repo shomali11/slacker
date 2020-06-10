@@ -26,7 +26,7 @@ func main() {
 	go printCommandEvents(bot.CommandEvents())
 
 	bot.Command("ping", &slacker.CommandDefinition{
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	})
@@ -34,7 +34,7 @@ func main() {
 	bot.Command("echo <word>", &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
 		},

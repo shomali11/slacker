@@ -9,8 +9,8 @@ import (
 type CommandDefinition struct {
 	Description       string
 	Example           string
-	AuthorizationFunc func(request Request) bool
-	Handler           func(request Request, response ResponseWriter)
+	AuthorizationFunc func(botCtx BotContext, request Request) bool
+	Handler           func(botCtx BotContext, request Request, response ResponseWriter)
 }
 
 // NewBotCommand creates a new bot command object
@@ -23,13 +23,6 @@ func NewBotCommand(usage string, definition *CommandDefinition) BotCommand {
 	}
 }
 
-// botCommand structure contains the bot's command, description and handler
-type botCommand struct {
-	usage      string
-	definition *CommandDefinition
-	command    *commander.Command
-}
-
 // BotCommand interface
 type BotCommand interface {
 	Usage() string
@@ -37,7 +30,14 @@ type BotCommand interface {
 
 	Match(text string) (*proper.Properties, bool)
 	Tokenize() []*commander.Token
-	Execute(request Request, response ResponseWriter)
+	Execute(botCtx BotContext, request Request, response ResponseWriter)
+}
+
+// botCommand structure contains the bot's command, description and handler
+type botCommand struct {
+	usage      string
+	definition *CommandDefinition
+	command    *commander.Command
 }
 
 // Usage returns the command usage
@@ -61,9 +61,9 @@ func (c *botCommand) Tokenize() []*commander.Token {
 }
 
 // Execute executes the handler logic
-func (c *botCommand) Execute(request Request, response ResponseWriter) {
+func (c *botCommand) Execute(botCtx BotContext, request Request, response ResponseWriter) {
 	if c.definition == nil || c.definition.Handler == nil {
 		return
 	}
-	c.definition.Handler(request, response)
+	c.definition.Handler(botCtx, request, response)
 }

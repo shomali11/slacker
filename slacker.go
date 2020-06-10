@@ -50,12 +50,13 @@ type Slacker struct {
 	client                *slack.Client
 	rtm                   *slack.RTM
 	botCommands           []BotCommand
-	requestConstructor    func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request
-	responseConstructor   func(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) ResponseWriter
+	botContextConstructor func(ctx context.Context, event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) BotContext
+	requestConstructor    func(botCtx BotContext, properties *proper.Properties) Request
+	responseConstructor   func(botCtx BotContext) ResponseWriter
 	initHandler           func()
 	errorHandler          func(err string)
 	helpDefinition        *CommandDefinition
-	defaultMessageHandler func(request Request, response ResponseWriter)
+	defaultMessageHandler func(botCtx BotContext, request Request, response ResponseWriter)
 	defaultEventHandler   func(interface{})
 	unAuthorizedError     error
 	commandChannel        chan *CommandEvent
@@ -87,17 +88,17 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 }
 
 // CustomRequest creates a new request
-func (s *Slacker) CustomRequest(requestConstructor func(ctx context.Context, event *slack.MessageEvent, properties *proper.Properties) Request) {
+func (s *Slacker) CustomRequest(requestConstructor func(botCtx BotContext, properties *proper.Properties) Request) {
 	s.requestConstructor = requestConstructor
 }
 
 // CustomResponse creates a new response writer
-func (s *Slacker) CustomResponse(responseConstructor func(event *slack.MessageEvent, client *slack.Client, rtm *slack.RTM) ResponseWriter) {
+func (s *Slacker) CustomResponse(responseConstructor func(botCtx BotContext) ResponseWriter) {
 	s.responseConstructor = responseConstructor
 }
 
 // DefaultCommand handle messages when none of the commands are matched
-func (s *Slacker) DefaultCommand(defaultMessageHandler func(request Request, response ResponseWriter)) {
+func (s *Slacker) DefaultCommand(defaultMessageHandler func(botCtx BotContext, request Request, response ResponseWriter)) {
 	s.defaultMessageHandler = defaultMessageHandler
 }
 
@@ -200,6 +201,10 @@ func (s *Slacker) isDirectMessage(event *slack.MessageEvent) bool {
 }
 
 func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent) {
+	if s.botContextConstructor == nil {
+		s.botContextConstructor = NewBotContext
+	}
+
 	if s.requestConstructor == nil {
 		s.requestConstructor = NewRequest
 	}
@@ -208,7 +213,8 @@ func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent
 		s.responseConstructor = NewResponse
 	}
 
-	response := s.responseConstructor(message, s.client, s.rtm)
+	botCtx := s.botContextConstructor(ctx, message, s.client, s.rtm)
+	response := s.responseConstructor(botCtx)
 
 	for _, cmd := range s.botCommands {
 		parameters, isMatch := cmd.Match(message.Text)
@@ -216,8 +222,8 @@ func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent
 			continue
 		}
 
-		request := s.requestConstructor(ctx, message, parameters)
-		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(request) {
+		request := s.requestConstructor(botCtx, parameters)
+		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(botCtx, request) {
 			response.ReportError(s.unAuthorizedError)
 			return
 		}
@@ -228,17 +234,17 @@ func (s *Slacker) handleMessage(ctx context.Context, message *slack.MessageEvent
 			// full channel, dropped event
 		}
 
-		cmd.Execute(request, response)
+		cmd.Execute(botCtx, request, response)
 		return
 	}
 
 	if s.defaultMessageHandler != nil {
-		request := s.requestConstructor(ctx, message, &proper.Properties{})
-		s.defaultMessageHandler(request, response)
+		request := s.requestConstructor(botCtx, &proper.Properties{})
+		s.defaultMessageHandler(botCtx, request, response)
 	}
 }
 
-func (s *Slacker) defaultHelp(request Request, response ResponseWriter) {
+func (s *Slacker) defaultHelp(botCtx BotContext, request Request, response ResponseWriter) {
 	authorizedCommandAvailable := false
 	helpMessage := empty
 	for _, command := range s.botCommands {

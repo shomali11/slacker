@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -13,10 +14,10 @@ func main() {
 
 	authorizedDefinition := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
-		AuthorizationFunc: func(request slacker.Request) bool {
-			return contains(authorizedUsers, request.Event().User)
+		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
+			return contains(authorizedUsers, botCtx.Event().User)
 		},
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("You are authorized!")
 		},
 	}

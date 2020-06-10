@@ -5,6 +5,7 @@ import (
 
 	"context"
 	"fmt"
+
 	"github.com/shomali11/slacker"
 )
 
@@ -19,7 +20,7 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.DefaultCommand(func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.DefaultCommand(func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
 
@@ -29,7 +30,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "help!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("Your own help function...")
 		},
 	}

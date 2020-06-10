@@ -2,15 +2,16 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	definition := &slacker.CommandDefinition{
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	}

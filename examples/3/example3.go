@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
 		},

@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -12,7 +13,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",
 		Example:     "repeat hello 10",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.StringParam("word", "Hello!")
 			number := request.IntegerParam("number", 1)
 			for i := 0; i < number; i++ {

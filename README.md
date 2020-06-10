@@ -38,15 +38,16 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
 	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
 
 	definition := &slacker.CommandDefinition{
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	}
@@ -72,8 +73,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -82,7 +84,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
 		Example:     "ping",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong", slacker.WithThreadReply(true))
 		},
 	}
@@ -108,8 +110,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -118,7 +121,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
 		},
@@ -146,8 +149,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -156,7 +160,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",
 		Example:     "repeat hello 10",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.StringParam("word", "Hello!")
 			number := request.IntegerParam("number", 1)
 			for i := 0; i < number; i++ {
@@ -187,8 +191,9 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -196,14 +201,14 @@ func main() {
 
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.ReportError(errors.New("Oops!"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.ReportError(errors.New("Oops!"), slacker.WithThreadError(true))
 		},
 	}
@@ -230,9 +235,10 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
 	"time"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -240,7 +246,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Server time!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Typing()
 
 			time.Sleep(time.Second)
@@ -271,9 +277,10 @@ package main
 
 import (
 	"context"
-	"github.com/slack-go/slack"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
@@ -281,12 +288,12 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Upload a word!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
-			channel := request.Event().Channel
 
-			rtm := response.RTM()
-			client := response.Client()
+			channel := botCtx.Event().Channel
+			rtm := botCtx.RTM()
+			client := botCtx.Client()
 
 			rtm.SendMessage(rtm.NewOutgoingMessage("Uploading file ...", channel))
 			client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
@@ -315,9 +322,10 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/shomali11/slacker"
 	"log"
 	"time"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -325,8 +333,8 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
-			timedContext, cancel := context.WithTimeout(request.Context(), time.Second)
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			timedContext, cancel := context.WithTimeout(botCtx.Context(), time.Second)
 			defer cancel()
 
 			select {
@@ -361,8 +369,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/slack-go/slack"
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
@@ -370,7 +378,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 
 			attachments := []slack.Attachment{}
@@ -408,8 +416,8 @@ import (
 	"context"
 	"log"
 
-	"github.com/slack-go/slack"
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
@@ -417,7 +425,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 
 			attachments := []slack.Block{}
@@ -454,7 +462,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/slack-go/slack"
+
 	"github.com/shomali11/slacker"
 )
 
@@ -469,7 +477,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Custom!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("custom")
 			response.ReportError(errors.New("oops"))
 		},
@@ -487,40 +495,34 @@ func main() {
 }
 
 // NewCustomResponseWriter creates a new ResponseWriter structure
-func NewCustomResponseWriter(channel string, client *slack.Client, rtm *slack.RTM) slacker.ResponseWriter {
-	return &MyCustomResponseWriter{channel: channel, client: client, rtm: rtm}
+func NewCustomResponseWriter(botCtx slacker.BotContext) slacker.ResponseWriter {
+	return &MyCustomResponseWriter{botCtx: botCtx}
 }
 
 // MyCustomResponseWriter a custom response writer
 type MyCustomResponseWriter struct {
-	channel string
-	client  *slack.Client
-	rtm     *slack.RTM
+	botCtx slacker.BotContext
 }
 
 // ReportError sends back a formatted error message to the channel where we received the event from
-func (r *MyCustomResponseWriter) ReportError(err error) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), r.channel))
+func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel))
 }
 
 // Typing send a typing indicator
 func (r *MyCustomResponseWriter) Typing() {
-	r.rtm.SendMessage(r.rtm.NewTypingMessage(r.channel))
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewTypingMessage(event.Channel))
 }
 
 // Reply send a attachments to the current channel with a message
 func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
-	r.rtm.SendMessage(r.rtm.NewOutgoingMessage(message, r.channel))
-}
-
-// RTM returns the RTM client
-func (r *MyCustomResponseWriter) RTM() *slack.RTM {
-	return r.rtm
-}
-
-// Client returns the slack client
-func (r *MyCustomResponseWriter) Client() *slack.Client {
-	return r.client
+	rtm := r.botCtx.RTM()
+	event := r.botCtx.Event()
+	rtm.SendMessage(rtm.NewOutgoingMessage(message, event.Channel))
 }
 ```
 
@@ -542,7 +544,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	}
@@ -568,8 +570,9 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
@@ -579,10 +582,10 @@ func main() {
 
 	authorizedDefinition := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
-		AuthorizationFunc: func(request slacker.Request) bool {
-			return contains(authorizedUsers, request.Event().User)
+		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
+			return contains(authorizedUsers, botCtx.Event().User)
 		},
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("You are authorized!")
 		},
 	}
@@ -620,6 +623,7 @@ import (
 
 	"context"
 	"fmt"
+
 	"github.com/shomali11/slacker"
 )
 
@@ -634,7 +638,7 @@ func main() {
 		log.Println(err)
 	})
 
-	bot.DefaultCommand(func(request slacker.Request, response slacker.ResponseWriter) {
+	bot.DefaultCommand(func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
 
@@ -644,7 +648,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "help!",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("Your own help function...")
 		},
 	}
@@ -694,7 +698,7 @@ func main() {
 	go printCommandEvents(bot.CommandEvents())
 
 	bot.Command("ping", &slacker.CommandDefinition{
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong")
 		},
 	})
@@ -702,7 +706,7 @@ func main() {
 	bot.Command("echo <word>", &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
-		Handler: func(request slacker.Request, response slacker.ResponseWriter) {
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
 		},
