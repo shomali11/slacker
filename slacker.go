@@ -41,6 +41,7 @@ func NewClient(token string, options ...ClientOption) *Slacker {
 		rtm:               client.NewRTM(),
 		commandChannel:    make(chan *CommandEvent, 100),
 		unAuthorizedError: unAuthorizedError,
+		eventHandler:      DefaultEventHandler,
 	}
 	return slacker
 }
@@ -57,7 +58,8 @@ type Slacker struct {
 	errorHandler          func(err string)
 	helpDefinition        *CommandDefinition
 	defaultMessageHandler func(botCtx BotContext, request Request, response ResponseWriter)
-	defaultEventHandler   func(interface{})
+	fallbackEventHandler  func(interface{})
+	eventHandler          EventHandler
 	unAuthorizedError     error
 	commandChannel        chan *CommandEvent
 }
@@ -103,8 +105,14 @@ func (s *Slacker) DefaultCommand(defaultMessageHandler func(botCtx BotContext, r
 }
 
 // DefaultEvent handle events when an unknown event is seen
+// Deprecated. Use FallbackEvent instead.
 func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
-	s.defaultEventHandler = defaultEventHandler
+	s.fallbackEventHandler = defaultEventHandler
+}
+
+// FallbackEvent handle events when an unknown event is seen
+func (s *Slacker) FallbackEvent(fallbackEventHandler func(interface{})) {
+	s.fallbackEventHandler = fallbackEventHandler
 }
 
 // UnAuthorizedError error message
@@ -141,37 +149,8 @@ func (s *Slacker) Listen(ctx context.Context) error {
 			if !ok {
 				return nil
 			}
-			switch event := msg.Data.(type) {
-			case *slack.ConnectedEvent:
-				if s.initHandler == nil {
-					continue
-				}
-				go s.initHandler()
-
-			case *slack.MessageEvent:
-				if s.isFromBot(event) {
-					continue
-				}
-
-				if !s.isBotMentioned(event) && !s.isDirectMessage(event) {
-					continue
-				}
-				go s.handleMessage(ctx, event)
-
-			case *slack.RTMError:
-				if s.errorHandler == nil {
-					continue
-				}
-				go s.errorHandler(event.Error())
-
-			case *slack.InvalidAuthEvent:
-				return errors.New(invalidToken)
-
-			default:
-				if s.defaultEventHandler == nil {
-					continue
-				}
-				go s.defaultEventHandler(event)
+			if err := s.eventHandler(ctx, s, msg); err != nil {
+				return err
 			}
 		}
 	}

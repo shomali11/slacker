@@ -24,7 +24,7 @@ func main() {
 		response.Reply("Say what?")
 	})
 
-	bot.DefaultEvent(func(event interface{}) {
+	bot.FallbackEvent(func(event interface{}) {
 		fmt.Println(event)
 	})
 

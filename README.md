@@ -613,7 +613,7 @@ func contains(list []string, element string) bool {
 
 ## Example 14
 
-Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match
+Adding handlers to when the bot is connected, encounters an error and a fallback for when none of the commands match
 
 ```go
 package main
@@ -642,7 +642,7 @@ func main() {
 		response.Reply("Say what?")
 	})
 
-	bot.DefaultEvent(func(event interface{}) {
+	bot.FallbackEvent(func(event interface{}) {
 		fmt.Println(event)
 	})
 
