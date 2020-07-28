@@ -41,7 +41,7 @@ func NewClient(token string, options ...ClientOption) *Slacker {
 		rtm:               client.NewRTM(),
 		commandChannel:    make(chan *CommandEvent, 100),
 		unAuthorizedError: unAuthorizedError,
-		eventHandler:      DefaultEventHandler,
+		eventHandler:      defaults.EventHandler,
 	}
 	return slacker
 }

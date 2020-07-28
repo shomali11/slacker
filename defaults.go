@@ -5,6 +5,13 @@ import "github.com/slack-go/slack"
 // ClientOption an option for client values
 type ClientOption func(*ClientDefaults)
 
+// WithEventHandler overwrites the default event handler.
+func WithEventHandler(h EventHandler) ClientOption {
+	return func(defaults *ClientDefaults) {
+		defaults.EventHandler = h
+	}
+}
+
 // WithDebug sets debug toggle
 func WithDebug(debug bool) ClientOption {
 	return func(defaults *ClientDefaults) {
@@ -14,12 +21,14 @@ func WithDebug(debug bool) ClientOption {
 
 // ClientDefaults configuration
 type ClientDefaults struct {
-	Debug bool
+	Debug        bool
+	EventHandler EventHandler
 }
 
 func newClientDefaults(options ...ClientOption) *ClientDefaults {
 	config := &ClientDefaults{
-		Debug: false,
+		Debug:        false,
+		EventHandler: DefaultEventHandler,
 	}
 
 	for _, option := range options {
