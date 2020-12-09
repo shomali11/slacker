@@ -63,8 +63,9 @@ func (r *MyCustomResponseWriter) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
+func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) error {
 	rtm := r.botCtx.RTM()
 	event := r.botCtx.Event()
 	rtm.SendMessage(rtm.NewOutgoingMessage(message, event.Channel))
+	return nil
 }

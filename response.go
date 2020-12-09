@@ -12,7 +12,7 @@ const (
 
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
-	Reply(text string, options ...ReplyOption)
+	Reply(text string, options ...ReplyOption) error
 	ReportError(err error, options ...ReportErrorOption)
 	Typing()
 }
@@ -48,13 +48,13 @@ func (r *response) Typing() {
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *response) Reply(message string, options ...ReplyOption) {
+func (r *response) Reply(message string, options ...ReplyOption) error {
 	defaults := newReplyDefaults(options...)
 
 	rtm := r.botCtx.RTM()
 	event := r.botCtx.Event()
 	if defaults.ThreadResponse {
-		rtm.PostMessage(
+		_, _, err := rtm.PostMessage(
 			event.Channel,
 			slack.MsgOptionText(message, false),
 			slack.MsgOptionUser(rtm.GetInfo().User.ID),
@@ -63,14 +63,16 @@ func (r *response) Reply(message string, options ...ReplyOption) {
 			slack.MsgOptionBlocks(defaults.Blocks...),
 			slack.MsgOptionTS(event.EventTimestamp),
 		)
-	} else {
-		rtm.PostMessage(
-			event.Channel,
-			slack.MsgOptionText(message, false),
-			slack.MsgOptionUser(rtm.GetInfo().User.ID),
-			slack.MsgOptionAsUser(true),
-			slack.MsgOptionAttachments(defaults.Attachments...),
-			slack.MsgOptionBlocks(defaults.Blocks...),
-		)
+		return err
 	}
+
+	_, _, err := rtm.PostMessage(
+		event.Channel,
+		slack.MsgOptionText(message, false),
+		slack.MsgOptionUser(rtm.GetInfo().User.ID),
+		slack.MsgOptionAsUser(true),
+		slack.MsgOptionAttachments(defaults.Attachments...),
+		slack.MsgOptionBlocks(defaults.Blocks...),
+	)
+	return err
 }
