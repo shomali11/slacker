@@ -34,9 +34,8 @@ func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	event := r.botCtx.Event()
 	message := rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel)
 	if defaults.ThreadResponse {
-		if event.ThreadTimestamp != "" {
-			message.ThreadTimestamp = event.ThreadTimestamp
-		} else {
+		message.ThreadTimestamp = event.ThreadTimestamp
+		if event.ThreadTimestamp == "" {
 			message.ThreadTimestamp = event.EventTimestamp
 		}
 	}
@@ -58,9 +57,8 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 	rtm := r.botCtx.RTM()
 	event := r.botCtx.Event()
 	if defaults.ThreadResponse {
-		if event.ThreadTimestamp != "" {
-			threadTimestamp = event.ThreadTimestamp
-		} else {
+		threadTimestamp := event.ThreadTimestamp
+		if event.ThreadTimestamp == "" {
 			threadTimestamp = event.EventTimestamp
 		}
 		_, _, err := rtm.PostMessage(
