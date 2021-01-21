@@ -34,7 +34,7 @@ func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	event := r.botCtx.Event()
 	message := rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel)
 	if defaults.ThreadResponse {
-		message.ThreadTimestamp = event.EventTimestamp
+		message.ThreadTimestamp = event.ThreadTimestamp
 	}
 
 	rtm.SendMessage(message)
@@ -61,7 +61,7 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 			slack.MsgOptionAsUser(true),
 			slack.MsgOptionAttachments(defaults.Attachments...),
 			slack.MsgOptionBlocks(defaults.Blocks...),
-			slack.MsgOptionTS(event.EventTimestamp),
+			slack.MsgOptionTS(event.ThreadTimestamp),
 		)
 		return err
 	}
