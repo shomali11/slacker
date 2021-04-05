@@ -14,7 +14,6 @@ const (
 type ResponseWriter interface {
 	Reply(text string, options ...ReplyOption) error
 	ReportError(err error, options ...ReportErrorOption)
-	Typing()
 }
 
 // NewResponse creates a new response structure
@@ -30,56 +29,43 @@ type response struct {
 func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	defaults := newReportErrorDefaults(options...)
 
-	rtm := r.botCtx.RTM()
-	event := r.botCtx.Event()
-	message := rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel)
-	if defaults.ThreadResponse {
-		message.ThreadTimestamp = event.ThreadTimestamp
-		if event.ThreadTimestamp == "" {
-			message.ThreadTimestamp = event.EventTimestamp
-		}
+	client := r.botCtx.Client()
+	ev := r.botCtx.Event()
+
+	opts := []slack.MsgOption{
+		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
 	}
-
-	rtm.SendMessage(message)
-}
-
-// Typing send a typing indicator
-func (r *response) Typing() {
-	rtm := r.botCtx.RTM()
-	event := r.botCtx.Event()
-	rtm.SendMessage(rtm.NewTypingMessage(event.Channel))
+	if defaults.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
+	}
+	_, _, err = client.PostMessage(ev.Channel, opts...)
+	if err != nil {
+		fmt.Printf("failed posting message: %v\n", err)
+	}
 }
 
 // Reply send a attachments to the current channel with a message
 func (r *response) Reply(message string, options ...ReplyOption) error {
 	defaults := newReplyDefaults(options...)
 
-	rtm := r.botCtx.RTM()
-	event := r.botCtx.Event()
-	if defaults.ThreadResponse {
-		threadTimestamp := event.ThreadTimestamp
-		if event.ThreadTimestamp == "" {
-			threadTimestamp = event.EventTimestamp
-		}
-		_, _, err := rtm.PostMessage(
-			event.Channel,
-			slack.MsgOptionText(message, false),
-			slack.MsgOptionUser(rtm.GetInfo().User.ID),
-			slack.MsgOptionAsUser(true),
-			slack.MsgOptionAttachments(defaults.Attachments...),
-			slack.MsgOptionBlocks(defaults.Blocks...),
-			slack.MsgOptionTS(threadTimestamp),
-		)
-		return err
+	client := r.botCtx.Client()
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("Unable to get message event details")
 	}
 
-	_, _, err := rtm.PostMessage(
-		event.Channel,
+	opts := []slack.MsgOption{
 		slack.MsgOptionText(message, false),
-		slack.MsgOptionUser(rtm.GetInfo().User.ID),
-		slack.MsgOptionAsUser(true),
 		slack.MsgOptionAttachments(defaults.Attachments...),
 		slack.MsgOptionBlocks(defaults.Blocks...),
+	}
+	if defaults.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
+	}
+
+	_, _, err := client.PostMessage(
+		ev.Channel,
+		opts...,
 	)
 	return err
 }
