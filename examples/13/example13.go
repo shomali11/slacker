@@ -1,28 +1,42 @@
 package main
 
 import (
-	"context"
 	"log"
+	"os"
+
+	"context"
+	"fmt"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	authorizedUsers := []string{"<USER ID>"}
+	bot.Init(func() {
+		log.Println("Connected!")
+	})
 
-	authorizedDefinition := &slacker.CommandDefinition{
-		Description: "Very secret stuff",
-		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
-			return contains(authorizedUsers, botCtx.Event().User)
-		},
+	bot.Err(func(err string) {
+		log.Println(err)
+	})
+
+	bot.DefaultCommand(func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+		response.Reply("Say what?")
+	})
+
+	bot.DefaultEvent(func(event interface{}) {
+		fmt.Println(event)
+	})
+
+	definition := &slacker.CommandDefinition{
+		Description: "help!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.Reply("You are authorized!")
+			response.Reply("Your own help function...")
 		},
 	}
 
-	bot.Command("secret", authorizedDefinition)
+	bot.Help(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -31,13 +45,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func contains(list []string, element string) bool {
-	for _, value := range list {
-		if value == element {
-			return true
-		}
-	}
-	return false
 }

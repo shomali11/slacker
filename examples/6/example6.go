@@ -2,27 +2,35 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"time"
+	"os"
 
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
-		Description: "Server time!",
+		Description: "Upload a word!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.Typing()
+			word := request.Param("word")
+			client := botCtx.Client()
+			ev := botCtx.Event()
 
-			time.Sleep(time.Second)
-
-			response.Reply(time.Now().Format(time.RFC1123))
+			if ev.Channel != "" {
+				client.PostMessage(ev.Channel, slack.MsgOptionText("Uploading file ...", false))
+				_, err := client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{ev.Channel}})
+				if err != nil {
+					fmt.Printf("Error encountered when uploading file: %+v\n", err)
+				}
+			}
 		},
 	}
 
-	bot.Command("time", definition)
+	bot.Command("upload <word>", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -3,12 +3,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",

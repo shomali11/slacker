@@ -4,12 +4,13 @@ import (
 	"context"
 	"errors"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
