@@ -59,7 +59,8 @@ type ReplyDefaults struct {
 	ThreadResponse bool
 }
 
-func newReplyDefaults(options ...ReplyOption) *ReplyDefaults {
+// NewReplyDefaults builds our ReplyDefaults from zero or more ReplyOption.
+func NewReplyDefaults(options ...ReplyOption) *ReplyDefaults {
 	config := &ReplyDefaults{
 		Attachments:    []slack.Attachment{},
 		Blocks:         []slack.Block{},
@@ -87,7 +88,9 @@ func WithThreadError(useThread bool) ReportErrorOption {
 	}
 }
 
-func newReportErrorDefaults(options ...ReportErrorOption) *ReportErrorDefaults {
+// NewReportErrorDefaults builds our ReportErrorDefaults from zero or more
+// ReportErrorOption.
+func NewReportErrorDefaults(options ...ReportErrorOption) *ReportErrorDefaults {
 	config := &ReportErrorDefaults{
 		ThreadResponse: false,
 	}

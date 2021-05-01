@@ -27,7 +27,7 @@ type response struct {
 
 // ReportError sends back a formatted error message to the channel where we received the event from
 func (r *response) ReportError(err error, options ...ReportErrorOption) {
-	defaults := newReportErrorDefaults(options...)
+	defaults := NewReportErrorDefaults(options...)
 
 	client := r.botCtx.Client()
 	ev := r.botCtx.Event()
@@ -46,7 +46,7 @@ func (r *response) ReportError(err error, options ...ReportErrorOption) {
 
 // Reply send a attachments to the current channel with a message
 func (r *response) Reply(message string, options ...ReplyOption) error {
-	defaults := newReplyDefaults(options...)
+	defaults := NewReplyDefaults(options...)
 
 	client := r.botCtx.Client()
 	ev := r.botCtx.Event()
