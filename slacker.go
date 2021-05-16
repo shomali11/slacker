@@ -83,6 +83,11 @@ func (s *Slacker) Client() *slack.Client {
 	return s.client
 }
 
+// SocketMode returns the internal socketmode.Client of Slacker struct
+func (s *Slacker) SocketMode() *socketmode.Client {
+	return s.socketModeClient
+}
+
 // Init handle the event when the bot is first connected
 func (s *Slacker) Init(initHandler func()) {
 	s.initHandler = initHandler
