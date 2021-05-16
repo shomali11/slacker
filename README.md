@@ -4,6 +4,7 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 
 ## Features
 
+- Supports Slack Apps using [Socket Mode](https://api.slack.com/apis/connections/socket)
 - Easy definitions of commands and their input
 - Available bot initialization, errors and default handlers
 - Simple parsing of String, Integer, Float and Boolean parameters
