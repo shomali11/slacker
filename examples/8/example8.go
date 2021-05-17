@@ -2,32 +2,34 @@ package main
 
 import (
 	"context"
-	"errors"
 	"log"
-	"time"
+	"os"
 
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
-		Description: "Process!",
+		Description: "Echo a word!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			timedContext, cancel := context.WithTimeout(botCtx.Context(), time.Second)
-			defer cancel()
+			word := request.Param("word")
 
-			select {
-			case <-timedContext.Done():
-				response.ReportError(errors.New("timed out"))
-			case <-time.After(time.Minute):
-				response.Reply("Processing done!")
-			}
+			attachments := []slack.Attachment{}
+			attachments = append(attachments, slack.Attachment{
+				Color:      "red",
+				AuthorName: "Raed Shomali",
+				Title:      "Attachment Title",
+				Text:       "Attachment Text",
+			})
+
+			response.Reply(word, slacker.WithAttachments(attachments))
 		},
 	}
 
-	bot.Command("process", definition)
+	bot.Command("echo <word>", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

@@ -4,6 +4,7 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 
 ## Features
 
+- Supports Slack Apps using [Socket Mode](https://api.slack.com/apis/connections/socket)
 - Easy definitions of commands and their input
 - Available bot initialization, errors and default handlers
 - Simple parsing of String, Integer, Float and Boolean parameters
@@ -39,12 +40,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
@@ -74,12 +76,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
@@ -111,12 +114,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
@@ -150,12 +154,13 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",
@@ -192,12 +197,13 @@ import (
 	"context"
 	"errors"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
@@ -228,75 +234,38 @@ func main() {
 
 ## Example 6
 
-Send a "Typing" indicator
+Showcasing the ability to access the [github.com/slack-go/slack](https://github.com/slack-go/slack) API and upload a file
 
 ```go
 package main
 
 import (
 	"context"
+	"fmt"
 	"log"
-	"time"
-
-	"github.com/shomali11/slacker"
-)
-
-func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
-
-	definition := &slacker.CommandDefinition{
-		Description: "Server time!",
-		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.Typing()
-
-			time.Sleep(time.Second)
-
-			response.Reply(time.Now().Format(time.RFC1123))
-		},
-	}
-
-	bot.Command("time", definition)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	err := bot.Listen(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
-}
-```
-
-## Example 7
-
-Showcasing the ability to access the [github.com/slack-go/slack](https://github.com/slack-go/slack) API and the Real-Time Messaging Protocol.
-_In this example, we are sending a message using RTM and uploading a file using the Slack API._
-
-```go
-package main
-
-import (
-	"context"
-	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Upload a word!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
-
-			channel := botCtx.Event().Channel
-			rtm := botCtx.RTM()
 			client := botCtx.Client()
+			ev := botCtx.Event()
 
-			rtm.SendMessage(rtm.NewOutgoingMessage("Uploading file ...", channel))
-			client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{channel}})
+			if ev.Channel != "" {
+				client.PostMessage(ev.Channel, slack.MsgOptionText("Uploading file ...", false))
+				_, err := client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{ev.Channel}})
+				if err != nil {
+					fmt.Printf("Error encountered when uploading file: %+v\n", err)
+				}
+			}
 		},
 	}
 
@@ -312,7 +281,7 @@ func main() {
 }
 ```
 
-## Example 8
+## Example 7
 
 Showcasing the ability to leverage `context.Context` to add a timeout
 
@@ -323,13 +292,14 @@ import (
 	"context"
 	"errors"
 	"log"
+	"os"
 	"time"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
@@ -358,7 +328,7 @@ func main() {
 }
 ```
 
-## Example 9
+## Example 8
 
 Showcasing the ability to add attachments to a `Reply`
 
@@ -368,13 +338,14 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
@@ -405,7 +376,7 @@ func main() {
 }
 ```
 
-## Example 10
+## Example 9
 
 Showcasing the ability to add blocks to a `Reply`
 
@@ -415,13 +386,14 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 	"github.com/slack-go/slack"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
@@ -449,7 +421,7 @@ func main() {
 }
 ```
 
-## Example 11
+## Example 10
 
 Showcasing the ability to create custom responses via `CustomResponse`
 
@@ -457,13 +429,14 @@ Showcasing the ability to create custom responses via `CustomResponse`
 package main
 
 import (
-	"log"
-
 	"context"
 	"errors"
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 const (
@@ -471,7 +444,7 @@ const (
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	bot.CustomResponse(NewCustomResponseWriter)
 
@@ -506,27 +479,52 @@ type MyCustomResponseWriter struct {
 
 // ReportError sends back a formatted error message to the channel where we received the event from
 func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
-	rtm := r.botCtx.RTM()
-	event := r.botCtx.Event()
-	rtm.SendMessage(rtm.NewOutgoingMessage(fmt.Sprintf(errorFormat, err.Error()), event.Channel))
-}
+	defaults := slacker.NewReportErrorDefaults(options...)
 
-// Typing send a typing indicator
-func (r *MyCustomResponseWriter) Typing() {
-	rtm := r.botCtx.RTM()
+	client := r.botCtx.Client()
 	event := r.botCtx.Event()
-	rtm.SendMessage(rtm.NewTypingMessage(event.Channel))
+
+	opts := []slack.MsgOption{
+		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
+	}
+	if defaults.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+	}
+
+	_, _, err = client.PostMessage(event.Channel, opts...)
+	if err != nil {
+		fmt.Println("failed to report error: %v", err)
+	}
 }
 
 // Reply send a attachments to the current channel with a message
-func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) {
-	rtm := r.botCtx.RTM()
+func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) error {
+	defaults := slacker.NewReplyDefaults(options...)
+
+	client := r.botCtx.Client()
 	event := r.botCtx.Event()
-	rtm.SendMessage(rtm.NewOutgoingMessage(message, event.Channel))
+	if event == nil {
+		return fmt.Errorf("Unable to get message event details")
+	}
+
+	opts := []slack.MsgOption{
+		slack.MsgOptionText(message, false),
+		slack.MsgOptionAttachments(defaults.Attachments...),
+		slack.MsgOptionBlocks(defaults.Blocks...),
+	}
+	if defaults.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+	}
+
+	_, _, err := client.PostMessage(
+		event.Channel,
+		opts...,
+	)
+	return err
 }
 ```
 
-## Example 12
+## Example 11
 
 Showcasing the ability to toggle the slack Debug option via `WithDebug`
 
@@ -537,10 +535,11 @@ import (
 	"context"
 	"github.com/shomali11/slacker"
 	"log"
+	"os"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>", slacker.WithDebug(true))
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
@@ -561,7 +560,7 @@ func main() {
 }
 ```
 
-## Example 13
+## Example 12
 
 Defining a command that can only be executed by authorized users
 
@@ -571,14 +570,15 @@ package main
 import (
 	"context"
 	"log"
+	"os"
 
 	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	authorizedUsers := []string{"<USER ID>"}
+	authorizedUsers := []string{"<User ID>"}
 
 	authorizedDefinition := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
@@ -611,7 +611,7 @@ func contains(list []string, element string) bool {
 }
 ```
 
-## Example 14
+## Example 13
 
 Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match
 
@@ -620,6 +620,7 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"context"
 	"fmt"
@@ -628,7 +629,7 @@ import (
 )
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	bot.Init(func() {
 		log.Println("Connected!")
@@ -665,7 +666,7 @@ func main() {
 }
 ```
 
-## Example 15
+## Example 14
 
 Listening to the Commands Events being produced
 
@@ -675,6 +676,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 
 	"context"
 
@@ -687,13 +689,13 @@ func printCommandEvents(analyticsChannel <-chan *slacker.CommandEvent) {
 		fmt.Println(event.Timestamp)
 		fmt.Println(event.Command)
 		fmt.Println(event.Parameters)
-		fmt.Println(event.Message)
+		fmt.Println(event.Event)
 		fmt.Println()
 	}
 }
 
 func main() {
-	bot := slacker.NewClient("<YOUR SLACK BOT TOKEN>")
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	go printCommandEvents(bot.CommandEvents())
 
