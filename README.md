@@ -28,6 +28,20 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 go get github.com/shomali11/slacker
 ```
 
+# Preparing your Slack App
+
+Slacker works by communicating with the Slack [Events API](https://api.slack.com/apis/connections/events-api) using the [Socket Mode](https://api.slack.com/apis/connections/socket) connection protocol.
+
+To get started, you must have or create a [Slack App](https://api.slack.com/apps?new_app=1) and enable `Socket Mode`, which will generate your app token that will be needed to authenticate.
+
+Additionally, you need to subscribe to events for your bot to respond to under the `Event Subscriptions` section. Common event subscriptions for bots include `app_mention` or `message.im`.
+
+After setting up your subscriptions, add additional scopes necessary to your bot in the `OAuth & Permissions` and install your app into your workspace.
+
+Once installed, navigate back to the `OAuth & Permissions` section and retrieve yor bot token from the top of the page.
+
+With both tokens in hand, you can now proceed with the examples below.
+
 # Examples
 
 ## Example 1
