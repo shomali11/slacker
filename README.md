@@ -30,6 +30,10 @@ go get github.com/shomali11/slacker
 
 # Preparing your Slack App
 
+To use Slacker you'll need to create a Slack App, either [manually](#manual-steps) or with an [app manifest](#app-manifest). The app manifest feature is easier, but is a beta feature from Slack and thus may break/change without much notice.
+
+## Manual Steps
+
 Slacker works by communicating with the Slack [Events API](https://api.slack.com/apis/connections/events-api) using the [Socket Mode](https://api.slack.com/apis/connections/socket) connection protocol.
 
 To get started, you must have or create a [Slack App](https://api.slack.com/apps?new_app=1) and enable `Socket Mode`, which will generate your app token that will be needed to authenticate.
@@ -41,6 +45,10 @@ After setting up your subscriptions, add additional scopes necessary to your bot
 Once installed, navigate back to the `OAuth & Permissions` section and retrieve yor bot token from the top of the page.
 
 With both tokens in hand, you can now proceed with the examples below.
+
+## App Manifest
+
+Slack [App Manifests](https://api.slack.com/reference/manifests) make it easy to share a app configurations. We provide a [simple manifest](./examples/app_manifest/manifest.yml) that should work with all the examples provided below.
 
 # Examples
 
