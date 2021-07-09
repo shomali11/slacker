@@ -30,17 +30,32 @@ go get github.com/shomali11/slacker
 
 # Preparing your Slack App
 
+To use Slacker you'll need to create a Slack App, either [manually](#manual-steps) or with an [app manifest](#app-manifest). The app manifest feature is easier, but is a beta feature from Slack and thus may break/change without much notice.
+
+## Manual Steps
+
 Slacker works by communicating with the Slack [Events API](https://api.slack.com/apis/connections/events-api) using the [Socket Mode](https://api.slack.com/apis/connections/socket) connection protocol.
 
-To get started, you must have or create a [Slack App](https://api.slack.com/apps?new_app=1) and enable `Socket Mode`, which will generate your app token that will be needed to authenticate.
+To get started, you must have or create a [Slack App](https://api.slack.com/apps?new_app=1) and enable `Socket Mode`, which will generate your app token (`SLACK_APP_TOKEN` in the examples) that will be needed to authenticate.
 
 Additionally, you need to subscribe to events for your bot to respond to under the `Event Subscriptions` section. Common event subscriptions for bots include `app_mention` or `message.im`.
 
-After setting up your subscriptions, add additional scopes necessary to your bot in the `OAuth & Permissions` and install your app into your workspace.
+After setting up your subscriptions, add scopes necessary to your bot in the `OAuth & Permissions`. The following scopes are recommended for getting started, though you may need to add/remove scopes depending on your bots purpose:
 
-Once installed, navigate back to the `OAuth & Permissions` section and retrieve yor bot token from the top of the page.
+* `app_mentions:read`
+* `channels:history`
+* `chat:write`
+* `groups:history`
+* `im:history`
+* `mpim:history`
+
+Once you've selected your scopes install your app to the workspace and navigate back to the `OAuth & Permissions` section. Here you can retrieve yor bot's OAuth token (`SLACK_BOT_TOKEN` in the examples) from the top of the page.
 
 With both tokens in hand, you can now proceed with the examples below.
+
+## App Manifest
+
+Slack [App Manifests](https://api.slack.com/reference/manifests) make it easy to share a app configurations. We provide a [simple manifest](./examples/app_manifest/manifest.yml) that should work with all the examples provided below.
 
 # Examples
 
@@ -737,3 +752,13 @@ func main() {
 	}
 }
 ```
+
+# Troubleshooting
+
+## My bot is not responding to events
+
+There are a few common issues that can cause this:
+
+* The OAuth (bot) Token may be incorrect. In this case authentication does not fail like it does if the App Token is incorrect, and the bot will simply have no scopes and be unable to respond.
+* Required scopes are missing from the OAuth (bot) Token. Similar to the incorrect OAuth Token, without the necessary scopes, the bot cannot respond.
+* The bot does not have the correct event subscriptions setup, and is not receiving events to respond to.
