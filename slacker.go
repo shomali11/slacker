@@ -292,6 +292,11 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}) {
 		cmd.Execute(botCtx, request, response)
 		return
 	}
+
+	if s.defaultMessageHandler != nil {
+		request := s.requestConstructor(botCtx, nil)
+		s.defaultMessageHandler(botCtx, request, response)
+	}
 }
 
 func newMessageEvent(evt interface{}) *MessageEvent {
