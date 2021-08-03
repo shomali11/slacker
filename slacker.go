@@ -65,7 +65,7 @@ type Slacker struct {
 	responseConstructor     func(botCtx BotContext) ResponseWriter
 	initHandler             func()
 	errorHandler            func(err string)
-	interactiveEventHandler func(*socketmode.Client, socketmode.Event, slack.InteractionCallback)
+	interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
 	helpDefinition          *CommandDefinition
 	defaultMessageHandler   func(botCtx BotContext, request Request, response ResponseWriter)
 	defaultEventHandler     func(interface{})
@@ -99,7 +99,7 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
 }
 
-func (s *Slacker) Interactive(interactiveEventHandler func(*socketmode.Client, socketmode.Event, slack.InteractionCallback)) {
+func (s *Slacker) Interactive(interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)) {
 	s.interactiveEventHandler = interactiveEventHandler
 }
 
@@ -196,7 +196,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						continue
 					}
 
-					s.interactiveEventHandler(s.socketModeClient, evt, callback)
+					go s.interactiveEventHandler(s, &evt, &callback)
 				default:
 					s.unsupportedEventReceived()
 				}
