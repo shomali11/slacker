@@ -57,20 +57,21 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	client                *slack.Client
-	socketModeClient      *socketmode.Client
-	botCommands           []BotCommand
-	botContextConstructor func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
-	requestConstructor    func(botCtx BotContext, properties *proper.Properties) Request
-	responseConstructor   func(botCtx BotContext) ResponseWriter
-	initHandler           func()
-	errorHandler          func(err string)
-	helpDefinition        *CommandDefinition
-	defaultMessageHandler func(botCtx BotContext, request Request, response ResponseWriter)
-	defaultEventHandler   func(interface{})
-	unAuthorizedError     error
-	commandChannel        chan *CommandEvent
-	appID                 string
+	client                  *slack.Client
+	socketModeClient        *socketmode.Client
+	botCommands             []BotCommand
+	botContextConstructor   func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
+	requestConstructor      func(botCtx BotContext, properties *proper.Properties) Request
+	responseConstructor     func(botCtx BotContext) ResponseWriter
+	initHandler             func()
+	errorHandler            func(err string)
+	interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
+	helpDefinition          *CommandDefinition
+	defaultMessageHandler   func(botCtx BotContext, request Request, response ResponseWriter)
+	defaultEventHandler     func(interface{})
+	unAuthorizedError       error
+	commandChannel          chan *CommandEvent
+	appID                   string
 }
 
 // BotCommands returns Bot Commands
@@ -96,6 +97,10 @@ func (s *Slacker) Init(initHandler func()) {
 // Err handle when errors are encountered
 func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
+}
+
+func (s *Slacker) Interactive(interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)) {
+	s.interactiveEventHandler = interactiveEventHandler
 }
 
 // CustomRequest creates a new request
@@ -163,7 +168,6 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					fmt.Println("Connection failed. Retrying later...")
 				case socketmode.EventTypeConnected:
 					fmt.Println("Connected to Slack with Socket Mode.")
-
 				case socketmode.EventTypeEventsAPI:
 					ev, ok := evt.Data.(slackevents.EventsAPIEvent)
 					if !ok {
@@ -180,9 +184,21 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					}
 
 					s.socketModeClient.Ack(*evt.Request)
+				case socketmode.EventTypeInteractive:
+					if s.interactiveEventHandler == nil {
+						s.unsupportedEventReceived()
+						continue
+					}
 
+					callback, ok := evt.Data.(slack.InteractionCallback)
+					if !ok {
+						fmt.Printf("Ignored %+v\n", evt)
+						continue
+					}
+
+					go s.interactiveEventHandler(s, &evt, &callback)
 				default:
-					s.socketModeClient.Debugf("unsupported Events API event received")
+					s.unsupportedEventReceived()
 				}
 			}
 		}
@@ -191,6 +207,10 @@ func (s *Slacker) Listen(ctx context.Context) error {
 	// blocking call that handles listening for events and placing them in the
 	// Events channel as well as handling outgoing events.
 	return s.socketModeClient.Run()
+}
+
+func (s *Slacker) unsupportedEventReceived() {
+	s.socketModeClient.Debugf("unsupported Events API event received")
 }
 
 // GetUserInfo retrieve complete user information
