@@ -1,6 +1,10 @@
 package slacker
 
-import "github.com/slack-go/slack"
+import (
+	"log"
+
+	"github.com/slack-go/slack"
+)
 
 // ClientOption an option for client values
 type ClientOption func(*ClientDefaults)
@@ -12,14 +16,23 @@ func WithDebug(debug bool) ClientOption {
 	}
 }
 
+// WithLogger specifies the logger to be used
+func WithLogger(l logger) ClientOption {
+	return func(defaults *ClientDefaults) {
+		defaults.Logger = l
+	}
+}
+
 // ClientDefaults configuration
 type ClientDefaults struct {
-	Debug bool
+	Debug  bool
+	Logger logger
 }
 
 func newClientDefaults(options ...ClientOption) *ClientDefaults {
 	config := &ClientDefaults{
-		Debug: false,
+		Debug:  false,
+		Logger: log.Default(),
 	}
 
 	for _, option := range options {

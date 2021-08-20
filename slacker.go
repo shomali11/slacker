@@ -40,6 +40,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		botToken,
 		slack.OptionDebug(defaults.Debug),
 		slack.OptionAppLevelToken(appToken),
+		slack.OptionLog(defaults.Logger),
 	)
 
 	smc := socketmode.New(
@@ -51,6 +52,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		socketModeClient:  smc,
 		commandChannel:    make(chan *CommandEvent, 100),
 		unAuthorizedError: unAuthorizedError,
+		log:               internalLog{logger: defaults.Logger},
 	}
 	return slacker
 }
@@ -72,6 +74,7 @@ type Slacker struct {
 	unAuthorizedError       error
 	commandChannel          chan *CommandEvent
 	appID                   string
+	log                     internalLog
 }
 
 // BotCommands returns Bot Commands
@@ -159,19 +162,19 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 				switch evt.Type {
 				case socketmode.EventTypeConnecting:
-					fmt.Println("Connecting to Slack with Socket Mode.")
+					s.log.Println("Connecting to Slack with Socket Mode.")
 					if s.initHandler == nil {
 						continue
 					}
 					go s.initHandler()
 				case socketmode.EventTypeConnectionError:
-					fmt.Println("Connection failed. Retrying later...")
+					s.log.Println("Connection failed. Retrying later...")
 				case socketmode.EventTypeConnected:
-					fmt.Println("Connected to Slack with Socket Mode.")
+					s.log.Println("Connected to Slack with Socket Mode.")
 				case socketmode.EventTypeEventsAPI:
 					ev, ok := evt.Data.(slackevents.EventsAPIEvent)
 					if !ok {
-						fmt.Printf("Ignored %+v\n", evt)
+						s.log.Printf("Ignored %+v\n", evt)
 						continue
 					}
 
@@ -180,7 +183,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						go s.handleMessageEvent(ctx, ev.InnerEvent.Data)
 
 					default:
-						fmt.Printf("unsupported inner event: %+v\n", ev.InnerEvent.Type)
+						s.log.Printf("unsupported inner event: %+v\n", ev.InnerEvent.Type)
 					}
 
 					s.socketModeClient.Ack(*evt.Request)
@@ -192,7 +195,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					callback, ok := evt.Data.(slack.InteractionCallback)
 					if !ok {
-						fmt.Printf("Ignored %+v\n", evt)
+						s.log.Printf("Ignored %+v\n", evt)
 						continue
 					}
 
