@@ -206,7 +206,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 	// blocking call that handles listening for events and placing them in the
 	// Events channel as well as handling outgoing events.
-	return s.socketModeClient.Run()
+	return s.socketModeClient.RunContext(ctx)
 }
 
 func (s *Slacker) unsupportedEventReceived() {
