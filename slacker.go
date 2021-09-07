@@ -47,10 +47,11 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		socketmode.OptionDebug(defaults.Debug),
 	)
 	slacker := &Slacker{
-		client:            api,
-		socketModeClient:  smc,
-		commandChannel:    make(chan *CommandEvent, 100),
-		unAuthorizedError: unAuthorizedError,
+		client:             api,
+		socketModeClient:   smc,
+		commandChannel:     make(chan *CommandEvent, 100),
+		unAuthorizedError:  unAuthorizedError,
+		botInteractionMode: defaults.BotMode,
 	}
 	return slacker
 }
@@ -72,6 +73,7 @@ type Slacker struct {
 	unAuthorizedError       error
 	commandChannel          chan *CommandEvent
 	appID                   string
+	botInteractionMode      BotInteractionMode
 }
 
 // BotCommands returns Bot Commands
@@ -168,6 +170,10 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					fmt.Println("Connection failed. Retrying later...")
 				case socketmode.EventTypeConnected:
 					fmt.Println("Connected to Slack with Socket Mode.")
+				case socketmode.EventTypeHello:
+					s.appID = evt.Request.ConnectionInfo.AppID
+					fmt.Printf("Connected as App ID %v\n", s.appID)
+
 				case socketmode.EventTypeEventsAPI:
 					ev, ok := evt.Data.(slackevents.EventsAPIEvent)
 					if !ok {
@@ -286,6 +292,29 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}) {
 	if ev == nil {
 		// event doesn't appear to be a valid message type
 		return
+	} else if ev.IsBot() {
+		switch s.botInteractionMode {
+		case BotInteractionModeIgnoreApp:
+			bot, err := s.client.GetBotInfo(ev.BotID)
+			if err != nil {
+				if err.Error() == "missing_scope" {
+					fmt.Println("unable to determine if bot response is from me -- please add users:read scope to your app")
+				} else {
+					fmt.Printf("unable to get bot that sent message information: %v", err)
+				}
+				return
+			}
+			if bot.AppID == s.appID {
+				fmt.Printf("Ignoring event that originated from my App ID: %v\n", bot.AppID)
+				return
+			}
+		case BotInteractionModeIgnoreAll:
+			fmt.Printf("Ignoring event that originated from Bot ID: %v\n", ev.BotID)
+			return
+		default:
+			// BotInteractionModeIgnoreNone is handled in the default case
+		}
+
 	}
 
 	botCtx := s.botContextConstructor(ctx, s.client, s.socketModeClient, ev)
@@ -347,14 +376,6 @@ func newMessageEvent(evt interface{}) *MessageEvent {
 			ThreadTimeStamp: ev.ThreadTimeStamp,
 			BotID:           ev.BotID,
 		}
-	}
-
-	// Filter out other bots. At the very least this is needed for MessageEvent
-	// to prevent the bot from self-triggering and causing loops. However better
-	// logic should be in place to prevent repeated self-triggering / bot-storms
-	// if we want to enable this later.
-	if me.IsBot() {
-		return nil
 	}
 
 	return me
