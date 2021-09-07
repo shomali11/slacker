@@ -20,6 +20,7 @@ oauth_config:
       - groups:history
       - im:history
       - mpim:history
+      - users:read
 settings:
   event_subscriptions:
     bot_events:
