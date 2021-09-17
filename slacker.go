@@ -101,6 +101,7 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
 }
 
+// Interactive assigns an interactive event handler
 func (s *Slacker) Interactive(interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)) {
 	s.interactiveEventHandler = interactiveEventHandler
 }
