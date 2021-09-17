@@ -57,6 +57,22 @@ With both tokens in hand, you can now proceed with the examples below.
 
 Slack [App Manifests](https://api.slack.com/reference/manifests) make it easy to share a app configurations. We provide a [simple manifest](./examples/app_manifest/manifest.yml) that should work with all the examples provided below.
 
+The manifest provided will send all messages in channels your bot is in to the bot (including DMs) and not just ones that actually mention them in the message.
+
+If you wish to only have your bot respond to messages they are directly messaged in, you will need to add the `app_mentions:read` scope, and remove:
+
+- `im:history`       # single-person dm
+- `mpim:history`     # multi-person dm
+- `channels:history` # public channels
+- `groups:history`   # private channels
+
+You'll also need to adjust the event subscriptions, adding `app_mention` and removing:
+
+- `message.channels`
+- `message.groups`
+- `message.im`
+- `message.mpim`
+
 # Examples
 
 ## Example 1
