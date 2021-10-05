@@ -57,21 +57,22 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	client                  *slack.Client
-	socketModeClient        *socketmode.Client
-	botCommands             []BotCommand
-	botContextConstructor   func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
-	requestConstructor      func(botCtx BotContext, properties *proper.Properties) Request
-	responseConstructor     func(botCtx BotContext) ResponseWriter
-	initHandler             func()
-	errorHandler            func(err string)
-	interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
-	helpDefinition          *CommandDefinition
-	defaultMessageHandler   func(botCtx BotContext, request Request, response ResponseWriter)
-	defaultEventHandler     func(interface{})
-	unAuthorizedError       error
-	commandChannel          chan *CommandEvent
-	appID                   string
+	client                   *slack.Client
+	socketModeClient         *socketmode.Client
+	botCommands              []BotCommand
+	botContextConstructor    func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
+	requestConstructor       func(botCtx BotContext, properties *proper.Properties) Request
+	responseConstructor      func(botCtx BotContext) ResponseWriter
+	initHandler              func()
+	errorHandler             func(err string)
+	interactiveEventHandler  func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
+	slashCommandEventHandler func(*Slacker, *socketmode.Event, *slack.SlashCommand)
+	helpDefinition           *CommandDefinition
+	defaultMessageHandler    func(botCtx BotContext, request Request, response ResponseWriter)
+	defaultEventHandler      func(interface{})
+	unAuthorizedError        error
+	commandChannel           chan *CommandEvent
+	appID                    string
 }
 
 // BotCommands returns Bot Commands
@@ -101,6 +102,10 @@ func (s *Slacker) Err(errorHandler func(err string)) {
 
 func (s *Slacker) Interactive(interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)) {
 	s.interactiveEventHandler = interactiveEventHandler
+}
+
+func (s *Slacker) SlashCommand(slashCommandEventHandler func(*Slacker, *socketmode.Event, *slack.SlashCommand)) {
+	s.slashCommandEventHandler = slashCommandEventHandler
 }
 
 // CustomRequest creates a new request
@@ -184,6 +189,22 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					}
 
 					s.socketModeClient.Ack(*evt.Request)
+				case socketmode.EventTypeSlashCommand:
+					if s.slashCommandEventHandler == nil {
+						s.unsupportedEventReceived()
+						continue
+					}
+
+					callback, ok := evt.Data.(slack.SlashCommand)
+					if !ok {
+						fmt.Printf("Ignored %+v\n", evt)
+						continue
+					}
+
+					// Dont forget to acknowledge the request
+					// s.socketModeClient.Ack(*evt.Request)
+					go s.slashCommandEventHandler(s, &evt, &callback)
+
 				case socketmode.EventTypeInteractive:
 					if s.interactiveEventHandler == nil {
 						s.unsupportedEventReceived()
