@@ -352,9 +352,8 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}) {
 func newMessageEvent(evt interface{}) *MessageEvent {
 	var me *MessageEvent
 
-	switch evt.(type) {
+	switch ev := evt.(type) {
 	case *slackevents.MessageEvent:
-		ev := evt.(*slackevents.MessageEvent)
 		me = &MessageEvent{
 			Channel:         ev.Channel,
 			User:            ev.User,
@@ -366,7 +365,6 @@ func newMessageEvent(evt interface{}) *MessageEvent {
 			BotID:           ev.BotID,
 		}
 	case *slackevents.AppMentionEvent:
-		ev := evt.(*slackevents.AppMentionEvent)
 		me = &MessageEvent{
 			Channel:         ev.Channel,
 			User:            ev.User,
