@@ -90,8 +90,5 @@ func (e *MessageEvent) IsThread() bool {
 
 // IsBot indicates if the message was sent by a bot
 func (e *MessageEvent) IsBot() bool {
-	if e.BotID == "" {
-		return false
-	}
-	return true
+	return e.BotID != ""
 }
