@@ -24,7 +24,7 @@ func main() {
 		Description: "Custom!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("custom")
-			response.ReportError(errors.New("oops"))
+			response.ReportError(errors.New("oops, an error occurred"))
 		},
 	}
 
@@ -76,7 +76,7 @@ func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyO
 	client := r.botCtx.Client()
 	event := r.botCtx.Event()
 	if event == nil {
-		return fmt.Errorf("Unable to get message event details")
+		return fmt.Errorf("unable to get message event details")
 	}
 
 	opts := []slack.MsgOption{

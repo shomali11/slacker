@@ -29,7 +29,7 @@ const (
 )
 
 var (
-	unAuthorizedError = errors.New("You are not authorized to execute this command")
+	errUnauthorized = errors.New("you are not authorized to execute this command")
 )
 
 // NewClient creates a new client using the Slack API
@@ -50,7 +50,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		client:             api,
 		socketModeClient:   smc,
 		commandChannel:     make(chan *CommandEvent, 100),
-		unAuthorizedError:  unAuthorizedError,
+		errUnauthorized:    errUnauthorized,
 		botInteractionMode: defaults.BotMode,
 	}
 	return slacker
@@ -70,7 +70,7 @@ type Slacker struct {
 	helpDefinition          *CommandDefinition
 	defaultMessageHandler   func(botCtx BotContext, request Request, response ResponseWriter)
 	defaultEventHandler     func(interface{})
-	unAuthorizedError       error
+	errUnauthorized         error
 	commandChannel          chan *CommandEvent
 	appID                   string
 	botInteractionMode      BotInteractionMode
@@ -127,8 +127,8 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 }
 
 // UnAuthorizedError error message
-func (s *Slacker) UnAuthorizedError(unAuthorizedError error) {
-	s.unAuthorizedError = unAuthorizedError
+func (s *Slacker) UnAuthorizedError(errUnauthorized error) {
+	s.errUnauthorized = errUnauthorized
 }
 
 // Help handle the help message, it will use the default if not set
@@ -329,7 +329,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}) {
 
 		request := s.requestConstructor(botCtx, parameters)
 		if cmd.Definition().AuthorizationFunc != nil && !cmd.Definition().AuthorizationFunc(botCtx, request) {
-			response.ReportError(s.unAuthorizedError)
+			response.ReportError(s.errUnauthorized)
 			return
 		}
 
