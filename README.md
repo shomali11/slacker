@@ -885,6 +885,11 @@ func main() {
 }
 ```
 
+# Contributing / Submitting an Issue
+
+Please review our [Contribution Guidelines](CONTRIBUTING.md) if you have found
+an issue with Slacker or wish to contribute to the project.
+
 # Troubleshooting
 
 ## My bot is not responding to events
