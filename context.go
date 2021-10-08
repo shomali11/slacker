@@ -75,7 +75,8 @@ type MessageEvent struct {
 	// `app_mention` or `message`
 	Type string
 
-	// BotID holds the Slack User ID for our bot
+	// BotID of the bot that sent this message. If a bot did not send this
+	// message, this will be an empty string.
 	BotID string
 }
 
