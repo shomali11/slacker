@@ -15,14 +15,14 @@ func main() {
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.ReportError(errors.New("Oops!"))
+			response.ReportError(errors.New("oops, an error occurred"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.ReportError(errors.New("Oops!"), slacker.WithThreadError(true))
+			response.ReportError(errors.New("oops, an error occurred"), slacker.WithThreadError(true))
 		},
 	}
 

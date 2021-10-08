@@ -51,7 +51,7 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 	client := r.botCtx.Client()
 	ev := r.botCtx.Event()
 	if ev == nil {
-		return fmt.Errorf("Unable to get message event details")
+		return fmt.Errorf("unable to get message event details")
 	}
 
 	opts := []slack.MsgOption{
