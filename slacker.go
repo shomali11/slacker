@@ -106,6 +106,11 @@ func (s *Slacker) Interactive(interactiveEventHandler func(*Slacker, *socketmode
 	s.interactiveEventHandler = interactiveEventHandler
 }
 
+// CustomBotContext creates a new bot context
+func (s *Slacker) CustomBotContext(botContextConstructor func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext) {
+	s.botContextConstructor = botContextConstructor
+}
+
 // CustomRequest creates a new request
 func (s *Slacker) CustomRequest(requestConstructor func(botCtx BotContext, properties *proper.Properties) Request) {
 	s.requestConstructor = requestConstructor
@@ -205,7 +210,11 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					go s.interactiveEventHandler(s, &evt, &callback)
 				default:
-					s.unsupportedEventReceived()
+					if s.defaultEventHandler != nil {
+						s.defaultEventHandler(evt)
+					} else {
+						s.unsupportedEventReceived()
+					}
 				}
 			}
 		}
