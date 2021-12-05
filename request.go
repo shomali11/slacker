@@ -1,7 +1,7 @@
 package slacker
 
 import (
-	"github.com/shomali11/proper"
+	allot "github.com/sdslabs/allot/pkg"
 )
 
 const (
@@ -9,24 +9,23 @@ const (
 )
 
 // NewRequest creates a new Request structure
-func NewRequest(botCtx BotContext, properties *proper.Properties) Request {
-	return &request{botCtx: botCtx, properties: properties}
+func NewRequest(botCtx BotContext, parameters []allot.Parameter, match allot.MatchInterface) Request {
+	return &request{botCtx: botCtx, parameters: parameters, match: match}
 }
 
 // Request interface that contains the Event received and parameters
 type Request interface {
 	Param(key string) string
 	StringParam(key string, defaultValue string) string
-	BooleanParam(key string, defaultValue bool) bool
 	IntegerParam(key string, defaultValue int) int
-	FloatParam(key string, defaultValue float64) float64
-	Properties() *proper.Properties
+	Parameters() []allot.Parameter
 }
 
 // request contains the Event received and parameters
 type request struct {
 	botCtx     BotContext
-	properties *proper.Properties
+	parameters []allot.Parameter
+	match      allot.MatchInterface
 }
 
 // Param attempts to look up a string value by key. If not found, return the an empty string
@@ -36,25 +35,23 @@ func (r *request) Param(key string) string {
 
 // StringParam attempts to look up a string value by key. If not found, return the default string value
 func (r *request) StringParam(key string, defaultValue string) string {
-	return r.properties.StringParam(key, defaultValue)
-}
-
-// BooleanParam attempts to look up a boolean value by key. If not found, return the default boolean value
-func (r *request) BooleanParam(key string, defaultValue bool) bool {
-	return r.properties.BooleanParam(key, defaultValue)
+	re, err := r.match.String(key)
+	if err != nil {
+		return defaultValue
+	}
+	return re
 }
 
 // IntegerParam attempts to look up a integer value by key. If not found, return the default integer value
 func (r *request) IntegerParam(key string, defaultValue int) int {
-	return r.properties.IntegerParam(key, defaultValue)
+	re, err := r.match.Integer(key)
+	if err != nil {
+		return defaultValue
+	}
+	return re
 }
 
-// FloatParam attempts to look up a float value by key. If not found, return the default float value
-func (r *request) FloatParam(key string, defaultValue float64) float64 {
-	return r.properties.FloatParam(key, defaultValue)
-}
-
-// Properties returns the properties of the request
-func (r *request) Properties() *proper.Properties {
-	return r.properties
+// Parameters returns the Parameters of the request
+func (r *request) Parameters() []allot.Parameter {
+	return r.parameters
 }

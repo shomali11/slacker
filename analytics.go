@@ -3,11 +3,11 @@ package slacker
 import (
 	"time"
 
-	"github.com/shomali11/proper"
+	allot "github.com/sdslabs/allot/pkg"
 )
 
 // NewCommandEvent creates a new command event
-func NewCommandEvent(command string, parameters *proper.Properties, event *MessageEvent) *CommandEvent {
+func NewCommandEvent(command string, parameters []allot.Parameter, event *MessageEvent) *CommandEvent {
 	return &CommandEvent{
 		Timestamp:  time.Now(),
 		Command:    command,
@@ -20,6 +20,6 @@ func NewCommandEvent(command string, parameters *proper.Properties, event *Messa
 type CommandEvent struct {
 	Timestamp  time.Time
 	Command    string
-	Parameters *proper.Properties
+	Parameters []allot.Parameter
 	Event      *MessageEvent
 }

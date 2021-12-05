@@ -23,7 +23,7 @@ func main() {
 		},
 	}
 
-	bot.Command("repeat <word> <number>", definition)
+	bot.Command("repeat <word:string> <number:integer>", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

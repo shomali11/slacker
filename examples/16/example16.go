@@ -1,31 +1,31 @@
 package main
 
 import (
-        "context"
-        "log"
-        "os"
+	"context"
+	"log"
+	"os"
 
-        "github.com/shomali11/slacker"
+	"github.com/shomali11/slacker"
 )
 
 func main() {
-        bot := slacker.NewClient(
-                os.Getenv("SLACK_BOT_TOKEN"),
-                os.Getenv("SLACK_APP_TOKEN"),
-                slacker.WithBotInteractionMode(slacker.BotInteractionModeIgnoreApp),
-        )
+	bot := slacker.NewClient(
+		os.Getenv("SLACK_BOT_TOKEN"),
+		os.Getenv("SLACK_APP_TOKEN"),
+		slacker.WithBotInteractionMode(slacker.BotInteractionModeIgnoreApp),
+	)
 
-        bot.Command("hello", &slacker.CommandDefinition{
-                Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-                        response.Reply("hai!")
-                },
-        })
+	bot.Command("hello", &slacker.CommandDefinition{
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("hai!")
+		},
+	})
 
-        ctx, cancel := context.WithCancel(context.Background())
-        defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-        err := bot.Listen(ctx)
-        if err != nil {
-                log.Fatal(err)
-        }
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

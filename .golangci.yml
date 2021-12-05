@@ -1,0 +1,45 @@
+linters:
+  disable-all: true
+  enable:
+  - govet
+  - errcheck
+  - staticcheck
+  - unused
+  - gosimple
+  - bodyclose
+  - revive
+  - unconvert
+  - goconst
+  - gocyclo
+  - gofmt
+  - goimports
+  - misspell
+  - lll
+
+linters-settings:
+  govet:
+    check-shadowing: true
+
+  errcheck:
+    check-type-assertions: true
+
+  goconst:
+    min-len: 2
+    min-occurrences: 4
+
+  gofmt:
+    simplify: true
+
+  goimports:
+    local-prefixes: github.com/sdslabs/allot
+
+  misspell:
+    locale: US
+    ignore-words: []
+
+  lll:
+    line-length: 140
+    tab-width: 4
+
+  gocyclo:
+    min-complexity: 20
