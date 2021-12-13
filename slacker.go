@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"github.com/shomali11/proper"
 	"github.com/slack-go/slack"
@@ -29,8 +30,12 @@ const (
 )
 
 var (
-	errUnauthorized = errors.New("you are not authorized to execute this command")
+	errUnauthorized       = errors.New("you are not authorized to execute this command")
 )
+
+func defaultCleanEventInput(msg string) string {
+	return strings.ReplaceAll(msg, "\u00a0", " ")
+}
 
 // NewClient creates a new client using the Slack API
 func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
@@ -52,6 +57,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		commandChannel:     make(chan *CommandEvent, 100),
 		errUnauthorized:    errUnauthorized,
 		botInteractionMode: defaults.BotMode,
+		cleanEventInput:    defaultCleanEventInput,
 	}
 	return slacker
 }
@@ -74,6 +80,7 @@ type Slacker struct {
 	commandChannel          chan *CommandEvent
 	appID                   string
 	botInteractionMode      BotInteractionMode
+	cleanEventInput         func(in string) string
 }
 
 // BotCommands returns Bot Commands
@@ -99,6 +106,11 @@ func (s *Slacker) Init(initHandler func()) {
 // Err handle when errors are encountered
 func (s *Slacker) Err(errorHandler func(err string)) {
 	s.errorHandler = errorHandler
+}
+
+// CleanEventInput allows the api consumer to override the default event input cleaning behavior
+func (s *Slacker) CleanEventInput(cei func(in string) string) {
+	s.cleanEventInput = cei
 }
 
 // Interactive assigns an interactive event handler
@@ -321,8 +333,10 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}) {
 	botCtx := s.botContextConstructor(ctx, s.client, s.socketModeClient, ev)
 	response := s.responseConstructor(botCtx)
 
+	eventTxt := s.cleanEventInput(ev.Text)
+
 	for _, cmd := range s.botCommands {
-		parameters, isMatch := cmd.Match(ev.Text)
+		parameters, isMatch := cmd.Match(eventTxt)
 		if !isMatch {
 			continue
 		}
