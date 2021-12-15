@@ -885,6 +885,46 @@ func main() {
 }
 ```
 
+## Example 17
+
+Override the default event input cleaning function (to sanitize the messages received by Slacker)
+
+```
+package main
+
+import (
+        "context"
+        "log"
+        "os"
+	"fmt"
+	"strings"
+
+        "github.com/shomali11/slacker"
+)
+
+func main() {
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
+	bot.CleanEventInput(func(in string) string {
+		fmt.Println("My slack bot does not like backticks!")
+		return strings.ReplaceAll(in, "`", "")
+	})
+
+        bot.Command("my-command", &slacker.CommandDefinition{
+                Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+                        response.Reply("it works!")
+                },
+        })
+
+        ctx, cancel := context.WithCancel(context.Background())
+        defer cancel()
+
+        err := bot.Listen(ctx)
+        if err != nil {
+                log.Fatal(err)
+        }
+}
+```
+
 # Contributing / Submitting an Issue
 
 Please review our [Contribution Guidelines](CONTRIBUTING.md) if you have found
