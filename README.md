@@ -925,7 +925,7 @@ func main() {
 }
 ```
 
-## Example 17
+## Example 18
 
 Override the default command constructor to add a prefix to all commands and print log message before command execution
 
