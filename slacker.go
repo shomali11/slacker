@@ -380,22 +380,34 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}, req *
 	}
 }
 
+func getChannelName(slacker *Slacker, channelID string) string {
+	channel, err := slacker.client.GetConversationInfo(channelID, true)
+	if err != nil {
+		fmt.Printf("unable to get channel info for %s: %v", channelID, err)
+		return channelID
+	}
+	return channel.Name
+}
+
+func getUserName(slacker *Slacker, userID string) string {
+	user, err := slacker.client.GetUserInfo(userID)
+	if err != nil {
+		fmt.Printf("unable to get user info for %s: %v", userID, err)
+		return userID
+	}
+	return user.Name
+}
+
 func newMessageEvent(slacker *Slacker, evt interface{}, req *socketmode.Request) *MessageEvent {
 	var me *MessageEvent
 
 	switch ev := evt.(type) {
 	case *slackevents.MessageEvent:
 		me = &MessageEvent{
-			Channel: ev.Channel,
-			ChannelName: func() string {
-				channel, _ := slacker.client.GetConversationInfo(ev.Channel, true)
-				return channel.Name
-			},
-			User: ev.User,
-			UserName: func() string {
-				username, _ := slacker.client.GetUserInfo(ev.User)
-				return username.Name
-			},
+			Channel:         ev.Channel,
+			ChannelName:     getChannelName(slacker, ev.Channel),
+			User:            ev.User,
+			UserName:        getUserName(slacker, ev.User),
 			Text:            ev.Text,
 			Data:            evt,
 			Type:            ev.Type,
@@ -405,16 +417,10 @@ func newMessageEvent(slacker *Slacker, evt interface{}, req *socketmode.Request)
 		}
 	case *slackevents.AppMentionEvent:
 		me = &MessageEvent{
-			Channel: ev.Channel,
-			ChannelName: func() string {
-				channel, _ := slacker.client.GetConversationInfo(ev.Channel, true)
-				return channel.Name
-			},
-			User: ev.User,
-			UserName: func() string {
-				username, _ := slacker.client.GetUserInfo(ev.User)
-				return username.Name
-			},
+			Channel:         ev.Channel,
+			ChannelName:     getChannelName(slacker, ev.Channel),
+			User:            ev.User,
+			UserName:        getUserName(slacker, ev.User),
 			Text:            ev.Text,
 			Data:            evt,
 			Type:            ev.Type,
@@ -425,9 +431,9 @@ func newMessageEvent(slacker *Slacker, evt interface{}, req *socketmode.Request)
 	case *slack.SlashCommand:
 		me = &MessageEvent{
 			Channel:     ev.ChannelID,
-			ChannelName: func() string { return ev.ChannelName },
+			ChannelName: ev.ChannelName,
 			User:        ev.UserID,
-			UserName:    func() string { return ev.UserName },
+			UserName:    ev.UserName,
 			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
 			Data:        req,
 			Type:        req.Type,
