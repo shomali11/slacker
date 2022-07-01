@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -16,13 +17,15 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			timedContext, cancel := context.WithTimeout(botCtx.Context(), time.Second)
+			timedContext, cancel := context.WithTimeout(botCtx.Context(), 5*time.Second)
 			defer cancel()
+
+			duration := time.Duration(rand.Int()%10+1) * time.Second
 
 			select {
 			case <-timedContext.Done():
 				response.ReportError(errors.New("timed out"))
-			case <-time.After(time.Minute):
+			case <-time.After(duration):
 				response.Reply("Processing done!")
 			}
 		},

@@ -19,10 +19,12 @@ func main() {
 
 			attachments := []slack.Block{}
 			attachments = append(attachments, slack.NewContextBlock("1",
-				slack.NewTextBlockObject("mrkdwn", "Hi!", false, false)),
+				slack.NewTextBlockObject("mrkdwn", word, false, false)),
 			)
 
-			response.Reply(word, slacker.WithBlocks(attachments))
+			// When using blocks the message argument will be thrown away and can be
+			// left blank.
+			response.Reply("", slacker.WithBlocks(attachments))
 		},
 	}
 
