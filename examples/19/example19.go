@@ -9,6 +9,8 @@ import (
 	"github.com/shomali11/commander"
 	"github.com/shomali11/proper"
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/socketmode"
 )
 
 func main() {
@@ -62,4 +64,7 @@ func (c *cmd) Tokenize() []*commander.Token {
 func (c *cmd) Execute(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 	log.Printf("Executing command [%s] invoked by %s", c.usage, botCtx.Event().User)
 	c.definition.Handler(botCtx, request, response)
+}
+
+func (c *cmd) Interactive(*slacker.Slacker, *socketmode.Event, *slack.InteractionCallback, *socketmode.Request) {
 }
