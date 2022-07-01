@@ -330,7 +330,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}, req *
 				if err.Error() == "missing_scope" {
 					fmt.Println("unable to determine if bot response is from me -- please add users:read scope to your app")
 				} else {
-					fmt.Printf("unable to get bot that sent message information: %v", err)
+					fmt.Printf("unable to get bot that sent message information: %v\n", err)
 				}
 				return
 			}
@@ -383,7 +383,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}, req *
 func getChannelName(slacker *Slacker, channelID string) string {
 	channel, err := slacker.client.GetConversationInfo(channelID, true)
 	if err != nil {
-		fmt.Printf("unable to get channel info for %s: %v", channelID, err)
+		fmt.Printf("unable to get channel info for %s: %v\n", channelID, err)
 		return channelID
 	}
 	return channel.Name
@@ -392,7 +392,7 @@ func getChannelName(slacker *Slacker, channelID string) string {
 func getUserName(slacker *Slacker, userID string) string {
 	user, err := slacker.client.GetUserInfo(userID)
 	if err != nil {
-		fmt.Printf("unable to get user info for %s: %v", userID, err)
+		fmt.Printf("unable to get user info for %s: %v\n", userID, err)
 		return userID
 	}
 	return user.Name
