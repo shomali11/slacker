@@ -15,6 +15,10 @@ type CommandDefinition struct {
 	AuthorizationFunc func(botCtx BotContext, request Request) bool
 	Handler           func(botCtx BotContext, request Request, response ResponseWriter)
 	Interactive       func(*Slacker, *socketmode.Event, *slack.InteractionCallback, *socketmode.Request)
+
+	// HideHelp will cause this command to not be shown when a user requests
+	// help.
+	HideHelp bool
 }
 
 // NewBotCommand creates a new bot command object

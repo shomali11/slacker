@@ -51,6 +51,7 @@ func main() {
 		BlockID:     "slacker_cmd",
 		Handler:     slackerCmd("slacker_cmd"),
 		Interactive: slackerInteractive,
+		Hide:        true,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())

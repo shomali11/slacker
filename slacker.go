@@ -244,6 +244,9 @@ func (s *Slacker) defaultHelp(botCtx BotContext, request Request, response Respo
 	authorizedCommandAvailable := false
 	helpMessage := empty
 	for _, command := range s.botCommands {
+		if command.Definition().HideHelp {
+			continue
+		}
 		tokens := command.Tokenize()
 		for _, token := range tokens {
 			if token.IsParameter() {
