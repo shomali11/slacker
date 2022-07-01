@@ -210,7 +210,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						fmt.Printf("Ignored %+v\n", evt)
 						continue
 					}
-
+					s.socketModeClient.Ack(*evt.Request)
 					go s.handleMessageEvent(ctx, &callback, evt.Request)
 				case socketmode.EventTypeInteractive:
 					callback, ok := evt.Data.(slack.InteractionCallback)
