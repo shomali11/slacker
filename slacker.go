@@ -303,6 +303,10 @@ func (s *Slacker) handleInteractiveEvent(slacker *Slacker, evt *socketmode.Event
 			return
 		}
 	}
+
+	if s.interactiveEventHandler != nil {
+		s.interactiveEventHandler(slacker, evt, callback)
+	}
 }
 
 func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}, req *socketmode.Request) {
