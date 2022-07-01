@@ -68,6 +68,7 @@ type Slacker struct {
 	socketModeClient        *socketmode.Client
 	botCommands             []BotCommand
 	botContextConstructor   func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
+	commandConstructor      func(usage string, definition *CommandDefinition) BotCommand
 	requestConstructor      func(botCtx BotContext, properties *proper.Properties) Request
 	responseConstructor     func(botCtx BotContext) ResponseWriter
 	initHandler             func()
@@ -123,6 +124,11 @@ func (s *Slacker) CustomBotContext(botContextConstructor func(ctx context.Contex
 	s.botContextConstructor = botContextConstructor
 }
 
+// CustomCommand creates a new BotCommand
+func (s *Slacker) CustomCommand(commandConstructor func(usage string, definition *CommandDefinition) BotCommand) {
+	s.commandConstructor = commandConstructor
+}
+
 // CustomRequest creates a new request
 func (s *Slacker) CustomRequest(requestConstructor func(botCtx BotContext, properties *proper.Properties) Request) {
 	s.requestConstructor = requestConstructor
@@ -155,7 +161,10 @@ func (s *Slacker) Help(definition *CommandDefinition) {
 
 // Command define a new command and append it to the list of existing commands
 func (s *Slacker) Command(usage string, definition *CommandDefinition) {
-	s.botCommands = append(s.botCommands, NewBotCommand(usage, definition))
+	if s.commandConstructor == nil {
+		s.commandConstructor = NewBotCommand
+	}
+	s.botCommands = append(s.botCommands, s.commandConstructor(usage, definition))
 }
 
 // CommandEvents returns read only command events channel
