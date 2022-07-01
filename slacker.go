@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	"github.com/shomali11/proper"
 	"github.com/slack-go/slack"
@@ -441,9 +440,6 @@ func newMessageEvent(slacker *Slacker, evt interface{}, req *socketmode.Request)
 			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
 			Data:        req,
 			Type:        req.Type,
-			//TODO get time from slash command
-			TimeStamp:       fmt.Sprint(time.Now()),
-			ThreadTimeStamp: fmt.Sprint(time.Now()),
 		}
 	}
 
