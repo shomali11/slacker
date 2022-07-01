@@ -55,8 +55,14 @@ type MessageEvent struct {
 	// Channel ID where the message was sent
 	Channel string
 
+	// ChannelName where the message was sent
+	ChannelName string
+
 	// User ID of the sender
 	User string
+
+	// UserName of the the sender
+	UserName string
 
 	// Text is the unalterted text of the message, as returned by Slack
 	Text string
