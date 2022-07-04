@@ -1,11 +1,12 @@
 # slacker [![Build Status](https://travis-ci.com/shomali11/slacker.svg?branch=master)](https://travis-ci.com/shomali11/slacker) [![Go Report Card](https://goreportcard.com/badge/github.com/shomali11/slacker)](https://goreportcard.com/report/github.com/shomali11/slacker) [![GoDoc](https://godoc.org/github.com/shomali11/slacker?status.svg)](https://godoc.org/github.com/shomali11/slacker) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go) 
 
-Built on top of the Slack API [github.com/slack-go/slack](https://github.com/slack-go/slack) with the idea to simplify the Real-Time Messaging feature to easily create Slack Bots, assign commands to them and extract parameters.
+Built on top of the Slack API [github.com/slack-go/slack](https://github.com/slack-go/slack), Slacker is a low-friction framework for creating Slack Bots.
 
 ## Features
 
 - Supports Slack Apps using [Socket Mode](https://api.slack.com/apis/connections/socket)
 - Easy definitions of commands and their input
+- Slash Command and Block Interactions supported
 - Available bot initialization, errors and default handlers
 - Simple parsing of String, Integer, Float and Boolean parameters
 - Contains support for `context.Context`
@@ -16,11 +17,6 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 - Handlers run concurrently via goroutines
 - Produces events for executed commands
 - Full access to the Slack API [github.com/slack-go/slack](https://github.com/slack-go/slack)
-
-## Dependencies
-
-- `commander` [github.com/shomali11/commander](https://github.com/shomali11/commander)
-- `slack` [github.com/slack-go/slack](https://github.com/slack-go/slack)
 
 # Install
 

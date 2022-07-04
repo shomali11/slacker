@@ -75,6 +75,8 @@ This section guides you through making a successful pull request.
   [staticcheck](https://staticcheck.io/) against the repository and address any
   identified issues.
 
+* Each commit should represent a single feature or fix.
+
 * Your pull request should clearly describe what it's accomplishing and how it
   approaches the issue.
 
