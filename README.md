@@ -885,7 +885,7 @@ func main() {
 
 Override the default event input cleaning function (to sanitize the messages received by Slacker)
 
-```
+```go
 package main
 
 import (
