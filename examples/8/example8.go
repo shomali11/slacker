@@ -29,7 +29,7 @@ func main() {
 		},
 	}
 
-	bot.Command("echo <word>", definition)
+	bot.Command("echo {word}", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

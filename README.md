@@ -147,7 +147,7 @@ func main() {
 
 ## Example 3
 
-Defining a command with a parameter
+Defining a command with a parameter. Parameters surrounded with {} will be satisfied with a word. Parameters surrounded with <> are "greedy" and will take as much input as fed.
 
 ```go
 package main
@@ -163,16 +163,23 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	definition := &slacker.CommandDefinition{
+	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
 		},
-	}
+	})
 
-	bot.Command("echo <word>", definition)
+	bot.Command("say <sentence>", &slacker.CommandDefinition{
+		Description: "Say a sentence!",
+		Example:     "say hello there everyone!",
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			sentence := request.Param("sentence")
+			response.Reply(sentence)
+		},
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -215,7 +222,7 @@ func main() {
 		},
 	}
 
-	bot.Command("repeat <word> <number>", definition)
+	bot.Command("repeat {word} {number}", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -294,15 +301,15 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
-		Description: "Upload a word!",
+		Description: "Upload a sentence!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			word := request.Param("word")
+			sentence := request.Param("sentence")
 			client := botCtx.Client()
 			ev := botCtx.Event()
 
 			if ev.Channel != "" {
 				client.PostMessage(ev.Channel, slack.MsgOptionText("Uploading file ...", false))
-				_, err := client.UploadFile(slack.FileUploadParameters{Content: word, Channels: []string{ev.Channel}})
+				_, err := client.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{ev.Channel}})
 				if err != nil {
 					fmt.Printf("Error encountered when uploading file: %+v\n", err)
 				}
@@ -310,7 +317,7 @@ func main() {
 		},
 	}
 
-	bot.Command("upload <word>", definition)
+	bot.Command("upload <sentence>", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -405,7 +412,7 @@ func main() {
 		},
 	}
 
-	bot.Command("echo <word>", definition)
+	bot.Command("echo {word}", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -450,7 +457,7 @@ func main() {
 		},
 	}
 
-	bot.Command("echo <word>", definition)
+	bot.Command("echo {word}", definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -746,7 +753,7 @@ func main() {
 		},
 	})
 
-	bot.Command("echo <word>", &slacker.CommandDefinition{
+	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Example:     "echo hello",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
