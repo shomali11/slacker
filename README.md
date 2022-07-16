@@ -6,11 +6,11 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 
 - Supports Slack Apps using [Socket Mode](https://api.slack.com/apis/connections/socket)
 - Easy definitions of commands and their input
+- Simple parsing of String, Integer, Float and Boolean parameters
+- Built-in `help` command
 - Slash Command and Block Interactions supported
 - Available bot initialization, errors and default handlers
-- Simple parsing of String, Integer, Float and Boolean parameters
 - Contains support for `context.Context`
-- Built-in `help` command
 - Replies can be new messages or in threads
 - Supports authorization
 - Bot responds to mentions and direct messages
