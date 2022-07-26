@@ -34,7 +34,7 @@ func main() {
 
 	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Example:     "echo hello",
+		Examples:    []string{"echo hello"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)

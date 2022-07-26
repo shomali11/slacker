@@ -127,7 +127,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
-		Example:     "ping",
+		Examples:    []string{"ping"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong", slacker.WithThreadReply(true))
 		},
@@ -165,7 +165,7 @@ func main() {
 
 	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Example:     "echo hello",
+		Examples:    []string{"echo hello"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
@@ -174,7 +174,7 @@ func main() {
 
 	bot.Command("say <sentence>", &slacker.CommandDefinition{
 		Description: "Say a sentence!",
-		Example:     "say hello there everyone!",
+		Examples:    []string{"say hello there everyone!"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			sentence := request.Param("sentence")
 			response.Reply(sentence)
@@ -212,7 +212,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",
-		Example:     "repeat hello 10",
+		Examples:    []string{"repeat hello 10"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.StringParam("word", "Hello!")
 			number := request.IntegerParam("number", 1)
@@ -755,7 +755,7 @@ func main() {
 
 	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Example:     "echo hello",
+		Examples:    []string{"echo hello"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)

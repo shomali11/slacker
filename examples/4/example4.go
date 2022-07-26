@@ -13,7 +13,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Repeat a word a number of times!",
-		Example:     "repeat hello 10",
+		Examples:    []string{"repeat hello 10"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.StringParam("word", "Hello!")
 			number := request.IntegerParam("number", 1)
