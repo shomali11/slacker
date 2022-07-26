@@ -13,7 +13,7 @@ func main() {
 
 	bot.Command("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Example:     "echo hello",
+		Examples:    []string{"echo hello"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			word := request.Param("word")
 			response.Reply(word)
@@ -22,7 +22,7 @@ func main() {
 
 	bot.Command("say <sentence>", &slacker.CommandDefinition{
 		Description: "Say a sentence!",
-		Example:     "say hello there everyone!",
+		Examples:    []string{"say hello there everyone!"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			sentence := request.Param("sentence")
 			response.Reply(sentence)

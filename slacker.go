@@ -285,8 +285,8 @@ func (s *Slacker) defaultHelp(botCtx BotContext, request Request, response Respo
 
 		helpMessage += newLine
 
-		if len(command.Definition().Example) > 0 {
-			helpMessage += fmt.Sprintf(quoteMessageFormat, command.Definition().Example) + newLine
+		for _, example := range command.Definition().Examples {
+			helpMessage += fmt.Sprintf(quoteMessageFormat, example) + newLine
 		}
 	}
 

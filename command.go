@@ -10,7 +10,7 @@ import (
 // CommandDefinition structure contains definition of the bot command
 type CommandDefinition struct {
 	Description       string
-	Example           string
+	Examples          []string
 	BlockID           string
 	AuthorizationFunc func(botCtx BotContext, request Request) bool
 	Handler           func(botCtx BotContext, request Request, response ResponseWriter)

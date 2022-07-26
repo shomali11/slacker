@@ -13,7 +13,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
-		Example:     "ping",
+		Examples:    []string{"ping"},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("pong", slacker.WithThreadReply(true))
 		},
