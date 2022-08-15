@@ -1,4 +1,4 @@
-module github.com/shomali11/slacker
+module github.com/broxgit/slacker
 
 go 1.14
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shomali11/slacker"
+	"github.com/broxgit/slacker"
 )
 
 func main() {

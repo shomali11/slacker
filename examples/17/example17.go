@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shomali11/slacker"
+	"github.com/broxgit/slacker"
 )
 
 func main() {
