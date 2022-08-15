@@ -77,7 +77,7 @@ type Slacker struct {
 	helpDefinition           *CommandDefinition
 	defaultMessageHandler    func(botCtx BotContext, request Request, response ResponseWriter)
 	defaultEventHandler      func(interface{})
-	defaultInnerEventHandler func(interface{})
+	defaultInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)
 	errUnauthorized          error
 	commandChannel           chan *CommandEvent
 	appID                    string
@@ -151,7 +151,7 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 }
 
 // DefaultInnerEvent handle events when an unknown inner event is seen
-func (s *Slacker) DefaultInnerEvent(defaultInnerEventHandler func(interface{})) {
+func (s *Slacker) DefaultInnerEvent(defaultInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)) {
 	s.defaultInnerEventHandler = defaultInnerEventHandler
 }
 
@@ -220,7 +220,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					default:
 						if s.defaultInnerEventHandler != nil {
-							s.defaultInnerEventHandler(evt)
+							s.defaultInnerEventHandler(ctx, ev.InnerEvent.Data, evt.Request)
 						} else {
 							fmt.Printf("unsupported inner event: %+v\n", ev.InnerEvent.Type)
 						}
