@@ -661,7 +661,7 @@ func contains(list []string, element string) bool {
 
 ## Example 13
 
-Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match
+Adding handlers to when the bot is connected, encounters an error and a default for when none of the commands match, adding default inner event handler when event type isn't message or app_mention
 
 ```go
 package main
@@ -674,6 +674,7 @@ import (
 	"fmt"
 
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack/socketmode"
 )
 
 func main() {
@@ -693,6 +694,10 @@ func main() {
 
 	bot.DefaultEvent(func(event interface{}) {
 		fmt.Println(event)
+	})
+	
+	bot.DefaultInnerEvent(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
+		fmt.Printf("Handling inner event: %s", evt)
 	})
 
 	definition := &slacker.CommandDefinition{

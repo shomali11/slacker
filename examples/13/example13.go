@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack/socketmode"
 )
 
 func main() {
@@ -27,6 +28,10 @@ func main() {
 
 	bot.DefaultEvent(func(event interface{}) {
 		fmt.Println(event)
+	})
+
+	bot.DefaultInnerEvent(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
+		fmt.Printf("Handling inner event: %s", evt)
 	})
 
 	definition := &slacker.CommandDefinition{

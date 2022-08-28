@@ -64,24 +64,25 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	client                  *slack.Client
-	socketModeClient        *socketmode.Client
-	botCommands             []BotCommand
-	botContextConstructor   func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
-	commandConstructor      func(usage string, definition *CommandDefinition) BotCommand
-	requestConstructor      func(botCtx BotContext, properties *proper.Properties) Request
-	responseConstructor     func(botCtx BotContext) ResponseWriter
-	initHandler             func()
-	errorHandler            func(err string)
-	interactiveEventHandler func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
-	helpDefinition          *CommandDefinition
-	defaultMessageHandler   func(botCtx BotContext, request Request, response ResponseWriter)
-	defaultEventHandler     func(interface{})
-	errUnauthorized         error
-	commandChannel          chan *CommandEvent
-	appID                   string
-	botInteractionMode      BotInteractionMode
-	cleanEventInput         func(in string) string
+	client                   *slack.Client
+	socketModeClient         *socketmode.Client
+	botCommands              []BotCommand
+	botContextConstructor    func(ctx context.Context, api *slack.Client, client *socketmode.Client, evt *MessageEvent) BotContext
+	commandConstructor       func(usage string, definition *CommandDefinition) BotCommand
+	requestConstructor       func(botCtx BotContext, properties *proper.Properties) Request
+	responseConstructor      func(botCtx BotContext) ResponseWriter
+	initHandler              func()
+	errorHandler             func(err string)
+	interactiveEventHandler  func(*Slacker, *socketmode.Event, *slack.InteractionCallback)
+	helpDefinition           *CommandDefinition
+	defaultMessageHandler    func(botCtx BotContext, request Request, response ResponseWriter)
+	defaultEventHandler      func(interface{})
+	defaultInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)
+	errUnauthorized          error
+	commandChannel           chan *CommandEvent
+	appID                    string
+	botInteractionMode       BotInteractionMode
+	cleanEventInput          func(in string) string
 }
 
 // BotCommands returns Bot Commands
@@ -149,6 +150,11 @@ func (s *Slacker) DefaultEvent(defaultEventHandler func(interface{})) {
 	s.defaultEventHandler = defaultEventHandler
 }
 
+// DefaultInnerEvent handle events when an unknown inner event is seen
+func (s *Slacker) DefaultInnerEvent(defaultInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)) {
+	s.defaultInnerEventHandler = defaultInnerEventHandler
+}
+
 // UnAuthorizedError error message
 func (s *Slacker) UnAuthorizedError(errUnauthorized error) {
 	s.errUnauthorized = errUnauthorized
@@ -213,7 +219,11 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						go s.handleMessageEvent(ctx, ev.InnerEvent.Data, nil)
 
 					default:
-						fmt.Printf("unsupported inner event: %+v\n", ev.InnerEvent.Type)
+						if s.defaultInnerEventHandler != nil {
+							s.defaultInnerEventHandler(ctx, ev.InnerEvent.Data, evt.Request)
+						} else {
+							fmt.Printf("unsupported inner event: %+v\n", ev.InnerEvent.Type)
+						}
 					}
 
 					s.socketModeClient.Ack(*evt.Request)
