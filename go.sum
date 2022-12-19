@@ -13,8 +13,8 @@ github.com/shomali11/commander v0.0.0-20220716022157-b5248c76541a h1:NCmAZOmyqKw
 github.com/shomali11/commander v0.0.0-20220716022157-b5248c76541a/go.mod h1:bYyJw/Aj9fK+qoFmRbPJeWsDgq7WGO8f/Qof95qPug4=
 github.com/shomali11/proper v0.0.0-20180607004733-233a9a872c30 h1:56awf1OXG6Jc2Pk1saojpCzpzkoBvlqecCyNLY+wwkc=
 github.com/shomali11/proper v0.0.0-20180607004733-233a9a872c30/go.mod h1:O723XwIZBX3FR45rBic/Eyp/DKo/YtchYFURzpUWY2c=
-github.com/slack-go/slack v0.11.2 h1:IWl90Rk+jqPEVyiBytH27CSN/TFAg2vuDDfoPRog/nc=
-github.com/slack-go/slack v0.11.2/go.mod h1:hlGi5oXA+Gt+yWTPP0plCdRKmjsDxecdHxYQdlMQKOw=
+github.com/slack-go/slack v0.12.0 h1:k93w2dvYXIUO/ggxpz/3ichCpBuCVXxxEAsRqM87np4=
+github.com/slack-go/slack v0.12.0/go.mod h1:hlGi5oXA+Gt+yWTPP0plCdRKmjsDxecdHxYQdlMQKOw=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.1/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
