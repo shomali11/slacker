@@ -415,7 +415,10 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, evt interface{}, req *
 }
 
 func getChannelName(slacker *Slacker, channelID string) string {
-	channel, err := slacker.client.GetConversationInfo(channelID, true)
+	channel, err := slacker.client.GetConversationInfo(&slack.GetConversationInfoInput{
+		ChannelID:         channelID,
+		IncludeLocale:     false,
+		IncludeNumMembers: false})
 	if err != nil {
 		fmt.Printf("unable to get channel info for %s: %v\n", channelID, err)
 		return channelID
