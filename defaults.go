@@ -5,6 +5,13 @@ import "github.com/slack-go/slack"
 // ClientOption an option for client values
 type ClientOption func(*ClientDefaults)
 
+// WithAPIURL sets the API URL (for testing)
+func WithAPIURL(url string) ClientOption {
+	return func(defaults *ClientDefaults) {
+		defaults.APIURL = url
+	}
+}
+
 // WithDebug sets debug toggle
 func WithDebug(debug bool) ClientOption {
 	return func(defaults *ClientDefaults) {
@@ -21,12 +28,14 @@ func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
 
 // ClientDefaults configuration
 type ClientDefaults struct {
+	APIURL  string
 	Debug   bool
 	BotMode BotInteractionMode
 }
 
 func newClientDefaults(options ...ClientOption) *ClientDefaults {
 	config := &ClientDefaults{
+		APIURL:  "", // Empty string will not override default from slack package
 		Debug:   false,
 		BotMode: BotInteractionModeIgnoreAll,
 	}
