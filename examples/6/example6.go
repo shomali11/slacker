@@ -17,12 +17,12 @@ func main() {
 		Description: "Upload a sentence!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			sentence := request.Param("sentence")
-			client := botCtx.Client()
-			ev := botCtx.Event()
+			apiClient := botCtx.ApiClient()
+			event := botCtx.Event()
 
-			if ev.Channel != "" {
-				client.PostMessage(ev.Channel, slack.MsgOptionText("Uploading file ...", false))
-				_, err := client.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{ev.Channel}})
+			if event.ChannelID != "" {
+				apiClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
+				_, err := apiClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
 				if err != nil {
 					fmt.Printf("Error encountered when uploading file: %+v\n", err)
 				}

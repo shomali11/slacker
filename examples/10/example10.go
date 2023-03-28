@@ -53,7 +53,7 @@ type MyCustomResponseWriter struct {
 func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
 	defaults := slacker.NewReportErrorDefaults(options...)
 
-	client := r.botCtx.Client()
+	apiClient := r.botCtx.ApiClient()
 	event := r.botCtx.Event()
 
 	opts := []slack.MsgOption{
@@ -63,7 +63,7 @@ func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.Repor
 		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
 	}
 
-	_, _, err = client.PostMessage(event.Channel, opts...)
+	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
 	if err != nil {
 		fmt.Printf("failed to report error: %v\n", err)
 	}
@@ -75,14 +75,14 @@ func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyO
 	if ev == nil {
 		return fmt.Errorf("unable to get message event details")
 	}
-	return r.Post(ev.Channel, message, options...)
+	return r.Post(ev.ChannelID, message, options...)
 }
 
 // Post send a message to a channel
 func (r *MyCustomResponseWriter) Post(channel string, message string, options ...slacker.ReplyOption) error {
 	defaults := slacker.NewReplyDefaults(options...)
 
-	client := r.botCtx.Client()
+	apiClient := r.botCtx.ApiClient()
 	ev := r.botCtx.Event()
 	if ev == nil {
 		return fmt.Errorf("unable to get message event details")
@@ -98,7 +98,7 @@ func (r *MyCustomResponseWriter) Post(channel string, message string, options ..
 		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
 	}
 
-	_, _, err := client.PostMessage(
+	_, _, err := apiClient.PostMessage(
 		channel,
 		opts...,
 	)

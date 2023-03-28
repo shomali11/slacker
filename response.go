@@ -30,18 +30,18 @@ type response struct {
 func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	defaults := NewReportErrorDefaults(options...)
 
-	client := r.botCtx.Client()
-	ev := r.botCtx.Event()
+	apiClient := r.botCtx.ApiClient()
+	event := r.botCtx.Event()
 
 	opts := []slack.MsgOption{
 		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
 	}
 
 	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
+		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
 	}
 
-	_, _, err = client.PostMessage(ev.Channel, opts...)
+	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
 	if err != nil {
 		fmt.Printf("failed posting message: %v\n", err)
 	}
@@ -53,16 +53,16 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 	if ev == nil {
 		return fmt.Errorf("unable to get message event details")
 	}
-	return r.Post(ev.Channel, message, options...)
+	return r.Post(ev.ChannelID, message, options...)
 }
 
 // Post send a message to a channel
 func (r *response) Post(channel string, message string, options ...ReplyOption) error {
 	defaults := NewReplyDefaults(options...)
 
-	client := r.botCtx.Client()
-	ev := r.botCtx.Event()
-	if ev == nil {
+	apiClient := r.botCtx.ApiClient()
+	event := r.botCtx.Event()
+	if event == nil {
 		return fmt.Errorf("unable to get message event details")
 	}
 
@@ -73,10 +73,10 @@ func (r *response) Post(channel string, message string, options ...ReplyOption) 
 	}
 
 	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
+		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
 	}
 
-	_, _, err := client.PostMessage(
+	_, _, err := apiClient.PostMessage(
 		channel,
 		opts...,
 	)

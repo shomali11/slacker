@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
 	"os"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",

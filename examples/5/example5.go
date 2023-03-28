@@ -22,7 +22,7 @@ func main() {
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.ReportError(errors.New("oops, an error occurred"), slacker.WithThreadError(true))
+			response.ReportError(errors.New("oops, an error occurred"), slacker.WithThreadReplyError(true))
 		},
 	}
 

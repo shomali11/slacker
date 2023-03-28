@@ -13,6 +13,7 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 - Contains support for `context.Context`
 - Replies can be new messages or in threads
 - Supports authorization
+- Supports Cron Jobs using [cron](https://github.com/robfig/cron)
 - Bot responds to mentions and direct messages
 - Handlers run concurrently via goroutines
 - Produces events for executed commands
@@ -256,14 +257,14 @@ func main() {
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.ReportError(errors.New("Oops!"))
+			response.ReportError(errors.New("oops, an error occurred"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			response.ReportError(errors.New("Oops!"), slacker.WithThreadError(true))
+			response.ReportError(errors.New("oops, an error occurred"), slacker.WithThreadReplyError(true))
 		},
 	}
 
@@ -304,12 +305,12 @@ func main() {
 		Description: "Upload a sentence!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			sentence := request.Param("sentence")
-			client := botCtx.Client()
-			ev := botCtx.Event()
+			apiClient := botCtx.ApiClient()
+			event := botCtx.Event()
 
-			if ev.Channel != "" {
-				client.PostMessage(ev.Channel, slack.MsgOptionText("Uploading file ...", false))
-				_, err := client.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{ev.Channel}})
+			if event.ChannelID != "" {
+				apiClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
+				_, err := apiClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
 				if err != nil {
 					fmt.Printf("Error encountered when uploading file: %+v\n", err)
 				}
@@ -340,6 +341,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"math/rand"
 	"os"
 	"time"
 
@@ -352,13 +354,15 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-			timedContext, cancel := context.WithTimeout(botCtx.Context(), time.Second)
+			timedContext, cancel := context.WithTimeout(botCtx.Context(), 5*time.Second)
 			defer cancel()
+
+			duration := time.Duration(rand.Int()%10+1) * time.Second
 
 			select {
 			case <-timedContext.Done():
 				response.ReportError(errors.New("timed out"))
-			case <-time.After(time.Minute):
+			case <-time.After(duration):
 				response.Reply("Processing done!")
 			}
 		},
@@ -450,10 +454,11 @@ func main() {
 
 			attachments := []slack.Block{}
 			attachments = append(attachments, slack.NewContextBlock("1",
-				slack.NewTextBlockObject("mrkdwn", "Hi!", false, false)),
+				slack.NewTextBlockObject("mrkdwn", word, false, false)),
 			)
 
-			response.Reply(word, slacker.WithBlocks(attachments))
+			// When using blocks the message argument will be thrown away and can be left blank.
+			response.Reply("", slacker.WithBlocks(attachments))
 		},
 	}
 
@@ -500,7 +505,7 @@ func main() {
 		Description: "Custom!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("custom")
-			response.ReportError(errors.New("oops"))
+			response.ReportError(errors.New("oops, an error occurred"))
 		},
 	}
 
@@ -529,7 +534,7 @@ type MyCustomResponseWriter struct {
 func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
 	defaults := slacker.NewReportErrorDefaults(options...)
 
-	client := r.botCtx.Client()
+	apiClient := r.botCtx.ApiClient()
 	event := r.botCtx.Event()
 
 	opts := []slack.MsgOption{
@@ -539,20 +544,29 @@ func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.Repor
 		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
 	}
 
-	_, _, err = client.PostMessage(event.Channel, opts...)
+	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
 	if err != nil {
-		fmt.Println("failed to report error: %v", err)
+		fmt.Printf("failed to report error: %v\n", err)
 	}
 }
 
-// Reply send a attachments to the current channel with a message
+// Reply send a message to the current channel
 func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) error {
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("unable to get message event details")
+	}
+	return r.Post(ev.ChannelID, message, options...)
+}
+
+// Post send a message to a channel
+func (r *MyCustomResponseWriter) Post(channel string, message string, options ...slacker.ReplyOption) error {
 	defaults := slacker.NewReplyDefaults(options...)
 
-	client := r.botCtx.Client()
-	event := r.botCtx.Event()
-	if event == nil {
-		return fmt.Errorf("Unable to get message event details")
+	apiClient := r.botCtx.ApiClient()
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("unable to get message event details")
 	}
 
 	opts := []slack.MsgOption{
@@ -560,12 +574,13 @@ func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyO
 		slack.MsgOptionAttachments(defaults.Attachments...),
 		slack.MsgOptionBlocks(defaults.Blocks...),
 	}
+
 	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
 	}
 
-	_, _, err := client.PostMessage(
-		event.Channel,
+	_, _, err := apiClient.PostMessage(
+		channel,
 		opts...,
 	)
 	return err
@@ -581,13 +596,14 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
 	"log"
 	"os"
+
+	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
@@ -626,19 +642,31 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	authorizedUsers := []string{"<User ID>"}
+	authorizedUserIds := []string{"<User ID>"}
+	authorizedUserNames := []string{"<User Name>"}
 
-	authorizedDefinition := &slacker.CommandDefinition{
+	authorizedDefinitionById := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
 		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
-			return contains(authorizedUsers, botCtx.Event().User)
+			return contains(authorizedUserIds, botCtx.Event().UserID)
 		},
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			response.Reply("You are authorized!")
 		},
 	}
 
-	bot.Command("secret", authorizedDefinition)
+	authorizedDefinitionByName := &slacker.CommandDefinition{
+		Description: "Very secret stuff",
+		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
+			return contains(authorizedUserNames, botCtx.Event().UserProfile.DisplayName)
+		},
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("You are authorized!")
+		},
+	}
+
+	bot.Command("secret-id", authorizedDefinitionById)
+	bot.Command("secret-name", authorizedDefinitionByName)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -695,7 +723,7 @@ func main() {
 	bot.DefaultEvent(func(event interface{}) {
 		fmt.Println(event)
 	})
-	
+
 	bot.DefaultInnerEvent(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
 		fmt.Printf("Handling inner event: %s", evt)
 	})
@@ -786,17 +814,17 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
-	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/socketmode"
 	"log"
 	"os"
+
+	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.Interactive(func(s *slacker.Slacker, event *socketmode.Event, callback *slack.InteractionCallback) {
+	bot.Interactive(func(botCtx slacker.InteractiveBotContext, callback *slack.InteractionCallback) {
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
 		}
@@ -820,10 +848,10 @@ func main() {
 			text = "I don't understand your mood..."
 		}
 
-		_, _, _ = s.Client().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
+		_, _, _ = botCtx.ApiClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
 			slack.MsgOptionReplaceOriginal(callback.ResponseURL))
 
-		s.SocketMode().Ack(*event.Request)
+		botCtx.SocketModeClient().Ack(*botCtx.Event().Request)
 	})
 
 	definition := &slacker.CommandDefinition{
@@ -837,8 +865,9 @@ func main() {
 				slack.NewSectionBlock(slack.NewTextBlockObject(slack.PlainTextType, "What is your mood today?", true, false), nil, nil),
 				slack.NewActionBlock("mood-block", happyBtn, sadBtn),
 			}))
+
 			if err != nil {
-				panic(err)
+				response.ReportError(err)
 			}
 		},
 	}
@@ -863,33 +892,33 @@ Configure bot to process other bot events
 package main
 
 import (
-        "context"
-        "log"
-        "os"
+	"context"
+	"log"
+	"os"
 
-        "github.com/shomali11/slacker"
+	"github.com/shomali11/slacker"
 )
 
 func main() {
-        bot := slacker.NewClient(
-                os.Getenv("SLACK_BOT_TOKEN"),
-                os.Getenv("SLACK_APP_TOKEN"),
-                slacker.WithBotInteractionMode(slacker.BotInteractionModeIgnoreApp),
-        )
+	bot := slacker.NewClient(
+		os.Getenv("SLACK_BOT_TOKEN"),
+		os.Getenv("SLACK_APP_TOKEN"),
+		slacker.WithBotInteractionMode(slacker.BotInteractionModeIgnoreApp),
+	)
 
-        bot.Command("hello", &slacker.CommandDefinition{
-                Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-                        response.Reply("hai!")
-                },
-        })
+	bot.Command("hello", &slacker.CommandDefinition{
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("hai!")
+		},
+	})
 
-        ctx, cancel := context.WithCancel(context.Background())
-        defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-        err := bot.Listen(ctx)
-        if err != nil {
-                log.Fatal(err)
-        }
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 ```
 
@@ -901,37 +930,80 @@ Override the default event input cleaning function (to sanitize the messages rec
 package main
 
 import (
-        "context"
-        "log"
-        "os"
+	"context"
 	"fmt"
+	"log"
+	"os"
 	"strings"
 
-        "github.com/shomali11/slacker"
+	"github.com/shomali11/slacker"
 )
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
-	bot.CleanEventInput(func(in string) string {
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot.SanitizeEventText(func(text string) string {
 		fmt.Println("My slack bot does not like backticks!")
-		return strings.ReplaceAll(in, "`", "")
+		return strings.ReplaceAll(text, "`", "")
 	})
 
-        bot.Command("my-command", &slacker.CommandDefinition{
-                Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-                        response.Reply("it works!")
-                },
-        })
+	bot.Command("my-command", &slacker.CommandDefinition{
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("it works!")
+		},
+	})
 
-        ctx, cancel := context.WithCancel(context.Background())
-        defer cancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
-        err := bot.Listen(ctx)
-        if err != nil {
-                log.Fatal(err)
-        }
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 ```
+
+## Example 18
+
+Showcase the ability to define Cron Jobs
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+
+	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
+)
+
+func main() {
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot.Command("ping", &slacker.CommandDefinition{
+		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
+			response.Reply("pong")
+		},
+	})
+
+	// Run every minute
+	bot.Job("0 * * * * *", &slacker.JobDefinition{
+		Description: "A cron job that runs every minute",
+		Handler: func(jobCtx slacker.JobContext) {
+			jobCtx.ApiClient().PostMessage("#test", slack.MsgOptionText("Hello!", false))
+		},
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+```
+
 
 ## Example 19
 
@@ -943,16 +1015,19 @@ package main
 import (
 	"context"
 	"fmt"
+	"log"
+	"os"
+
 	"github.com/shomali11/commander"
 	"github.com/shomali11/proper"
 	"github.com/shomali11/slacker"
-	"log"
-	"os"
+	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/socketmode"
 )
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
-	bot.CustomCommand(func(usage string, definition *slacker.CommandDefinition) slacker.BotCommand {
+	bot.CustomCommand(func(usage string, definition *slacker.CommandDefinition) slacker.Command {
 		return &cmd{
 			usage:      usage,
 			definition: definition,
@@ -999,10 +1074,15 @@ func (c *cmd) Tokenize() []*commander.Token {
 }
 
 func (c *cmd) Execute(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-	log.Printf("Executing command [%s] invoked by %s", c.usage, botCtx.Event().User)
+	log.Printf("Executing command [%s] invoked by %s", c.usage, botCtx.Event().UserID)
 	c.definition.Handler(botCtx, request, response)
 }
+
+func (c *cmd) Interactive(slacker.InteractiveBotContext, *socketmode.Request, *slack.InteractionCallback) {
+}
 ```
+
+
 # Contributing / Submitting an Issue
 
 Please review our [Contribution Guidelines](CONTRIBUTING.md) if you have found

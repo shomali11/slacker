@@ -12,8 +12,7 @@ func WithDebug(debug bool) ClientOption {
 	}
 }
 
-// WithBotInteractionMode instructs Slacker on how to handle message events coming from a
-// bot.
+// WithBotInteractionMode instructs Slacker on how to handle message events coming from a bot.
 func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
 	return func(defaults *ClientDefaults) {
 		defaults.BotMode = mode
@@ -91,15 +90,14 @@ type ReportErrorDefaults struct {
 	ThreadResponse bool
 }
 
-// WithThreadError specifies the reply to be inside a thread of the original message
-func WithThreadError(useThread bool) ReportErrorOption {
+// WithThreadReplyError specifies the reply to be inside a thread of the original message
+func WithThreadReplyError(useThread bool) ReportErrorOption {
 	return func(defaults *ReportErrorDefaults) {
 		defaults.ThreadResponse = useThread
 	}
 }
 
-// NewReportErrorDefaults builds our ReportErrorDefaults from zero or more
-// ReportErrorOption.
+// NewReportErrorDefaults builds our ReportErrorDefaults from zero or more ReportErrorOption.
 func NewReportErrorDefaults(options ...ReportErrorOption) *ReportErrorDefaults {
 	config := &ReportErrorDefaults{
 		ThreadResponse: false,

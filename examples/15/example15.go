@@ -2,17 +2,17 @@ package main
 
 import (
 	"context"
-	"github.com/shomali11/slacker"
-	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/socketmode"
 	"log"
 	"os"
+
+	"github.com/shomali11/slacker"
+	"github.com/slack-go/slack"
 )
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.Interactive(func(s *slacker.Slacker, event *socketmode.Event, callback *slack.InteractionCallback) {
+	bot.Interactive(func(botCtx slacker.InteractiveBotContext, callback *slack.InteractionCallback) {
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
 		}
@@ -36,10 +36,10 @@ func main() {
 			text = "I don't understand your mood..."
 		}
 
-		_, _, _ = s.Client().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
+		_, _, _ = botCtx.ApiClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
 			slack.MsgOptionReplaceOriginal(callback.ResponseURL))
 
-		s.SocketMode().Ack(*event.Request)
+		botCtx.SocketModeClient().Ack(*botCtx.Event().Request)
 	})
 
 	definition := &slacker.CommandDefinition{
@@ -53,8 +53,9 @@ func main() {
 				slack.NewSectionBlock(slack.NewTextBlockObject(slack.PlainTextType, "What is your mood today?", true, false), nil, nil),
 				slack.NewActionBlock("mood-block", happyBtn, sadBtn),
 			}))
+
 			if err != nil {
-				panic(err)
+				response.ReportError(err)
 			}
 		},
 	}

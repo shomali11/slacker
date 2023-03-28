@@ -15,7 +15,7 @@ import (
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"), slacker.WithDebug(true))
-	bot.CustomCommand(func(usage string, definition *slacker.CommandDefinition) slacker.BotCommand {
+	bot.CustomCommand(func(usage string, definition *slacker.CommandDefinition) slacker.Command {
 		return &cmd{
 			usage:      usage,
 			definition: definition,
@@ -62,9 +62,9 @@ func (c *cmd) Tokenize() []*commander.Token {
 }
 
 func (c *cmd) Execute(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
-	log.Printf("Executing command [%s] invoked by %s", c.usage, botCtx.Event().User)
+	log.Printf("Executing command [%s] invoked by %s", c.usage, botCtx.Event().UserID)
 	c.definition.Handler(botCtx, request, response)
 }
 
-func (c *cmd) Interactive(*slacker.Slacker, *socketmode.Event, *slack.InteractionCallback, *socketmode.Request) {
+func (c *cmd) Interactive(slacker.InteractiveBotContext, *socketmode.Request, *slack.InteractionCallback) {
 }
