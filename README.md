@@ -13,7 +13,7 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 - Contains support for `context.Context`
 - Replies can be new messages or in threads
 - Supports authorization
-- Supports Cron Jobs using [cron](https://github.com/robfig/cron)
+- Supports Cron Jobs using [https://github.com/robfig/cron](https://github.com/robfig/cron)
 - Bot responds to mentions and direct messages
 - Handlers run concurrently via goroutines
 - Produces events for executed commands
