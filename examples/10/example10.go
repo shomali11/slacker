@@ -69,13 +69,22 @@ func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.Repor
 	}
 }
 
-// Reply send a attachments to the current channel with a message
+// Reply send a message to the current channel
 func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyOption) error {
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("unable to get message event details")
+	}
+	return r.Post(ev.Channel, message, options...)
+}
+
+// Post send a message to a channel
+func (r *MyCustomResponseWriter) Post(channel string, message string, options ...slacker.ReplyOption) error {
 	defaults := slacker.NewReplyDefaults(options...)
 
 	client := r.botCtx.Client()
-	event := r.botCtx.Event()
-	if event == nil {
+	ev := r.botCtx.Event()
+	if ev == nil {
 		return fmt.Errorf("unable to get message event details")
 	}
 
@@ -84,12 +93,13 @@ func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyO
 		slack.MsgOptionAttachments(defaults.Attachments...),
 		slack.MsgOptionBlocks(defaults.Blocks...),
 	}
+
 	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
 	}
 
 	_, _, err := client.PostMessage(
-		event.Channel,
+		channel,
 		opts...,
 	)
 	return err

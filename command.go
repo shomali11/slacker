@@ -16,8 +16,7 @@ type CommandDefinition struct {
 	Handler           func(botCtx BotContext, request Request, response ResponseWriter)
 	Interactive       func(*Slacker, *socketmode.Event, *slack.InteractionCallback, *socketmode.Request)
 
-	// HideHelp will cause this command to not be shown when a user requests
-	// help.
+	// HideHelp will hide this command definition from appearing in the `help` results.
 	HideHelp bool
 }
 

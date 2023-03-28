@@ -12,6 +12,7 @@ const (
 
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
+	Post(channel string, message string, options ...ReplyOption) error
 	Reply(text string, options ...ReplyOption) error
 	ReportError(err error, options ...ReportErrorOption)
 }
@@ -35,17 +36,28 @@ func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	opts := []slack.MsgOption{
 		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
 	}
+
 	if defaults.ThreadResponse {
 		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
 	}
+
 	_, _, err = client.PostMessage(ev.Channel, opts...)
 	if err != nil {
 		fmt.Printf("failed posting message: %v\n", err)
 	}
 }
 
-// Reply send a attachments to the current channel with a message
+// Reply send a message to the current channel
 func (r *response) Reply(message string, options ...ReplyOption) error {
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("unable to get message event details")
+	}
+	return r.Post(ev.Channel, message, options...)
+}
+
+// Post send a message to a channel
+func (r *response) Post(channel string, message string, options ...ReplyOption) error {
 	defaults := NewReplyDefaults(options...)
 
 	client := r.botCtx.Client()
@@ -59,12 +71,13 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 		slack.MsgOptionAttachments(defaults.Attachments...),
 		slack.MsgOptionBlocks(defaults.Blocks...),
 	}
+
 	if defaults.ThreadResponse {
 		opts = append(opts, slack.MsgOptionTS(ev.TimeStamp))
 	}
 
 	_, _, err := client.PostMessage(
-		ev.Channel,
+		channel,
 		opts...,
 	)
 	return err

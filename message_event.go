@@ -1,5 +1,13 @@
 package slacker
 
+import (
+	"fmt"
+
+	"github.com/slack-go/slack"
+	"github.com/slack-go/slack/slackevents"
+	"github.com/slack-go/slack/socketmode"
+)
+
 // MessageEvent contains details common to message based events, including the
 // raw event as returned from Slack along with the corresponding event type.
 // The struct should be kept minimal and only include data that is commonly
@@ -53,4 +61,75 @@ func (e *MessageEvent) IsThread() bool {
 // IsBot indicates if the message was sent by a bot
 func (e *MessageEvent) IsBot() bool {
 	return e.BotID != ""
+}
+
+// NewMessageEvent creates a new message event structure 
+func NewMessageEvent(slacker *Slacker, evt interface{}, req *socketmode.Request) *MessageEvent {
+	var me *MessageEvent
+
+	switch ev := evt.(type) {
+	case *slackevents.MessageEvent:
+		me = &MessageEvent{
+			Channel:         ev.Channel,
+			ChannelName:     getChannelName(slacker, ev.Channel),
+			User:            ev.User,
+			UserName:        getUserName(slacker, ev.User),
+			Text:            ev.Text,
+			Data:            evt,
+			Type:            ev.Type,
+			TimeStamp:       ev.TimeStamp,
+			ThreadTimeStamp: ev.ThreadTimeStamp,
+			BotID:           ev.BotID,
+		}
+	case *slackevents.AppMentionEvent:
+		me = &MessageEvent{
+			Channel:         ev.Channel,
+			ChannelName:     getChannelName(slacker, ev.Channel),
+			User:            ev.User,
+			UserName:        getUserName(slacker, ev.User),
+			Text:            ev.Text,
+			Data:            evt,
+			Type:            ev.Type,
+			TimeStamp:       ev.TimeStamp,
+			ThreadTimeStamp: ev.ThreadTimeStamp,
+			BotID:           ev.BotID,
+		}
+	case *slack.SlashCommand:
+		me = &MessageEvent{
+			Channel:     ev.ChannelID,
+			ChannelName: ev.ChannelName,
+			User:        ev.UserID,
+			UserName:    ev.UserName,
+			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
+			Data:        req,
+			Type:        req.Type,
+		}
+	}
+
+	// Filter out other bots. At the very least this is needed for MessageEvent
+	// to prevent the bot from self-triggering and causing loops. However better
+	// logic should be in place to prevent repeated self-triggering / bot-storms
+	// if we want to enable this later.
+	if me.IsBot() {
+		return nil
+	}
+	return me
+}
+
+func getChannelName(slacker *Slacker, channelID string) string {
+	channel, err := slacker.client.GetConversationInfo(channelID, true)
+	if err != nil {
+		fmt.Printf("unable to get channel info for %s: %v\n", channelID, err)
+		return channelID
+	}
+	return channel.Name
+}
+
+func getUserName(slacker *Slacker, userID string) string {
+	user, err := slacker.client.GetUserInfo(userID)
+	if err != nil {
+		fmt.Printf("unable to get user info for %s: %v\n", userID, err)
+		return userID
+	}
+	return user.Name
 }
