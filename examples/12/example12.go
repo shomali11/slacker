@@ -14,7 +14,7 @@ func main() {
 	authorizedUserIds := []string{"<User ID>"}
 	authorizedUserNames := []string{"shomali11"}
 
-	authorizedDefinitionById := &slacker.CommandDefinition{
+	authorizedDefinitionByID := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
 		Examples:    []string{"secret-id"},
 		AuthorizationFunc: func(botCtx slacker.BotContext, request slacker.Request) bool {
@@ -36,7 +36,7 @@ func main() {
 		},
 	}
 
-	bot.Command("secret-id", authorizedDefinitionById)
+	bot.Command("secret-id", authorizedDefinitionByID)
 	bot.Command("secret-name", authorizedDefinitionByName)
 
 	ctx, cancel := context.WithCancel(context.Background())

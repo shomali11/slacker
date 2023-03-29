@@ -53,7 +53,7 @@ type MyCustomResponseWriter struct {
 func (r *MyCustomResponseWriter) ReportError(err error, options ...slacker.ReportErrorOption) {
 	defaults := slacker.NewReportErrorDefaults(options...)
 
-	apiClient := r.botCtx.ApiClient()
+	apiClient := r.botCtx.APIClient()
 	event := r.botCtx.Event()
 
 	opts := []slack.MsgOption{
@@ -82,7 +82,7 @@ func (r *MyCustomResponseWriter) Reply(message string, options ...slacker.ReplyO
 func (r *MyCustomResponseWriter) Post(channel string, message string, options ...slacker.ReplyOption) error {
 	defaults := slacker.NewReplyDefaults(options...)
 
-	apiClient := r.botCtx.ApiClient()
+	apiClient := r.botCtx.APIClient()
 	ev := r.botCtx.Event()
 	if ev == nil {
 		return fmt.Errorf("unable to get message event details")

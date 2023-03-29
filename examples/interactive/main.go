@@ -44,7 +44,7 @@ func slackerInteractive(ctx slacker.InteractiveBotContext, request *socketmode.R
 		text = "I don't understand your mood..."
 	}
 
-	_, _, _ = ctx.ApiClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
+	_, _, _ = ctx.APIClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
 		slack.MsgOptionReplaceOriginal(callback.ResponseURL))
 }
 

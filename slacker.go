@@ -97,8 +97,8 @@ func (s *Slacker) BotCommands() []Command {
 	return s.commands
 }
 
-// ApiClient returns the internal slack.Client of Slacker struct
-func (s *Slacker) ApiClient() *slack.Client {
+// APIClient returns the internal slack.Client of Slacker struct
+func (s *Slacker) APIClient() *slack.Client {
 	return s.apiClient
 }
 

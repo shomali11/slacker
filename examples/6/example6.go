@@ -17,7 +17,7 @@ func main() {
 		Description: "Upload a sentence!",
 		Handler: func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 			sentence := request.Param("sentence")
-			apiClient := botCtx.ApiClient()
+			apiClient := botCtx.APIClient()
 			event := botCtx.Event()
 
 			if event.ChannelID != "" {
