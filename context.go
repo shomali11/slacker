@@ -11,7 +11,7 @@ import (
 type BotContext interface {
 	Context() context.Context
 	Event() *MessageEvent
-	ApiClient() *slack.Client
+	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
 
@@ -37,8 +37,8 @@ func (r *botContext) Event() *MessageEvent {
 	return r.event
 }
 
-// ApiClient returns the slack API client
-func (r *botContext) ApiClient() *slack.Client {
+// APIClient returns the slack API client
+func (r *botContext) APIClient() *slack.Client {
 	return r.apiClient
 }
 
@@ -51,7 +51,7 @@ func (r *botContext) SocketModeClient() *socketmode.Client {
 type InteractiveBotContext interface {
 	Context() context.Context
 	Event() *socketmode.Event
-	ApiClient() *slack.Client
+	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
 
@@ -77,8 +77,8 @@ func (r *interactiveBotContext) Event() *socketmode.Event {
 	return r.event
 }
 
-// ApiClient returns the slack API client
-func (r *interactiveBotContext) ApiClient() *slack.Client {
+// APIClient returns the slack API client
+func (r *interactiveBotContext) APIClient() *slack.Client {
 	return r.apiClient
 }
 
@@ -90,7 +90,7 @@ func (r *interactiveBotContext) SocketModeClient() *socketmode.Client {
 // JobContext interface is for job command contexts
 type JobContext interface {
 	Context() context.Context
-	ApiClient() *slack.Client
+	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
 
@@ -110,8 +110,8 @@ func (r *jobContext) Context() context.Context {
 	return r.ctx
 }
 
-// ApiClient returns the slack API client
-func (r *jobContext) ApiClient() *slack.Client {
+// APIClient returns the slack API client
+func (r *jobContext) APIClient() *slack.Client {
 	return r.apiClient
 }
 

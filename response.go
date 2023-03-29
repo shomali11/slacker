@@ -30,7 +30,7 @@ type response struct {
 func (r *response) ReportError(err error, options ...ReportErrorOption) {
 	defaults := NewReportErrorDefaults(options...)
 
-	apiClient := r.botCtx.ApiClient()
+	apiClient := r.botCtx.APIClient()
 	event := r.botCtx.Event()
 
 	opts := []slack.MsgOption{
@@ -60,7 +60,7 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 func (r *response) Post(channel string, message string, options ...ReplyOption) error {
 	defaults := NewReplyDefaults(options...)
 
-	apiClient := r.botCtx.ApiClient()
+	apiClient := r.botCtx.APIClient()
 	event := r.botCtx.Event()
 	if event == nil {
 		return fmt.Errorf("unable to get message event details")

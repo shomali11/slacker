@@ -36,7 +36,7 @@ func main() {
 			text = "I don't understand your mood..."
 		}
 
-		_, _, _ = botCtx.ApiClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
+		_, _, _ = botCtx.APIClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
 			slack.MsgOptionReplaceOriginal(callback.ResponseURL))
 
 		botCtx.SocketModeClient().Ack(*botCtx.Event().Request)
