@@ -82,3 +82,33 @@ This section guides you through making a successful pull request.
 
 * Someone will review your PR and ensure it meets these guidelines. If it does
   not, we will ask you to fix the identified issues.
+
+### Commit Messages
+
+Commit subjects should begin with the following prefix `<type>:`, where type is
+one of the following change types:
+
+- `feat` adds a new feature or expands upon existing behavior
+- `fix` for changes that resolve an error in our code
+- `docs` for documentation updates
+- `chore` for changes related to project maintenance, such as github actions or linter configurations.
+- `revert` for a commit that reverts another commit
+- `test` for adding missing tests
+
+When multiple change types are present (ie. a new feature is created and as a result fixes a bug), you should use `feat`.
+
+If a change addresses one or more issues, be sure and include `Closes #1, #2,
+...` as a dedicated line at the end of your commit body.
+
+An example commit may look like:
+
+```
+feat: Add support for a custom command channel size
+
+Create an additional functional option `WithCommandChanSize(int)` that
+may be passed into `NewClient(...)` that lets the user specify the
+size of the channel used to hold incoming commands to be processed. This
+may be useful to expand for high-volume bots.
+
+Closes #319
+```

@@ -18,17 +18,5 @@ those that start with `fix:` will be grouped into a "Bug fixes" section. Commits
 that begin with `chore:` or `docs:` will be excluded, and all others will be
 added to an "Others" section in the changelog.
 
-When reviewing pull requests or committing code, it is strongly encouraged to
-use one of the aformentioned prefixes so that changelogs are nicely formatted
-and organized.
-
-## Commit Messages
-
-To maintain a tidy changelog on release, we should encourage the use of the
-following commit subject prefixes (see the Changelogs for details on how they
-are used)
-
-- `feat`: New features
-- `fix`: Bug fixes
-- `docs`: Usage documentation changes (ie. examples, README)
-- `chore`: Housekeeping taks that don't touch code or usage docs
+For more details on commit message formatting see the
+[CONTRIBUTING](./CONTRIBUTING.md) doc.
