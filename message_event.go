@@ -128,7 +128,7 @@ func getChannel(slacker *Slacker, channelID string) *slack.Channel {
 		IncludeLocale:     false,
 		IncludeNumMembers: false})
 	if err != nil {
-		fmt.Printf("unable to get channel info for %s: %v\n", channelID, err)
+		slacker.logf("unable to get channel info for %s: %v\n", channelID, err)
 		return nil
 	}
 	return channel
@@ -141,7 +141,7 @@ func getUserProfile(slacker *Slacker, userID string) *slack.UserProfile {
 
 	user, err := slacker.apiClient.GetUserInfo(userID)
 	if err != nil {
-		fmt.Printf("unable to get user info for %s: %v\n", userID, err)
+		slacker.logf("unable to get user info for %s: %v\n", userID, err)
 		return nil
 	}
 	return &user.Profile

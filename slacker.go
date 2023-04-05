@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/robfig/cron"
@@ -60,6 +61,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		errUnauthorized:    errUnauthorized,
 		botInteractionMode: defaults.BotMode,
 		sanitizeEventText:  defaultCleanEventInput,
+		debug:              defaults.Debug,
 	}
 	return slacker
 }
@@ -90,6 +92,7 @@ type Slacker struct {
 	appID                            string
 	botInteractionMode               BotInteractionMode
 	sanitizeEventText                func(string) string
+	debug                            bool
 }
 
 // BotCommands returns Bot Commands
@@ -219,26 +222,26 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 				switch socketEvent.Type {
 				case socketmode.EventTypeConnecting:
-					fmt.Println("Connecting to Slack with Socket Mode.")
+					s.logf("Connecting to Slack with Socket Mode.")
 					if s.initHandler == nil {
 						continue
 					}
 					go s.initHandler()
 
 				case socketmode.EventTypeConnectionError:
-					fmt.Println("Connection failed. Retrying later...")
+					s.logf("Connection failed. Retrying later...")
 
 				case socketmode.EventTypeConnected:
-					fmt.Println("Connected to Slack with Socket Mode.")
+					s.logf("Connected to Slack with Socket Mode.")
 
 				case socketmode.EventTypeHello:
 					s.appID = socketEvent.Request.ConnectionInfo.AppID
-					fmt.Printf("Connected as App ID %v\n", s.appID)
+					s.logf("Connected as App ID %v\n", s.appID)
 
 				case socketmode.EventTypeEventsAPI:
 					event, ok := socketEvent.Data.(slackevents.EventsAPIEvent)
 					if !ok {
-						fmt.Printf("Ignored %+v\n", socketEvent)
+						s.debugf("Ignored %+v\n", socketEvent)
 						continue
 					}
 
@@ -250,7 +253,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						if s.defaultInnerEventHandler != nil {
 							s.defaultInnerEventHandler(ctx, event.InnerEvent.Data, socketEvent.Request)
 						} else {
-							fmt.Printf("unsupported inner event: %+v\n", event.InnerEvent.Type)
+							s.debugf("unsupported inner event: %+v\n", event.InnerEvent.Type)
 						}
 					}
 
@@ -259,7 +262,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				case socketmode.EventTypeSlashCommand:
 					callback, ok := socketEvent.Data.(slack.SlashCommand)
 					if !ok {
-						fmt.Printf("Ignored %+v\n", socketEvent)
+						s.debugf("Ignored %+v\n", socketEvent)
 						continue
 					}
 					s.socketModeClient.Ack(*socketEvent.Request)
@@ -268,7 +271,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				case socketmode.EventTypeInteractive:
 					callback, ok := socketEvent.Data.(slack.InteractionCallback)
 					if !ok {
-						fmt.Printf("Ignored %+v\n", socketEvent)
+						s.debugf("Ignored %+v\n", socketEvent)
 						continue
 					}
 
@@ -418,18 +421,18 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 			bot, err := s.apiClient.GetBotInfo(messageEvent.BotID)
 			if err != nil {
 				if err.Error() == "missing_scope" {
-					fmt.Println("unable to determine if bot response is from me -- please add users:read scope to your app")
+					s.logf("unable to determine if bot response is from me -- please add users:read scope to your app\n")
 				} else {
-					fmt.Printf("unable to get bot that sent message information: %v\n", err)
+					s.debugf("unable to get bot that sent message information: %v\n", err)
 				}
 				return
 			}
 			if bot.AppID == s.appID {
-				fmt.Printf("Ignoring event that originated from my App ID: %v\n", bot.AppID)
+				s.debugf("Ignoring event that originated from my App ID: %v\n", bot.AppID)
 				return
 			}
 		case BotInteractionModeIgnoreAll:
-			fmt.Printf("Ignoring event that originated from Bot ID: %v\n", messageEvent.BotID)
+			s.debugf("Ignoring event that originated from Bot ID: %v\n", messageEvent.BotID)
 			return
 		default:
 			// BotInteractionModeIgnoreNone is handled in the default case
@@ -465,5 +468,15 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 	if s.defaultMessageHandler != nil {
 		request := s.requestConstructor(botCtx, nil)
 		s.defaultMessageHandler(botCtx, request, response)
+	}
+}
+
+func (s *Slacker) logf(format string, v ...interface{}) {
+	log.Printf(format, v...)
+}
+
+func (s *Slacker) debugf(format string, v ...interface{}) {
+	if s.debug {
+		log.Printf(format, v...)
 	}
 }
