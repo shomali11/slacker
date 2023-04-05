@@ -18,5 +18,10 @@ those that start with `fix:` will be grouped into a "Bug fixes" section. Commits
 that begin with `chore:` or `docs:` will be excluded, and all others will be
 added to an "Others" section in the changelog.
 
+The [commit-message-check](./.github/workflows/commit-message-check.yaml)
+workflow enforces this format during pull requests. When pushing directly to
+master this will not prevent the commit from being pushed but the check will
+still fail.
+
 For more details on commit message formatting see the
 [CONTRIBUTING](./CONTRIBUTING.md) doc.
