@@ -1,27 +1,50 @@
 Docs for slacker maintainers
 
+## Versioning
+
+Version numbers adhere to go [module versioning
+numbering](https://go.dev/doc/modules/version-numbers).
+
+Use the following criteria to identify which component of the version to change:
+
+- If a breaking change is made, the major version must be incremented
+- If any features are added, the minor version should be incremented
+- If only fixes are added, the patch version should be incremented
+- If no code changes are made, no version change should be made
+
+When updating the major version we must also update our [go.mod](./go.mod)
+module path to reflect this. For example the version 2.x.x module path should
+end with `/v2`.
+
 ## Releases
 
-Releases of Slacker are handled by [goreleaser](https://goreleaser.com) and
-Github actions. Simply tagging a release with a semver compatible version tag
-(ie. vX.Y.Z) and pushing the tag will trigger a Github action to generate a
-release. See the goreleaser [config](.goreleaser.yaml) and Github
-[workflow](.github/workflows/.goreleaser.yaml) files.
+Once all changes are merged to the master branch, a new release can be created
+by performing the following steps:
+
+- Identify new version number, `ie. v1.2.3`
+- Use [golang.org/x/exp/cmd/gorelease](https://pkg.go.dev/golang.org/x/exp/cmd/gorelease) to ensure version is acceptable
+    - If issues are identified, either fix the issues or change the target version
+    - Example: `gorelease -base=<previous> -version=<new>`
+- Tag commit with new version
+- Push tag upstream
+
+Once pushed, the [goreleaser](./.github/workflows/goreleaser.yaml) workflow is
+triggered to create a new GitHub release from this tag along with a changelog
+since the previous release.
 
 ### Changelogs
 
-goreleaser handles generating our changelog based on the commit subject of each
-commit.
+Changelog entries depend on commit subjects, which is why it is important that
+we encourage well written commit messages.
 
-Commits that start with `feat:` are grouped into a "Features" section, while
-those that start with `fix:` will be grouped into a "Bug fixes" section. Commits
-that begin with `chore:` or `docs:` will be excluded, and all others will be
-added to an "Others" section in the changelog.
+Based on the commit message, we group changes together like so:
 
-The [commit-message-check](./.github/workflows/commit-message-check.yaml)
-workflow enforces this format during pull requests. When pushing directly to
-master this will not prevent the commit from being pushed but the check will
-still fail.
+- `Features` groups all commits of type `feat`
+- `Bug Fixes` groups all commits of type `fix`
+- `Other` groups all other commits
+
+Note that the `chore` and `docs` commit types are ignored and will not show up
+in the changelog.
 
 For more details on commit message formatting see the
 [CONTRIBUTING](./CONTRIBUTING.md) doc.
