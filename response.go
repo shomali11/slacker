@@ -2,6 +2,7 @@ package slacker
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/slack-go/slack"
 )
@@ -43,7 +44,7 @@ func (r *response) ReportError(err error, options ...ReportErrorOption) {
 
 	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
 	if err != nil {
-		fmt.Printf("failed posting message: %v\n", err)
+		log.Printf("failed posting message: %v\n", err)
 	}
 }
 
