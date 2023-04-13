@@ -53,13 +53,14 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 	)
 
 	slacker := &Slacker{
-		apiClient:         api,
-		socketModeClient:  socketModeClient,
-		cronClient:        cron.New(),
-		commandChannel:    make(chan *CommandEvent, 100),
-		errUnauthorized:   errUnauthorized,
-		sanitizeEventText: defaultCleanEventInput,
-		debug:             defaults.Debug,
+		apiClient:          api,
+		socketModeClient:   socketModeClient,
+		cronClient:         cron.New(),
+		commandChannel:     make(chan *CommandEvent, 100),
+		errUnauthorized:    errUnauthorized,
+		botInteractionMode: defaults.BotMode,
+		sanitizeEventText:  defaultCleanEventInput,
+		debug:              defaults.Debug,
 	}
 	return slacker
 }
@@ -81,6 +82,7 @@ type Slacker struct {
 	errUnauthorized          error
 	commandChannel           chan *CommandEvent
 	appID                    string
+	botInteractionMode       BotInteractionMode
 	sanitizeEventText        func(string) string
 	debug                    bool
 }
