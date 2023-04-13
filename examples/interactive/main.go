@@ -11,8 +11,8 @@ import (
 	"github.com/slack-go/slack/socketmode"
 )
 
-// Implements a basic interactive command. This assumes that a slash command
-// `/mood` is defined for your app.
+// Implements a basic interactive command.
+// This assumes that a slash command `/mood` is defined for your app.
 
 func slackerCmd(actionID string) func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 	return func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {

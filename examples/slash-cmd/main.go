@@ -8,8 +8,8 @@ import (
 	"github.com/shomali11/slacker"
 )
 
-// Implements a simple slash command. Assumes you have the slash command
-// `/ping` defined for your app.
+// Implements a simple slash command.
+// Assumes you have the slash command `/ping` defined for your app.
 
 func main() {
 	bot := slacker.NewClient(
@@ -32,5 +32,4 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

@@ -12,23 +12,14 @@ func WithDebug(debug bool) ClientOption {
 	}
 }
 
-// WithBotInteractionMode instructs Slacker on how to handle message events coming from a bot.
-func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
-	return func(defaults *ClientDefaults) {
-		defaults.BotMode = mode
-	}
-}
-
 // ClientDefaults configuration
 type ClientDefaults struct {
-	Debug   bool
-	BotMode BotInteractionMode
+	Debug bool
 }
 
 func newClientDefaults(options ...ClientOption) *ClientDefaults {
 	config := &ClientDefaults{
-		Debug:   false,
-		BotMode: BotInteractionModeIgnoreAll,
+		Debug: false,
 	}
 
 	for _, option := range options {

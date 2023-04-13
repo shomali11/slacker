@@ -18,10 +18,6 @@ func main() {
 		log.Println("Connected!")
 	})
 
-	bot.Err(func(err string) {
-		log.Println(err)
-	})
-
 	bot.DefaultCommand(func(botCtx slacker.BotContext, request slacker.Request, response slacker.ResponseWriter) {
 		response.Reply("Say what?")
 	})
