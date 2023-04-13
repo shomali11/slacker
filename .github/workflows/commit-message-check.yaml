@@ -15,7 +15,7 @@ jobs:
       - name: Check Commit Subject Prefix
         uses: gsactions/commit-message-checker@v2
         with:
-          pattern: '(fix|feat|chore|docs|test|refactor|revert|test)(\[[^]]+\])?: .*$'
+          pattern: '^((fix|feat|chore|docs|test|refactor|revert|test)(\[[^]]+\])?:\ |[Mm]erge\ pull\ request\ ).*$'
           flags: 'gm'
           error: >-
             Your first line is missing a valid subject prefix. See Commit
