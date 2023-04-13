@@ -344,6 +344,28 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 	if messageEvent == nil {
 		// event doesn't appear to be a valid message type
 		return
+	} else if messageEvent.IsBot() {
+		switch s.botInteractionMode {
+		case BotInteractionModeIgnoreApp:
+			bot, err := s.apiClient.GetBotInfo(messageEvent.BotID)
+			if err != nil {
+				if err.Error() == "missing_scope" {
+					s.logf("unable to determine if bot response is from me -- please add users:read scope to your app\n")
+				} else {
+					s.debugf("unable to get bot that sent message information: %v\n", err)
+				}
+				return
+			}
+			if bot.AppID == s.appID {
+				s.debugf("Ignoring event that originated from my App ID: %v\n", bot.AppID)
+				return
+			}
+		case BotInteractionModeIgnoreAll:
+			s.debugf("Ignoring event that originated from Bot ID: %v\n", messageEvent.BotID)
+			return
+		default:
+			// BotInteractionModeIgnoreNone is handled in the default case
+		}
 	}
 
 	botCtx := NewBotContext(ctx, s.apiClient, s.socketModeClient, messageEvent)
