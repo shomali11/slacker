@@ -108,13 +108,6 @@ func NewMessageEvent(slacker *Slacker, event interface{}, req *socketmode.Reques
 		return nil
 	}
 
-	// Filter out other bots. At the very least this is needed for MessageEvent
-	// to prevent the bot from self-triggering and causing loops. However better
-	// logic should be in place to prevent repeated self-triggering / bot-storms
-	// if we want to enable this later.
-	if messageEvent.IsBot() {
-		return nil
-	}
 	return messageEvent
 }
 
