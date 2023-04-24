@@ -115,7 +115,6 @@ type interactiveContext struct {
 	event            *socketmode.Event
 	apiClient        *slack.Client
 	socketModeClient *socketmode.Client
-	request          *socketmode.Request
 	callback         *slack.InteractionCallback
 }
 
