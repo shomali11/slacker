@@ -9,6 +9,13 @@ const (
 // ClientOption an option for client values
 type ClientOption func(*ClientOptions)
 
+// WithAPIURL sets the API URL (for testing)
+func WithAPIURL(url string) ClientOption {
+	return func(defaults *ClientOptions) {
+		defaults.APIURL = url
+	}
+}
+
 // WithDebug sets debug toggle
 func WithDebug(debug bool) ClientOption {
 	return func(defaults *ClientOptions) {
@@ -25,12 +32,14 @@ func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
 
 // ClientOptions configuration
 type ClientOptions struct {
+	APIURL  string
 	Debug   bool
 	BotMode BotInteractionMode
 }
 
 func newClientOptions(options ...ClientOption) *ClientOptions {
 	config := &ClientOptions{
+		APIURL:  "", // Empty string will not override default from slack package
 		Debug:   false,
 		BotMode: BotInteractionModeIgnoreAll,
 	}
