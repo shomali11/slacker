@@ -2,84 +2,80 @@ package slacker
 
 import (
 	"fmt"
-	"log"
 
 	"github.com/slack-go/slack"
-)
-
-const (
-	errorFormat = "*Error:* _%s_"
+	"github.com/slack-go/slack/socketmode"
 )
 
 // A ResponseWriter interface is used to respond to an event
 type ResponseWriter interface {
-	Post(channel string, message string, options ...ReplyOption) error
-	Reply(text string, options ...ReplyOption) error
-	ReportError(err error, options ...ReportErrorOption)
+	Post(channel string, message string, options ...ReplyOption)
+	Reply(text string, options ...ReplyOption)
+	Error(err error, options ...ErrorOption)
 }
 
-// NewResponse creates a new response structure
-func NewResponse(botCtx BotContext) ResponseWriter {
-	return &response{botCtx: botCtx}
+// newResponse creates a new response structure
+func newResponse(event *MessageEvent, apiClient *slack.Client, socketModeClient *socketmode.Client) ResponseWriter {
+	return &response{event: event, apiClient: apiClient, socketModeClient: socketModeClient}
 }
 
 type response struct {
-	botCtx BotContext
+	event            *MessageEvent
+	apiClient        *slack.Client
+	socketModeClient *socketmode.Client
 }
 
-// ReportError sends back a formatted error message to the channel where we received the event from
-func (r *response) ReportError(err error, options ...ReportErrorOption) {
-	defaults := NewReportErrorDefaults(options...)
-
-	apiClient := r.botCtx.APIClient()
-	event := r.botCtx.Event()
+// Error sends back a formatted error message to the channel where we received the event from
+func (r *response) Error(err error, options ...ErrorOption) {
+	errorOptions := newErrorOptions(options...)
 
 	opts := []slack.MsgOption{
-		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
+		slack.MsgOptionText(fmt.Sprintf(errorOptions.Format, err.Error()), false),
 	}
 
-	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+	if errorOptions.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(r.event.TimeStamp))
 	}
 
-	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
+	_, _, err = r.apiClient.PostMessage(r.event.ChannelID, opts...)
 	if err != nil {
-		log.Printf("failed posting message: %v\n", err)
+		infof("failed to post message: %v\n", err)
 	}
 }
 
 // Reply send a message to the current channel
-func (r *response) Reply(message string, options ...ReplyOption) error {
-	ev := r.botCtx.Event()
-	if ev == nil {
-		return fmt.Errorf("unable to get message event details")
+func (r *response) Reply(message string, options ...ReplyOption) {
+	if r.event == nil {
+		infof("unable to get message event details\n")
+		return
 	}
-	return r.Post(ev.ChannelID, message, options...)
+	r.Post(r.event.ChannelID, message, options...)
 }
 
 // Post send a message to a channel
-func (r *response) Post(channel string, message string, options ...ReplyOption) error {
-	defaults := NewReplyDefaults(options...)
+func (r *response) Post(channel string, message string, options ...ReplyOption) {
+	replyOptions := newReplyOptions(options...)
 
-	apiClient := r.botCtx.APIClient()
-	event := r.botCtx.Event()
-	if event == nil {
-		return fmt.Errorf("unable to get message event details")
+	if r.event == nil {
+		infof("unable to get message event details\n")
+		return
 	}
 
 	opts := []slack.MsgOption{
 		slack.MsgOptionText(message, false),
-		slack.MsgOptionAttachments(defaults.Attachments...),
-		slack.MsgOptionBlocks(defaults.Blocks...),
+		slack.MsgOptionAttachments(replyOptions.Attachments...),
+		slack.MsgOptionBlocks(replyOptions.Blocks...),
 	}
 
-	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
+	if replyOptions.ThreadResponse {
+		opts = append(opts, slack.MsgOptionTS(r.event.TimeStamp))
 	}
 
-	_, _, err := apiClient.PostMessage(
+	_, _, err := r.apiClient.PostMessage(
 		channel,
 		opts...,
 	)
-	return err
+	if err != nil {
+		infof("failed to post message: %v\n", err)
+	}
 }

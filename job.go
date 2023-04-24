@@ -3,14 +3,14 @@ package slacker
 // JobDefinition structure contains definition of the job
 type JobDefinition struct {
 	Description string
-	Handler     func(JobContext)
+	Handler     JobHandler
 
 	// HideHelp will hide this job definition from appearing in the `help` results.
 	HideHelp bool
 }
 
-// NewJob creates a new job object
-func NewJob(spec string, definition *JobDefinition) Job {
+// newJob creates a new job object
+func newJob(spec string, definition *JobDefinition) Job {
 	return &job{
 		spec:       spec,
 		definition: definition,

@@ -63,17 +63,17 @@ func (e *MessageEvent) IsBot() bool {
 	return e.BotID != ""
 }
 
-// NewMessageEvent creates a new message event structure
-func NewMessageEvent(slacker *Slacker, event interface{}, req *socketmode.Request) *MessageEvent {
+// newMessageEvent creates a new message event structure
+func newMessageEvent(apiClient *slack.Client, event interface{}, req *socketmode.Request) *MessageEvent {
 	var messageEvent *MessageEvent
 
 	switch ev := event.(type) {
 	case *slackevents.MessageEvent:
 		messageEvent = &MessageEvent{
 			ChannelID:       ev.Channel,
-			Channel:         getChannel(slacker, ev.Channel),
+			Channel:         getChannel(apiClient, ev.Channel),
 			UserID:          ev.User,
-			UserProfile:     getUserProfile(slacker, ev.User),
+			UserProfile:     getUserProfile(apiClient, ev.User),
 			Text:            ev.Text,
 			Data:            event,
 			Type:            ev.Type,
@@ -84,9 +84,9 @@ func NewMessageEvent(slacker *Slacker, event interface{}, req *socketmode.Reques
 	case *slackevents.AppMentionEvent:
 		messageEvent = &MessageEvent{
 			ChannelID:       ev.Channel,
-			Channel:         getChannel(slacker, ev.Channel),
+			Channel:         getChannel(apiClient, ev.Channel),
 			UserID:          ev.User,
-			UserProfile:     getUserProfile(slacker, ev.User),
+			UserProfile:     getUserProfile(apiClient, ev.User),
 			Text:            ev.Text,
 			Data:            event,
 			Type:            ev.Type,
@@ -97,9 +97,9 @@ func NewMessageEvent(slacker *Slacker, event interface{}, req *socketmode.Reques
 	case *slack.SlashCommand:
 		messageEvent = &MessageEvent{
 			ChannelID:   ev.ChannelID,
-			Channel:     getChannel(slacker, ev.ChannelID),
+			Channel:     getChannel(apiClient, ev.ChannelID),
 			UserID:      ev.UserID,
-			UserProfile: getUserProfile(slacker, ev.UserID),
+			UserProfile: getUserProfile(apiClient, ev.UserID),
 			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
 			Data:        req,
 			Type:        req.Type,
@@ -107,41 +107,33 @@ func NewMessageEvent(slacker *Slacker, event interface{}, req *socketmode.Reques
 	default:
 		return nil
 	}
-
-	// Filter out other bots. At the very least this is needed for MessageEvent
-	// to prevent the bot from self-triggering and causing loops. However better
-	// logic should be in place to prevent repeated self-triggering / bot-storms
-	// if we want to enable this later.
-	if messageEvent.IsBot() {
-		return nil
-	}
 	return messageEvent
 }
 
-func getChannel(slacker *Slacker, channelID string) *slack.Channel {
+func getChannel(apiClient *slack.Client, channelID string) *slack.Channel {
 	if len(channelID) == 0 {
 		return nil
 	}
 
-	channel, err := slacker.apiClient.GetConversationInfo(&slack.GetConversationInfoInput{
+	channel, err := apiClient.GetConversationInfo(&slack.GetConversationInfoInput{
 		ChannelID:         channelID,
 		IncludeLocale:     false,
 		IncludeNumMembers: false})
 	if err != nil {
-		slacker.logf("unable to get channel info for %s: %v\n", channelID, err)
+		infof("unable to get channel info for %s: %v\n", channelID, err)
 		return nil
 	}
 	return channel
 }
 
-func getUserProfile(slacker *Slacker, userID string) *slack.UserProfile {
+func getUserProfile(apiClient *slack.Client, userID string) *slack.UserProfile {
 	if len(userID) == 0 {
 		return nil
 	}
 
-	user, err := slacker.apiClient.GetUserInfo(userID)
+	user, err := apiClient.GetUserInfo(userID)
 	if err != nil {
-		slacker.logf("unable to get user info for %s: %v\n", userID, err)
+		infof("unable to get user info for %s: %v\n", userID, err)
 		return nil
 	}
 	return &user.Profile

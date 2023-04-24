@@ -8,9 +8,9 @@ const (
 	empty = ""
 )
 
-// NewRequest creates a new Request structure
-func NewRequest(botCtx BotContext, properties *proper.Properties) Request {
-	return &request{botCtx: botCtx, properties: properties}
+// newRequest creates a new Request structure
+func newRequest(properties *proper.Properties) Request {
+	return &request{properties: properties}
 }
 
 // Request interface that contains the Event received and parameters
@@ -25,7 +25,6 @@ type Request interface {
 
 // request contains the Event received and parameters
 type request struct {
-	botCtx     BotContext
 	properties *proper.Properties
 }
 
