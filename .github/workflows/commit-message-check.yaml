@@ -1,0 +1,43 @@
+name: 'Commit Message Check'
+on:
+  pull_request: {}
+  pull_request_target: {}
+  push:
+    branches:
+      - master
+      - 'releases/*'
+
+jobs:
+  check-commit-message:
+    name: Check Commit Message
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Commit Subject Prefix
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^((fix|feat|chore|docs|test|refactor|revert|test)(\[[^]]+\])?:\ |[Mm]erge\ pull\ request\ ).*$'
+          flags: 'gm'
+          error: >-
+            Your first line is missing a valid subject prefix. See Commit
+            Messages section of CONTRIBUTING doc
+          checkAllCommitMessages: 'true'
+          excludeTitle: 'true'
+          excludeDescription: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check Line Length
+        uses: gsactions/commit-message-checker@v2
+        with:
+          pattern: '^(?![^#].{74})'
+          error: 'The maximum line length of 74 characters is exceeded.'
+          excludeDescription: 'true'
+          excludeTitle: 'true'
+          checkAllCommitMessages: 'true'
+          accessToken: ${{ secrets.GITHUB_TOKEN }}
+
+# Maybe in the future?
+#      - name: Check for Resolves / Fixes
+#        uses: gsactions/commit-message-checker@v2
+#        with:
+#          pattern: '^.+(Resolves|Fixes): \#[0-9]+$'
+#          error: 'You need at least one "Resolves|Fixes: #<issue number>" line.'

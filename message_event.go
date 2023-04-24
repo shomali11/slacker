@@ -107,6 +107,7 @@ func newMessageEvent(apiClient *slack.Client, event interface{}, req *socketmode
 	default:
 		return nil
 	}
+
 	return messageEvent
 }
 
