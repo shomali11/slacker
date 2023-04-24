@@ -21,15 +21,15 @@ func main() {
 		log.Println("Connected!")
 	})
 
-	bot.DefaultCommand(func(botCtx slacker.CommandContext) {
+	bot.UnhandledMessageHandler(func(botCtx slacker.CommandContext) {
 		botCtx.Response().Reply("Say what?")
 	})
 
-	bot.DefaultEvent(func(event socketmode.Event) {
+	bot.UnhandledEventHandler(func(event socketmode.Event) {
 		fmt.Println(event)
 	})
 
-	bot.DefaultInnerEvent(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
+	bot.UnhandledInnerEventHandler(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
 		fmt.Printf("Handling inner event: %s", evt)
 	})
 

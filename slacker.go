@@ -78,8 +78,8 @@ type Slacker struct {
 	initHandler                  func()
 	unhandledInteractiveCallback InteractiveHandler
 	helpDefinition               *CommandDefinition
-	defaultMessageHandler        CommandHandler
-	defaultEventHandler          func(socketmode.Event)
+	unhandledMessageHandler      CommandHandler
+	unhandledEventHandler        func(socketmode.Event)
 	unhandledInnerEventHandler   func(context.Context, interface{}, *socketmode.Request)
 	appID                        string
 	botInteractionMode           BotInteractionMode
@@ -112,24 +112,24 @@ func (s *Slacker) SanitizeEventText(sanitizeEventText func(in string) string) {
 	s.sanitizeEventText = sanitizeEventText
 }
 
-// Interactive assigns an interactive event handler
-func (s *Slacker) Interactive(interactiveEventHandler InteractiveHandler) {
-	s.unhandledInteractiveCallback = interactiveEventHandler
+// UnhandledInteractiveCallback assigns an interactive callback when none of the command's interactive callbacks are handled
+func (s *Slacker) UnhandledInteractiveCallback(unhanldedInteractiveCallback InteractiveHandler) {
+	s.unhandledInteractiveCallback = unhanldedInteractiveCallback
 }
 
-// DefaultCommand handle messages when none of the commands are matched
-func (s *Slacker) DefaultCommand(defaultMessageHandler CommandHandler) {
-	s.defaultMessageHandler = defaultMessageHandler
+// UnhandledMessageHandler handle messages when none of the commands are matched
+func (s *Slacker) UnhandledMessageHandler(unhandledMessageHandler CommandHandler) {
+	s.unhandledMessageHandler = unhandledMessageHandler
 }
 
-// DefaultEvent handle events when an unknown event is seen
-func (s *Slacker) DefaultEvent(defaultEventHandler func(socketmode.Event)) {
-	s.defaultEventHandler = defaultEventHandler
+// UnhandledEventHandler handle events when an unknown event is seen
+func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Event)) {
+	s.unhandledEventHandler = unhandledEventHandler
 }
 
-// DefaultInnerEvent handle events when an unknown inner event is seen
-func (s *Slacker) DefaultInnerEvent(defaultInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)) {
-	s.unhandledInnerEventHandler = defaultInnerEventHandler
+// UnhandledInnerEventHandler handle events when an unknown inner event is seen
+func (s *Slacker) UnhandledInnerEventHandler(unhandledInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)) {
+	s.unhandledInnerEventHandler = unhandledInnerEventHandler
 }
 
 // Help handle the help message, it will use the default if not set
@@ -232,8 +232,8 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					go s.handleInteractiveEvent(ctx, &socketEvent, &callback)
 
 				default:
-					if s.defaultEventHandler != nil {
-						s.defaultEventHandler(socketEvent)
+					if s.unhandledEventHandler != nil {
+						s.unhandledEventHandler(socketEvent)
 					} else {
 						debugf("unsupported Events API event received")
 					}
@@ -378,9 +378,9 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 		}
 	}
 
-	if s.defaultMessageHandler != nil {
+	if s.unhandledMessageHandler != nil {
 		botCtx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, "", nil)
-		s.defaultMessageHandler(botCtx)
+		s.unhandledMessageHandler(botCtx)
 	}
 }
 
