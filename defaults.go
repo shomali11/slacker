@@ -26,11 +26,27 @@ func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
 	}
 }
 
+// WithoutFontFormatting disables font formatting in messages
+func WithoutFontFormatting() ClientOption {
+	return func(defaults *ClientDefaults) {
+		defaults.MessageWithoutFontFormatting = true
+	}
+}
+
+// WithoutAllFormatting disables font formatting in messages
+func WithoutAllFormatting() ClientOption {
+	return func(defaults *ClientDefaults) {
+		defaults.MessageWithoutAllFormatting = true
+	}
+}
+
 // ClientDefaults configuration
 type ClientDefaults struct {
-	APIURL  string
-	Debug   bool
-	BotMode BotInteractionMode
+	APIURL                       string
+	Debug                        bool
+	BotMode                      BotInteractionMode
+	MessageWithoutFontFormatting bool
+	MessageWithoutAllFormatting  bool
 }
 
 func newClientDefaults(options ...ClientOption) *ClientDefaults {

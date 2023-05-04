@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"regexp"
 	"strings"
 
 	"github.com/robfig/cron"
@@ -38,6 +39,20 @@ func defaultCleanEventInput(msg string) string {
 	return strings.ReplaceAll(msg, "\u00a0", " ")
 }
 
+// fontFormattingCleanEventInput cleans up the message from slack to remove font formatting
+func fontFormattingCleanEventInput(msg string) string {
+	msg = defaultCleanEventInput(msg)
+	re := regexp.MustCompile("[*_~]")
+	return re.ReplaceAllString(msg, "")
+}
+
+// allFormattingCleanEventInput cleans up the message from slack to remove font formatting and code blocks
+func allFormattingCleanEventInput(msg string) string {
+	msg = defaultCleanEventInput(msg)
+	re := regexp.MustCompile("[*_~`>]")
+	return re.ReplaceAllString(msg, "")
+}
+
 // NewClient creates a new client using the Slack API
 func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 	defaults := newClientDefaults(options...)
@@ -49,6 +64,15 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 
 	if defaults.APIURL != "" {
 		slackOpts = append(slackOpts, slack.OptionAPIURL(defaults.APIURL))
+	}
+
+	// set sanitize event
+	sanitizeEvent := defaultCleanEventInput
+	if defaults.MessageWithoutFontFormatting {
+		sanitizeEvent = fontFormattingCleanEventInput
+	}
+	if defaults.MessageWithoutAllFormatting {
+		sanitizeEvent = allFormattingCleanEventInput
 	}
 
 	api := slack.New(
@@ -68,7 +92,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		commandChannel:     make(chan *CommandEvent, 100),
 		errUnauthorized:    errUnauthorized,
 		botInteractionMode: defaults.BotMode,
-		sanitizeEventText:  defaultCleanEventInput,
+		sanitizeEventText:  sanitizeEvent,
 		debug:              defaults.Debug,
 	}
 	return slacker
