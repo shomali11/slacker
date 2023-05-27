@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Defining a command with an optional description and example. The handler replies to a thread.
@@ -16,8 +16,8 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
 		Examples:    []string{"ping"},
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("pong", slacker.WithThreadReply(true))
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("pong", slacker.WithThreadReply(true))
 		},
 	}
 

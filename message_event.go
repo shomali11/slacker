@@ -39,7 +39,7 @@ type MessageEvent struct {
 
 	// Data is the raw event data returned from slack. Using Type, you can assert
 	// this into a slackevents *Event struct.
-	Data interface{}
+	Data any
 
 	// Type is the type of the event, as returned by Slack. For instance,
 	// `app_mention` or `message`
@@ -64,7 +64,7 @@ func (e *MessageEvent) IsBot() bool {
 }
 
 // newMessageEvent creates a new message event structure
-func newMessageEvent(apiClient *slack.Client, event interface{}, req *socketmode.Request) *MessageEvent {
+func newMessageEvent(apiClient *slack.Client, event any, req *socketmode.Request) *MessageEvent {
 	var messageEvent *MessageEvent
 
 	switch ev := event.(type) {

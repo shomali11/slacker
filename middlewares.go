@@ -3,15 +3,15 @@ package slacker
 // LoggingMiddleware middleware that logs requests
 func LoggingMiddleware() MiddlewareHandler {
 	return func(next CommandHandler) CommandHandler {
-		return func(botCtx CommandContext) {
+		return func(ctx CommandContext) {
 			infof(
 				"%s executed \"%s\" with parameters %v in channel %s\n",
-				botCtx.Event().UserID,
-				botCtx.Usage(),
-				botCtx.Request().Properties(),
-				botCtx.Event().Channel.ID,
+				ctx.Event().UserID,
+				ctx.Usage(),
+				ctx.Request().Properties(),
+				ctx.Event().Channel.ID,
 			)
-			next(botCtx)
+			next(ctx)
 		}
 	}
 }

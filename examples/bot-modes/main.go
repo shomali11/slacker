@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Configure bot to process other bot events
@@ -18,8 +18,8 @@ func main() {
 	)
 
 	bot.AddCommand("hello", &slacker.CommandDefinition{
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("hai!")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("hai!")
 		},
 	})
 

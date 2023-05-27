@@ -7,7 +7,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack/socketmode"
 )
 
@@ -21,22 +21,22 @@ func main() {
 		log.Println("Connected!")
 	})
 
-	bot.UnhandledMessageHandler(func(botCtx slacker.CommandContext) {
-		botCtx.Response().Reply("Say what?")
+	bot.UnhandledMessageHandler(func(ctx slacker.CommandContext) {
+		ctx.Response().Reply("Say what?")
 	})
 
 	bot.UnhandledEventHandler(func(event socketmode.Event) {
 		fmt.Println(event)
 	})
 
-	bot.UnhandledInnerEventHandler(func(ctx context.Context, evt interface{}, request *socketmode.Request) {
+	bot.UnhandledInnerEventHandler(func(ctx context.Context, evt any, request *socketmode.Request) {
 		fmt.Printf("Handling inner event: %s", evt)
 	})
 
 	definition := &slacker.CommandDefinition{
 		Description: "help!",
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("Your own help function...")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("Your own help function...")
 		},
 	}
 

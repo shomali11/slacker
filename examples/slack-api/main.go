@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
 )
 
@@ -16,14 +16,14 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Upload a sentence!",
-		Handler: func(botCtx slacker.CommandContext) {
-			sentence := botCtx.Request().Param("sentence")
-			apiClient := botCtx.APIClient()
-			event := botCtx.Event()
+		Handler: func(ctx slacker.CommandContext) {
+			sentence := ctx.Request().Param("sentence")
+			apiClient := ctx.APIClient()
+			event := ctx.Event()
 
 			apiClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
 			_, err := apiClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
-			botCtx.Response().Error(err)
+			ctx.Response().Error(err)
 		},
 	}
 

@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Showcasing the ability to leverage `context.Context` to add a timeout
@@ -18,17 +18,17 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Process!",
-		Handler: func(botCtx slacker.CommandContext) {
-			timedContext, cancel := context.WithTimeout(botCtx.Context(), 5*time.Second)
+		Handler: func(ctx slacker.CommandContext) {
+			timedContext, cancel := context.WithTimeout(ctx.Context(), 5*time.Second)
 			defer cancel()
 
 			duration := time.Duration(rand.Int()%10+1) * time.Second
 
 			select {
 			case <-timedContext.Done():
-				botCtx.Response().Error(errors.New("timed out"))
+				ctx.Response().Error(errors.New("timed out"))
 			case <-time.After(duration):
-				botCtx.Response().Reply("Processing done!")
+				ctx.Response().Reply("Processing done!")
 			}
 		},
 	}

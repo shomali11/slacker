@@ -66,7 +66,7 @@ func (c *command) Tokenize() []*commander.Token {
 }
 
 // Handler executes the handler logic
-func (c *command) Handler(botCtx CommandContext, middlewares ...MiddlewareHandler) {
+func (c *command) Handler(ctx CommandContext, middlewares ...MiddlewareHandler) {
 	if c.definition == nil || c.definition.Handler == nil {
 		return
 	}
@@ -76,7 +76,7 @@ func (c *command) Handler(botCtx CommandContext, middlewares ...MiddlewareHandle
 		handler = middlewares[i](handler)
 	}
 
-	handler(botCtx)
+	handler(ctx)
 }
 
 // InteractiveCallback executes the interactive callback logic

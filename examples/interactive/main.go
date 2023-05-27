@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
 )
 
@@ -13,13 +13,13 @@ import (
 // This assumes that a slash command `/mood` is defined for your app.
 
 func slackerCmd(blockID string) slacker.CommandHandler {
-	return func(botCtx slacker.CommandContext) {
+	return func(ctx slacker.CommandContext) {
 		happyBtn := slack.NewButtonBlockElement("happy", "true", slack.NewTextBlockObject("plain_text", "Happy 🙂", true, false))
 		happyBtn.Style = "primary"
 		sadBtn := slack.NewButtonBlockElement("sad", "false", slack.NewTextBlockObject("plain_text", "Sad ☹️", true, false))
 		sadBtn.Style = "danger"
 
-		botCtx.Response().Reply("", slacker.WithBlocks([]slack.Block{
+		ctx.Response().Reply("", slacker.WithBlocks([]slack.Block{
 			slack.NewSectionBlock(slack.NewTextBlockObject(slack.PlainTextType, "What is your mood today?", true, false), nil, nil),
 			slack.NewActionBlock(blockID, happyBtn, sadBtn),
 		}))

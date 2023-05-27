@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
 )
 
@@ -16,8 +16,8 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Handler: func(botCtx slacker.CommandContext) {
-			word := botCtx.Request().Param("word")
+		Handler: func(ctx slacker.CommandContext) {
+			word := ctx.Request().Param("word")
 
 			attachments := []slack.Attachment{}
 			attachments = append(attachments, slack.Attachment{
@@ -27,7 +27,7 @@ func main() {
 				Text:       "Attachment Text",
 			})
 
-			botCtx.Response().Reply(word, slacker.WithAttachments(attachments))
+			ctx.Response().Reply(word, slacker.WithAttachments(attachments))
 		},
 	}
 

@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Showcasing the ability to toggle the slack Debug option via `WithDebug`
@@ -15,8 +15,8 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Ping!",
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("pong")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("pong")
 		},
 	}
 

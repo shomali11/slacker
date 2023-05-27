@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Defining a command with a parameter. Parameters surrounded with {} will be satisfied with a word.
@@ -17,18 +17,18 @@ func main() {
 	bot.AddCommand("echo {word}", &slacker.CommandDefinition{
 		Description: "Echo a word!",
 		Examples:    []string{"echo hello"},
-		Handler: func(botCtx slacker.CommandContext) {
-			word := botCtx.Request().Param("word")
-			botCtx.Response().Reply(word)
+		Handler: func(ctx slacker.CommandContext) {
+			word := ctx.Request().Param("word")
+			ctx.Response().Reply(word)
 		},
 	})
 
 	bot.AddCommand("say <sentence>", &slacker.CommandDefinition{
 		Description: "Say a sentence!",
 		Examples:    []string{"say hello there everyone!"},
-		Handler: func(botCtx slacker.CommandContext) {
-			sentence := botCtx.Request().Param("sentence")
-			botCtx.Response().Reply(sentence)
+		Handler: func(ctx slacker.CommandContext) {
+			sentence := ctx.Request().Param("sentence")
+			ctx.Response().Reply(sentence)
 		},
 	})
 

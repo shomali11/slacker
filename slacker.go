@@ -80,7 +80,7 @@ type Slacker struct {
 	helpDefinition               *CommandDefinition
 	unhandledMessageHandler      CommandHandler
 	unhandledEventHandler        func(socketmode.Event)
-	unhandledInnerEventHandler   func(context.Context, interface{}, *socketmode.Request)
+	unhandledInnerEventHandler   func(context.Context, any, *socketmode.Request)
 	appID                        string
 	botInteractionMode           BotInteractionMode
 	sanitizeEventText            func(string) string
@@ -128,7 +128,7 @@ func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Ev
 }
 
 // UnhandledInnerEventHandler handle events when an unknown inner event is seen
-func (s *Slacker) UnhandledInnerEventHandler(unhandledInnerEventHandler func(ctx context.Context, evt interface{}, request *socketmode.Request)) {
+func (s *Slacker) UnhandledInnerEventHandler(unhandledInnerEventHandler func(ctx context.Context, evt any, request *socketmode.Request)) {
 	s.unhandledInnerEventHandler = unhandledInnerEventHandler
 }
 
@@ -250,7 +250,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 	return s.socketModeClient.RunContext(ctx)
 }
 
-func (s *Slacker) defaultHelp(botCtx CommandContext) {
+func (s *Slacker) defaultHelp(ctx CommandContext) {
 	helpMessage := empty
 
 	for _, group := range s.groups {
@@ -298,7 +298,7 @@ func (s *Slacker) defaultHelp(botCtx CommandContext) {
 		helpMessage += newLine
 	}
 
-	botCtx.Response().Reply(helpMessage)
+	ctx.Response().Reply(helpMessage)
 }
 
 func (s *Slacker) prependHelpHandle() {
@@ -327,7 +327,7 @@ func (s *Slacker) startCronJobs(ctx context.Context) {
 }
 
 func (s *Slacker) handleInteractiveEvent(ctx context.Context, event *socketmode.Event, callback *slack.InteractionCallback) {
-	botCtx := newInteractiveContext(ctx, s.apiClient, s.socketModeClient, event, callback)
+	iCtx := newInteractiveContext(ctx, s.apiClient, s.socketModeClient, event, callback)
 
 	for _, group := range s.groups {
 		for _, cmd := range group.GetCommands() {
@@ -336,18 +336,18 @@ func (s *Slacker) handleInteractiveEvent(ctx context.Context, event *socketmode.
 					continue
 				}
 
-				cmd.InteractiveCallback(botCtx)
+				cmd.InteractiveCallback(iCtx)
 				return
 			}
 		}
 	}
 
 	if s.unhandledInteractiveCallback != nil {
-		s.unhandledInteractiveCallback(botCtx)
+		s.unhandledInteractiveCallback(iCtx)
 	}
 }
 
-func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, request *socketmode.Request) {
+func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *socketmode.Request) {
 	messageEvent := newMessageEvent(s.apiClient, event, request)
 	if messageEvent == nil {
 		// event doesn't appear to be a valid message type
@@ -368,19 +368,19 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 				continue
 			}
 
-			botCtx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, cmd.Usage(), parameters)
+			ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, cmd.Usage(), parameters)
 			middlewares := make([]MiddlewareHandler, 0)
 			middlewares = append(middlewares, s.middlewares...)
 			middlewares = append(middlewares, group.GetMiddlewares()...)
 			middlewares = append(middlewares, cmd.Definition().Middlewares...)
-			cmd.Handler(botCtx, middlewares...)
+			cmd.Handler(ctx, middlewares...)
 			return
 		}
 	}
 
 	if s.unhandledMessageHandler != nil {
-		botCtx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, "", nil)
-		s.unhandledMessageHandler(botCtx)
+		ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, "", nil)
+		s.unhandledMessageHandler(ctx)
 	}
 }
 

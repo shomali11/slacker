@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
 )
 
@@ -14,8 +14,8 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 	bot.AddCommand("ping", &slacker.CommandDefinition{
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("pong")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("pong")
 		},
 	})
 

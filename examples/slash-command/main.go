@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Implements a simple slash command.
@@ -19,8 +19,8 @@ func main() {
 	)
 
 	bot.AddCommand("ping", &slacker.CommandDefinition{
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("pong")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("pong")
 		},
 		HideHelp: true,
 	})

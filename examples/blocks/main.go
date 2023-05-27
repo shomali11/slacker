@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
 )
 
@@ -16,8 +16,8 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Description: "Echo a word!",
-		Handler: func(botCtx slacker.CommandContext) {
-			word := botCtx.Request().Param("word")
+		Handler: func(ctx slacker.CommandContext) {
+			word := ctx.Request().Param("word")
 
 			attachments := []slack.Block{}
 			attachments = append(attachments, slack.NewContextBlock("1",
@@ -25,7 +25,7 @@ func main() {
 			)
 
 			// When using blocks the message argument will be thrown away and can be left blank.
-			botCtx.Response().Reply("", slacker.WithBlocks(attachments))
+			ctx.Response().Reply("", slacker.WithBlocks(attachments))
 		},
 	}
 

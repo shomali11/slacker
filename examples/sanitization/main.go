@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Override the default event input cleaning function (to sanitize the messages received by Slacker)
@@ -20,8 +20,8 @@ func main() {
 	})
 
 	bot.AddCommand("my-command", &slacker.CommandDefinition{
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("it works!")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("it works!")
 		},
 	})
 

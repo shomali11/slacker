@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Defines two commands that display sending errors to the Slack channel.
@@ -17,15 +17,15 @@ func main() {
 
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Error(errors.New("oops, an error occurred"))
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Error(errors.New("oops, an error occurred"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Error(errors.New("oops, an error occurred"), slacker.WithThreadError(true))
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Error(errors.New("oops, an error occurred"), slacker.WithThreadError(true))
 		},
 	}
 

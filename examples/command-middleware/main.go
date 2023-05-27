@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/shomali11/slacker"
+	"github.com/shomali11/slacker/v2"
 )
 
 // Defining an authorization middleware so that a command can only be executed by authorized users
@@ -19,8 +19,8 @@ func main() {
 		Description: "Very secret stuff",
 		Examples:    []string{"secret"},
 		Middlewares: []slacker.MiddlewareHandler{authorizationMiddleware()},
-		Handler: func(botCtx slacker.CommandContext) {
-			botCtx.Response().Reply("You are authorized!")
+		Handler: func(ctx slacker.CommandContext) {
+			ctx.Response().Reply("You are authorized!")
 		},
 	}
 
@@ -37,9 +37,9 @@ func main() {
 
 func authorizationMiddleware() slacker.MiddlewareHandler {
 	return func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(botCtx slacker.CommandContext) {
-			if contains(authorizedUserNames, botCtx.Event().UserProfile.DisplayName) {
-				next(botCtx)
+		return func(ctx slacker.CommandContext) {
+			if contains(authorizedUserNames, ctx.Event().UserProfile.DisplayName) {
+				next(ctx)
 			}
 		}
 	}
