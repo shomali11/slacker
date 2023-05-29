@@ -18,7 +18,7 @@ func main() {
 	authorizedDefinitionByName := &slacker.CommandDefinition{
 		Description: "Very secret stuff",
 		Examples:    []string{"secret"},
-		Middlewares: []slacker.MiddlewareHandler{authorizationMiddleware()},
+		Middlewares: []slacker.CommandMiddlewareHandler{authorizationMiddleware()},
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("You are authorized!")
 		},
@@ -35,7 +35,7 @@ func main() {
 	}
 }
 
-func authorizationMiddleware() slacker.MiddlewareHandler {
+func authorizationMiddleware() slacker.CommandMiddlewareHandler {
 	return func(next slacker.CommandHandler) slacker.CommandHandler {
 		return func(ctx slacker.CommandContext) {
 			if contains(authorizedUserNames, ctx.Event().UserProfile.DisplayName) {

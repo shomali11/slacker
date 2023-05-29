@@ -12,7 +12,7 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.UnhandledInteractiveCallback(func(ctx slacker.InteractiveContext) {
+	bot.UnhandledInteractionCallback(func(ctx slacker.InteractionContext) {
 		callback := ctx.Callback()
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
@@ -39,8 +39,6 @@ func main() {
 
 		_, _, _ = ctx.APIClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
 			slack.MsgOptionReplaceOriginal(callback.ResponseURL))
-
-		ctx.SocketModeClient().Ack(*ctx.Event().Request)
 	})
 
 	definition := &slacker.CommandDefinition{

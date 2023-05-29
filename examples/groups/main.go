@@ -42,7 +42,7 @@ func main() {
 	group.AddCommand("weather", &slacker.CommandDefinition{
 		Description: "Find me a cool weather",
 		Examples:    []string{"cool weather"},
-		Middlewares: []slacker.MiddlewareHandler{commandMiddleware},
+		Middlewares: []slacker.CommandMiddlewareHandler{commandMiddleware},
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("San Francisco")
 		},

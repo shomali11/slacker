@@ -29,10 +29,6 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.UnhandledInnerEventHandler(func(ctx context.Context, evt any, request *socketmode.Request) {
-		fmt.Printf("Handling inner event: %s", evt)
-	})
-
 	definition := &slacker.CommandDefinition{
 		Description: "help!",
 		Handler: func(ctx slacker.CommandContext) {

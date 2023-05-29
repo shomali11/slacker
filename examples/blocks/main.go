@@ -19,13 +19,13 @@ func main() {
 		Handler: func(ctx slacker.CommandContext) {
 			word := ctx.Request().Param("word")
 
-			attachments := []slack.Block{}
-			attachments = append(attachments, slack.NewContextBlock("1",
+			blocks := []slack.Block{}
+			blocks = append(blocks, slack.NewContextBlock("1",
 				slack.NewTextBlockObject("mrkdwn", word, false, false)),
 			)
 
 			// When using blocks the message argument will be thrown away and can be left blank.
-			ctx.Response().Reply("", slacker.WithBlocks(attachments))
+			ctx.Response().Reply("", slacker.WithBlocks(blocks))
 		},
 	}
 

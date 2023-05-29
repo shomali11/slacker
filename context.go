@@ -11,7 +11,7 @@ import (
 // CommandContext interface is for bot command contexts
 type CommandContext interface {
 	Context() context.Context
-	Usage() string
+	Definition() *CommandDefinition
 	Event() *MessageEvent
 	Request() Request
 	Response() ResponseWriter
@@ -25,7 +25,7 @@ func newCommandContext(
 	apiClient *slack.Client,
 	socketModeClient *socketmode.Client,
 	event *MessageEvent,
-	usage string,
+	definition *CommandDefinition,
 	parameters *proper.Properties,
 ) CommandContext {
 	return &commandContext{
@@ -33,7 +33,7 @@ func newCommandContext(
 		event:            event,
 		apiClient:        apiClient,
 		socketModeClient: socketModeClient,
-		usage:            usage,
+		definition:       definition,
 		request:          newRequest(parameters),
 		response:         newResponse(event, apiClient, socketModeClient),
 	}
@@ -44,7 +44,7 @@ type commandContext struct {
 	event            *MessageEvent
 	apiClient        *slack.Client
 	socketModeClient *socketmode.Client
-	usage            string
+	definition       *CommandDefinition
 	request          Request
 	response         ResponseWriter
 }
@@ -54,9 +54,9 @@ func (r *commandContext) Context() context.Context {
 	return r.ctx
 }
 
-// Usage returns the command usage
-func (r *commandContext) Usage() string {
-	return r.usage
+// Definition returns the command definition
+func (r *commandContext) Definition() *CommandDefinition {
+	return r.definition
 }
 
 // Event returns the slack message event
@@ -84,8 +84,8 @@ func (r *commandContext) Response() ResponseWriter {
 	return r.response
 }
 
-// InteractiveContext interface is interactive bot contexts
-type InteractiveContext interface {
+// InteractionContext interface is interaction bot contexts
+type InteractionContext interface {
 	Context() context.Context
 	Event() *socketmode.Event
 	Callback() *slack.InteractionCallback
@@ -93,15 +93,15 @@ type InteractiveContext interface {
 	SocketModeClient() *socketmode.Client
 }
 
-// newInteractiveContext creates a new interactive bot context
-func newInteractiveContext(
+// newInteractionContext creates a new interaction bot context
+func newInteractionContext(
 	ctx context.Context,
 	apiClient *slack.Client,
 	socketModeClient *socketmode.Client,
 	event *socketmode.Event,
 	callback *slack.InteractionCallback,
-) InteractiveContext {
-	return &interactiveContext{
+) InteractionContext {
+	return &interactionContext{
 		ctx:              ctx,
 		event:            event,
 		apiClient:        apiClient,
@@ -110,7 +110,7 @@ func newInteractiveContext(
 	}
 }
 
-type interactiveContext struct {
+type interactionContext struct {
 	ctx              context.Context
 	event            *socketmode.Event
 	apiClient        *slack.Client
@@ -119,27 +119,27 @@ type interactiveContext struct {
 }
 
 // Context returns the context
-func (r *interactiveContext) Context() context.Context {
+func (r *interactionContext) Context() context.Context {
 	return r.ctx
 }
 
 // Event returns the socket event
-func (r *interactiveContext) Event() *socketmode.Event {
+func (r *interactionContext) Event() *socketmode.Event {
 	return r.event
 }
 
 // APIClient returns the slack API client
-func (r *interactiveContext) APIClient() *slack.Client {
+func (r *interactionContext) APIClient() *slack.Client {
 	return r.apiClient
 }
 
 // SocketModeClient returns the slack socket mode client
-func (r *interactiveContext) SocketModeClient() *socketmode.Client {
+func (r *interactionContext) SocketModeClient() *socketmode.Client {
 	return r.socketModeClient
 }
 
 // Callback returns the command callback
-func (r *interactiveContext) Callback() *slack.InteractionCallback {
+func (r *interactionContext) Callback() *slack.InteractionCallback {
 	return r.callback
 }
 

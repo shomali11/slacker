@@ -2,6 +2,7 @@ package slacker
 
 // JobDefinition structure contains definition of the job
 type JobDefinition struct {
+	Spec        string
 	Description string
 	Handler     JobHandler
 
@@ -11,28 +12,21 @@ type JobDefinition struct {
 
 // newJob creates a new job object
 func newJob(spec string, definition *JobDefinition) Job {
+	definition.Spec = spec
 	return &job{
-		spec:       spec,
 		definition: definition,
 	}
 }
 
 // Job interface
 type Job interface {
-	Spec() string
 	Definition() *JobDefinition
 	Callback(JobContext) func()
 }
 
 // job structure contains the job's spec and handler
 type job struct {
-	spec       string
 	definition *JobDefinition
-}
-
-// Spec returns the job's spec
-func (c *job) Spec() string {
-	return c.spec
 }
 
 // Definition returns the job's definition

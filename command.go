@@ -7,12 +7,11 @@ import (
 
 // CommandDefinition structure contains definition of the bot command
 type CommandDefinition struct {
-	Description         string
-	Examples            []string
-	BlockID             string
-	Middlewares         []MiddlewareHandler
-	Handler             CommandHandler
-	InteractiveCallback InteractiveHandler
+	Usage       string
+	Description string
+	Examples    []string
+	Middlewares []CommandMiddlewareHandler
+	Handler     CommandHandler
 
 	// HideHelp will hide this command definition from appearing in the `help` results.
 	HideHelp bool
@@ -20,8 +19,9 @@ type CommandDefinition struct {
 
 // newCommand creates a new bot command object
 func newCommand(usage string, definition *CommandDefinition) Command {
+	definition.Usage = usage
+
 	return &command{
-		usage:      usage,
 		definition: definition,
 		cmd:        commander.NewCommand(usage),
 	}
@@ -29,25 +29,17 @@ func newCommand(usage string, definition *CommandDefinition) Command {
 
 // Command interface
 type Command interface {
-	Usage() string
 	Definition() *CommandDefinition
 
 	Match(string) (*proper.Properties, bool)
 	Tokenize() []*commander.Token
-	Handler(CommandContext, ...MiddlewareHandler)
-	InteractiveCallback(InteractiveContext)
+	Handler(CommandContext, ...CommandMiddlewareHandler)
 }
 
 // command structure contains the bot's command, description and handler
 type command struct {
-	usage      string
 	definition *CommandDefinition
 	cmd        *commander.Command
-}
-
-// Usage returns the command usage
-func (c *command) Usage() string {
-	return c.usage
 }
 
 // Definition returns the command definition
@@ -66,7 +58,7 @@ func (c *command) Tokenize() []*commander.Token {
 }
 
 // Handler executes the handler logic
-func (c *command) Handler(ctx CommandContext, middlewares ...MiddlewareHandler) {
+func (c *command) Handler(ctx CommandContext, middlewares ...CommandMiddlewareHandler) {
 	if c.definition == nil || c.definition.Handler == nil {
 		return
 	}
@@ -77,13 +69,4 @@ func (c *command) Handler(ctx CommandContext, middlewares ...MiddlewareHandler) 
 	}
 
 	handler(ctx)
-}
-
-// InteractiveCallback executes the interactive callback logic
-func (c *command) InteractiveCallback(botContext InteractiveContext) {
-	if c.definition == nil || c.definition.InteractiveCallback == nil {
-		return
-	}
-
-	c.definition.InteractiveCallback(botContext)
 }

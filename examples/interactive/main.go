@@ -12,6 +12,27 @@ import (
 // Implements a basic interactive command.
 // This assumes that a slash command `/mood` is defined for your app.
 
+func main() {
+	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot.AddCommand("mood", &slacker.CommandDefinition{
+		Handler:  slackerCmd("mood"),
+		HideHelp: true,
+	})
+
+	bot.AddInteraction("mood", &slacker.InteractionDefinition{
+		Handler:  slackerInteractive,
+		HideHelp: true,
+	})
+
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	err := bot.Listen(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
 func slackerCmd(blockID string) slacker.CommandHandler {
 	return func(ctx slacker.CommandContext) {
 		happyBtn := slack.NewButtonBlockElement("happy", "true", slack.NewTextBlockObject("plain_text", "Happy 🙂", true, false))
@@ -26,7 +47,7 @@ func slackerCmd(blockID string) slacker.CommandHandler {
 	}
 }
 
-func slackerInteractive(ctx slacker.InteractiveContext) {
+func slackerInteractive(ctx slacker.InteractionContext) {
 	text := ""
 	action := ctx.Callback().ActionCallback.BlockActions[0]
 	switch action.ActionID {
@@ -40,22 +61,4 @@ func slackerInteractive(ctx slacker.InteractiveContext) {
 
 	_, _, _ = ctx.APIClient().PostMessage(ctx.Callback().Channel.ID, slack.MsgOptionText(text, false),
 		slack.MsgOptionReplaceOriginal(ctx.Callback().ResponseURL))
-}
-
-func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
-	bot.AddCommand("mood", &slacker.CommandDefinition{
-		BlockID:             "mood",
-		Handler:             slackerCmd("mood"),
-		InteractiveCallback: slackerInteractive,
-		HideHelp:            true,
-	})
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	err := bot.Listen(ctx)
-	if err != nil {
-		log.Fatal(err)
-	}
 }

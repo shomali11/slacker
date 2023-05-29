@@ -12,18 +12,18 @@ import (
 )
 
 const (
-	space               = " "
-	dash                = "-"
-	newLine             = "\n"
-	invalidToken        = "invalid token"
-	helpCommand         = "help"
-	directChannelMarker = "D"
-	userMentionFormat   = "<@%s>"
-	codeMessageFormat   = "`%s`"
-	boldMessageFormat   = "*%s*"
-	italicMessageFormat = "_%s_"
-	quoteMessageFormat  = ">_*Example:* %s_"
-	slackBotUser        = "USLACKBOT"
+	space                = " "
+	dash                 = "-"
+	newLine              = "\n"
+	invalidToken         = "invalid token"
+	helpCommand          = "help"
+	directChannelMarker  = "D"
+	userMentionFormat    = "<@%s>"
+	codeMessageFormat    = "`%s`"
+	boldMessageFormat    = "*%s*"
+	italicMessageFormat  = "_%s_"
+	exampleMessageFormat = "_*Example:*_ %s"
+	slackBotUser         = "USLACKBOT"
 )
 
 func defaultCleanEventInput(msg string) string {
@@ -59,7 +59,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 		apiClient:          api,
 		socketModeClient:   socketModeClient,
 		cronClient:         cron.New(),
-		groups:             []Group{newGroup("")},
+		commandGroups:      []CommandGroup{newGroup("")},
 		botInteractionMode: options.BotMode,
 		sanitizeEventText:  defaultCleanEventInput,
 		debug:              options.Debug,
@@ -72,15 +72,15 @@ type Slacker struct {
 	apiClient                    *slack.Client
 	socketModeClient             *socketmode.Client
 	cronClient                   *cron.Cron
-	middlewares                  []MiddlewareHandler
-	groups                       []Group
+	commandMiddlewares           []CommandMiddlewareHandler
+	commandGroups                []CommandGroup
+	interactions                 []Interaction
 	jobs                         []Job
 	initHandler                  func()
-	unhandledInteractiveCallback InteractiveHandler
+	unhandledInteractionCallback InteractionHandler
 	helpDefinition               *CommandDefinition
 	unhandledMessageHandler      CommandHandler
 	unhandledEventHandler        func(socketmode.Event)
-	unhandledInnerEventHandler   func(context.Context, any, *socketmode.Request)
 	appID                        string
 	botInteractionMode           BotInteractionMode
 	sanitizeEventText            func(string) string
@@ -88,8 +88,8 @@ type Slacker struct {
 }
 
 // GetGroups returns Groups
-func (s *Slacker) GetGroups() []Group {
-	return s.groups
+func (s *Slacker) GetGroups() []CommandGroup {
+	return s.commandGroups
 }
 
 // APIClient returns the internal slack.Client of Slacker struct
@@ -112,9 +112,9 @@ func (s *Slacker) SanitizeEventText(sanitizeEventText func(in string) string) {
 	s.sanitizeEventText = sanitizeEventText
 }
 
-// UnhandledInteractiveCallback assigns an interactive callback when none of the command's interactive callbacks are handled
-func (s *Slacker) UnhandledInteractiveCallback(unhanldedInteractiveCallback InteractiveHandler) {
-	s.unhandledInteractiveCallback = unhanldedInteractiveCallback
+// UnhandledInteractionCallback assigns an interaction callback when none of the interaction callbacks are handled
+func (s *Slacker) UnhandledInteractionCallback(unhanldedInteractionCallback InteractionHandler) {
+	s.unhandledInteractionCallback = unhanldedInteractionCallback
 }
 
 // UnhandledMessageHandler handle messages when none of the commands are matched
@@ -127,11 +127,6 @@ func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Ev
 	s.unhandledEventHandler = unhandledEventHandler
 }
 
-// UnhandledInnerEventHandler handle events when an unknown inner event is seen
-func (s *Slacker) UnhandledInnerEventHandler(unhandledInnerEventHandler func(ctx context.Context, evt any, request *socketmode.Request)) {
-	s.unhandledInnerEventHandler = unhandledInnerEventHandler
-}
-
 // Help handle the help message, it will use the default if not set
 func (s *Slacker) Help(definition *CommandDefinition) {
 	s.helpDefinition = definition
@@ -139,19 +134,24 @@ func (s *Slacker) Help(definition *CommandDefinition) {
 
 // AddCommand define a new command and append it to the list of bot commands
 func (s *Slacker) AddCommand(usage string, definition *CommandDefinition) {
-	s.groups[0].AddCommand(usage, definition)
+	s.commandGroups[0].AddCommand(usage, definition)
 }
 
 // AddMiddleware define a new middleware and append it to the list of root level middlewares
-func (s *Slacker) AddMiddleware(middleware MiddlewareHandler) {
-	s.middlewares = append(s.middlewares, middleware)
+func (s *Slacker) AddMiddleware(middleware CommandMiddlewareHandler) {
+	s.commandMiddlewares = append(s.commandMiddlewares, middleware)
 }
 
 // AddGroup define a new group and append it to the list of groups
-func (s *Slacker) AddGroup(prefix string) Group {
+func (s *Slacker) AddGroup(prefix string) CommandGroup {
 	group := newGroup(prefix)
-	s.groups = append(s.groups, group)
+	s.commandGroups = append(s.commandGroups, group)
 	return group
+}
+
+// AddInteraction define a new interaction and append it to the list of interactions
+func (s *Slacker) AddInteraction(blockID string, definition *InteractionDefinition) {
+	s.interactions = append(s.interactions, newInteraction(blockID, definition))
 }
 
 // AddJob define a new cron job and append it to the list of jobs
@@ -175,13 +175,13 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 				switch socketEvent.Type {
 				case socketmode.EventTypeConnecting:
-					infof("Connecting to Slack with Socket Mode.")
+					infof("connecting to Slack with Socket Mode.\n")
 
 				case socketmode.EventTypeConnectionError:
-					infof("Connection failed. Retrying later...")
+					infof("connection failed. Retrying later...\n")
 
 				case socketmode.EventTypeConnected:
-					infof("Connected to Slack with Socket Mode.")
+					infof("connected to Slack with Socket Mode.\n")
 
 					if s.initHandler == nil {
 						continue
@@ -190,52 +190,62 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 				case socketmode.EventTypeHello:
 					s.appID = socketEvent.Request.ConnectionInfo.AppID
-					infof("Connected as App ID %v\n", s.appID)
+					infof("connected as App ID %v\n", s.appID)
+
+				case socketmode.EventTypeDisconnect:
+					infof("disconnected due to %v\n", socketEvent.Request.Reason)
 
 				case socketmode.EventTypeEventsAPI:
 					event, ok := socketEvent.Data.(slackevents.EventsAPIEvent)
 					if !ok {
-						debugf("Ignored %+v\n", socketEvent)
+						debugf("ignored %+v\n", socketEvent)
 						continue
 					}
+
+					// Acknowledge receiving the request
+					s.socketModeClient.Ack(*socketEvent.Request)
 
 					switch event.InnerEvent.Type {
 					case "message", "app_mention": // message-based events
 						go s.handleMessageEvent(ctx, event.InnerEvent.Data, nil)
 
 					default:
-						if s.unhandledInnerEventHandler != nil {
-							s.unhandledInnerEventHandler(ctx, event.InnerEvent.Data, socketEvent.Request)
+						if s.unhandledEventHandler != nil {
+							s.unhandledEventHandler(socketEvent)
 						} else {
-							debugf("unsupported inner event: %+v\n", event.InnerEvent.Type)
+							debugf("unsupported event received %+v\n", socketEvent)
 						}
 					}
-
-					s.socketModeClient.Ack(*socketEvent.Request)
 
 				case socketmode.EventTypeSlashCommand:
 					callback, ok := socketEvent.Data.(slack.SlashCommand)
 					if !ok {
-						debugf("Ignored %+v\n", socketEvent)
+						debugf("ignored %+v\n", socketEvent)
 						continue
 					}
+
+					// Acknowledge receiving the request
 					s.socketModeClient.Ack(*socketEvent.Request)
+
 					go s.handleMessageEvent(ctx, &callback, socketEvent.Request)
 
 				case socketmode.EventTypeInteractive:
 					callback, ok := socketEvent.Data.(slack.InteractionCallback)
 					if !ok {
-						debugf("Ignored %+v\n", socketEvent)
+						debugf("ignored %+v\n", socketEvent)
 						continue
 					}
 
-					go s.handleInteractiveEvent(ctx, &socketEvent, &callback)
+					// Acknowledge receiving the request
+					s.socketModeClient.Ack(*socketEvent.Request)
+
+					go s.handleInteractionEvent(ctx, &socketEvent, &callback)
 
 				default:
 					if s.unhandledEventHandler != nil {
 						s.unhandledEventHandler(socketEvent)
 					} else {
-						debugf("unsupported Events API event received")
+						debugf("unsupported event received %+v\n", socketEvent)
 					}
 				}
 			}
@@ -251,16 +261,16 @@ func (s *Slacker) Listen(ctx context.Context) error {
 }
 
 func (s *Slacker) defaultHelp(ctx CommandContext) {
-	helpMessage := empty
 
-	for _, group := range s.groups {
+	blocks := []slack.Block{}
+
+	for _, group := range s.commandGroups {
 		for _, command := range group.GetCommands() {
 			if command.Definition().HideHelp {
 				continue
 			}
 
-			helpMessage += "•" + space
-
+			helpMessage := empty
 			tokens := command.Tokenize()
 			for _, token := range tokens {
 				if token.IsParameter() {
@@ -274,31 +284,26 @@ func (s *Slacker) defaultHelp(ctx CommandContext) {
 				helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Description)
 			}
 
-			helpMessage += newLine
+			blocks = append(blocks,
+				slack.NewSectionBlock(
+					slack.NewTextBlockObject(slack.MarkdownType, helpMessage, false, false),
+					nil, nil,
+				))
 
-			for _, example := range command.Definition().Examples {
-				helpMessage += fmt.Sprintf(quoteMessageFormat, example) + newLine
+			if len(command.Definition().Examples) > 0 {
+				examplesMessage := empty
+				for _, example := range command.Definition().Examples {
+					examplesMessage += fmt.Sprintf(exampleMessageFormat, example) + newLine
+				}
+
+				blocks = append(blocks, slack.NewContextBlock("",
+					slack.NewTextBlockObject(slack.MarkdownType, examplesMessage, false, false),
+				))
 			}
 		}
-
-		helpMessage += newLine
 	}
 
-	for _, command := range s.jobs {
-		if command.Definition().HideHelp {
-			continue
-		}
-
-		helpMessage += fmt.Sprintf(codeMessageFormat, command.Spec()) + space
-
-		if len(command.Definition().Description) > 0 {
-			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Description)
-		}
-
-		helpMessage += newLine
-	}
-
-	ctx.Response().Reply(helpMessage)
+	ctx.Response().Reply("", WithBlocks(blocks))
 }
 
 func (s *Slacker) prependHelpHandle() {
@@ -314,36 +319,34 @@ func (s *Slacker) prependHelpHandle() {
 		s.helpDefinition.Description = helpCommand
 	}
 
-	s.groups[0].PrependCommand(helpCommand, s.helpDefinition)
+	s.commandGroups[0].PrependCommand(helpCommand, s.helpDefinition)
 }
 
 func (s *Slacker) startCronJobs(ctx context.Context) {
 	jobCtx := newJobContext(ctx, s.apiClient, s.socketModeClient)
-	for _, jobCommand := range s.jobs {
-		s.cronClient.AddFunc(jobCommand.Spec(), jobCommand.Callback(jobCtx))
+	for _, job := range s.jobs {
+		s.cronClient.AddFunc(job.Definition().Spec, job.Callback(jobCtx))
 	}
 
 	s.cronClient.Start()
 }
 
-func (s *Slacker) handleInteractiveEvent(ctx context.Context, event *socketmode.Event, callback *slack.InteractionCallback) {
-	iCtx := newInteractiveContext(ctx, s.apiClient, s.socketModeClient, event, callback)
+func (s *Slacker) handleInteractionEvent(ctx context.Context, event *socketmode.Event, callback *slack.InteractionCallback) {
+	interactionCtx := newInteractionContext(ctx, s.apiClient, s.socketModeClient, event, callback)
 
-	for _, group := range s.groups {
-		for _, cmd := range group.GetCommands() {
-			for _, action := range callback.ActionCallback.BlockActions {
-				if action.BlockID != cmd.Definition().BlockID {
-					continue
-				}
-
-				cmd.InteractiveCallback(iCtx)
-				return
+	for _, interaction := range s.interactions {
+		for _, action := range callback.ActionCallback.BlockActions {
+			if action.BlockID != interaction.Definition().BlockID {
+				continue
 			}
+
+			interaction.Handler(interactionCtx)
+			return
 		}
 	}
 
-	if s.unhandledInteractiveCallback != nil {
-		s.unhandledInteractiveCallback(iCtx)
+	if s.unhandledInteractionCallback != nil {
+		s.unhandledInteractionCallback(interactionCtx)
 	}
 }
 
@@ -361,16 +364,16 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *so
 	}
 
 	eventText := s.sanitizeEventText(messageEvent.Text)
-	for _, group := range s.groups {
+	for _, group := range s.commandGroups {
 		for _, cmd := range group.GetCommands() {
 			parameters, isMatch := cmd.Match(eventText)
 			if !isMatch {
 				continue
 			}
 
-			ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, cmd.Usage(), parameters)
-			middlewares := make([]MiddlewareHandler, 0)
-			middlewares = append(middlewares, s.middlewares...)
+			ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, cmd.Definition(), parameters)
+			middlewares := make([]CommandMiddlewareHandler, 0)
+			middlewares = append(middlewares, s.commandMiddlewares...)
 			middlewares = append(middlewares, group.GetMiddlewares()...)
 			middlewares = append(middlewares, cmd.Definition().Middlewares...)
 			cmd.Handler(ctx, middlewares...)
@@ -379,7 +382,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *so
 	}
 
 	if s.unhandledMessageHandler != nil {
-		ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, "", nil)
+		ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, nil, nil)
 		s.unhandledMessageHandler(ctx)
 	}
 }
@@ -397,11 +400,11 @@ func (s *Slacker) ignoreBotMessage(messageEvent *MessageEvent) bool {
 			return true
 		}
 		if bot.AppID == s.appID {
-			debugf("Ignoring event that originated from my App ID: %v\n", bot.AppID)
+			debugf("ignoring event that originated from my App ID: %v\n", bot.AppID)
 			return true
 		}
 	case BotInteractionModeIgnoreAll:
-		debugf("Ignoring event that originated from Bot ID: %v\n", messageEvent.BotID)
+		debugf("ignoring event that originated from Bot ID: %v\n", messageEvent.BotID)
 		return true
 	default:
 		// BotInteractionModeIgnoreNone is handled in the default case
