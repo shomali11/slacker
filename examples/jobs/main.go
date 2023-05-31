@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/shomali11/slacker/v2"
-	"github.com/slack-go/slack"
 )
 
 // Showcase the ability to define Cron Jobs
@@ -23,7 +22,7 @@ func main() {
 	bot.AddJob("0 * * * * *", &slacker.JobDefinition{
 		Description: "A cron job that runs every minute",
 		Handler: func(jobCtx slacker.JobContext) error {
-			jobCtx.APIClient().PostMessage("#test", slack.MsgOptionText("Hello!", false))
+			jobCtx.Response().Post("#test", "Hello!")
 			return nil
 		},
 	})

@@ -18,14 +18,14 @@ func main() {
 	messageReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in new messages",
 		Handler: func(ctx slacker.CommandContext) {
-			ctx.Response().Error(errors.New("oops, an error occurred"))
+			ctx.Response().ReplyError(errors.New("oops, an error occurred"))
 		},
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
 		Description: "Tests errors in threads",
 		Handler: func(ctx slacker.CommandContext) {
-			ctx.Response().Error(errors.New("oops, an error occurred"), slacker.WithThreadError(true))
+			ctx.Response().ReplyError(errors.New("oops, an error occurred"), slacker.WithInThread())
 		},
 	}
 

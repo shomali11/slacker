@@ -23,7 +23,7 @@ func main() {
 
 			apiClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
 			_, err := apiClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
-			ctx.Response().Error(err)
+			ctx.Response().ReplyError(err)
 		},
 	}
 

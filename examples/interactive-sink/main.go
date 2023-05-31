@@ -12,7 +12,7 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.UnhandledInteractionCallback(func(ctx slacker.InteractionContext) {
+	bot.UnhandledInteractionHandler(func(ctx slacker.InteractionContext) {
 		callback := ctx.Callback()
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
@@ -48,10 +48,10 @@ func main() {
 			sadBtn := slack.NewButtonBlockElement("sad", "false", slack.NewTextBlockObject("plain_text", "Sad ☹️", true, false))
 			sadBtn.Style = "danger"
 
-			ctx.Response().Reply("", slacker.WithBlocks([]slack.Block{
+			ctx.Response().ReplyBlocks([]slack.Block{
 				slack.NewSectionBlock(slack.NewTextBlockObject(slack.PlainTextType, "What is your mood today?", true, false), nil, nil),
 				slack.NewActionBlock("mood-block", happyBtn, sadBtn),
-			}))
+			})
 		},
 	}
 

@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"os"
+	//"os"
 
 	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
@@ -13,7 +13,8 @@ import (
 // This assumes that a slash command `/mood` is defined for your app.
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot := slacker.NewClient("xoxb-13360094916-2243791173942-nGMExMn3wAjKvEN7A6qW9Hx9", "xapp-1-A027JMM1RV2-2250533826146-95a21dc3cf791d1f96cba0e08344847ab059d95f605ff7304f8a20232dbbd327")
+	//bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 	bot.AddCommand("mood", &slacker.CommandDefinition{
 		Handler:  slackerCmd("mood"),
 		HideHelp: true,
@@ -40,10 +41,10 @@ func slackerCmd(blockID string) slacker.CommandHandler {
 		sadBtn := slack.NewButtonBlockElement("sad", "false", slack.NewTextBlockObject("plain_text", "Sad ☹️", true, false))
 		sadBtn.Style = "danger"
 
-		ctx.Response().Reply("", slacker.WithBlocks([]slack.Block{
+		ctx.Response().ReplyBlocks([]slack.Block{
 			slack.NewSectionBlock(slack.NewTextBlockObject(slack.PlainTextType, "What is your mood today?", true, false), nil, nil),
 			slack.NewActionBlock(blockID, happyBtn, sadBtn),
-		}))
+		})
 	}
 }
 

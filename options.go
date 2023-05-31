@@ -2,10 +2,6 @@ package slacker
 
 import "github.com/slack-go/slack"
 
-const (
-	errorFormat = "```%s```"
-)
-
 // ClientOption an option for client values
 type ClientOption func(*ClientOptions)
 
@@ -60,33 +56,24 @@ func WithAttachments(attachments []slack.Attachment) ReplyOption {
 	}
 }
 
-// WithBlocks sets message blocks
-func WithBlocks(blocks []slack.Block) ReplyOption {
+// WithInThread specifies whether to reply inside a thread of the original message
+func WithInThread() ReplyOption {
 	return func(defaults *ReplyOptions) {
-		defaults.Blocks = blocks
-	}
-}
-
-// WithThreadReply specifies whether to reply inside a thread of the original message
-func WithThreadReply(useThread bool) ReplyOption {
-	return func(defaults *ReplyOptions) {
-		defaults.ThreadResponse = useThread
+		defaults.InThread = true
 	}
 }
 
 // ReplyOptions configuration
 type ReplyOptions struct {
-	Attachments    []slack.Attachment
-	Blocks         []slack.Block
-	ThreadResponse bool
+	Attachments []slack.Attachment
+	InThread    bool
 }
 
-// newReplyOptions builds our ReplyOptionss from zero or more ReplyOption.
+// newReplyOptions builds our ReplyOptions from zero or more ReplyOption.
 func newReplyOptions(options ...ReplyOption) *ReplyOptions {
 	config := &ReplyOptions{
-		Attachments:    []slack.Attachment{},
-		Blocks:         []slack.Block{},
-		ThreadResponse: false,
+		Attachments: []slack.Attachment{},
+		InThread:    false,
 	}
 
 	for _, option := range options {
@@ -95,34 +82,34 @@ func newReplyOptions(options ...ReplyOption) *ReplyOptions {
 	return config
 }
 
-// ErrorOption an option for error values
-type ErrorOption func(*ErrorOptions)
+// PostOption an option for post values
+type PostOption func(*PostOptions)
 
-// ErrorOptions configuration
-type ErrorOptions struct {
-	ThreadResponse bool
-	Format         string
-}
-
-// WithThreadError specifies whether to error inside a thread of the original message
-func WithThreadError(useThread bool) ErrorOption {
-	return func(defaults *ErrorOptions) {
-		defaults.ThreadResponse = useThread
+// SetAttachments sets message attachments
+func SetAttachments(attachments []slack.Attachment) PostOption {
+	return func(defaults *PostOptions) {
+		defaults.Attachments = attachments
 	}
 }
 
-// WithFormat specifies the format of the error
-func WithFormat(format string) ErrorOption {
-	return func(defaults *ErrorOptions) {
-		defaults.Format = format
+// SetThreadTs specifies whether to reply inside a thread
+func SetThreadTs(threadTs string) PostOption {
+	return func(defaults *PostOptions) {
+		defaults.ThreadTs = threadTs
 	}
 }
 
-// newErrorOptions builds our ReportErrorOptions from zero or more ReportErrorOption.
-func newErrorOptions(options ...ErrorOption) *ErrorOptions {
-	config := &ErrorOptions{
-		ThreadResponse: false,
-		Format:         errorFormat,
+// PostOptions configuration
+type PostOptions struct {
+	Attachments []slack.Attachment
+	ThreadTs    string
+}
+
+// newPostOptions builds our PostOptions from zero or more PostOption.
+func newPostOptions(options ...PostOption) *PostOptions {
+	config := &PostOptions{
+		Attachments: []slack.Attachment{},
+		ThreadTs:    "",
 	}
 
 	for _, option := range options {

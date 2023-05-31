@@ -26,7 +26,7 @@ func main() {
 
 			select {
 			case <-timedContext.Done():
-				ctx.Response().Error(errors.New("timed out"))
+				ctx.Response().ReplyError(errors.New("timed out"))
 			case <-time.After(duration):
 				ctx.Response().Reply("Processing done!")
 			}

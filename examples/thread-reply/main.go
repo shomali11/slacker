@@ -17,7 +17,7 @@ func main() {
 		Description: "Ping!",
 		Examples:    []string{"ping"},
 		Handler: func(ctx slacker.CommandContext) {
-			ctx.Response().Reply("pong", slacker.WithThreadReply(true))
+			ctx.Response().Reply("pong", slacker.WithInThread())
 		},
 	}
 

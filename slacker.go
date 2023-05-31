@@ -69,22 +69,22 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	apiClient                    *slack.Client
-	socketModeClient             *socketmode.Client
-	cronClient                   *cron.Cron
-	commandMiddlewares           []CommandMiddlewareHandler
-	commandGroups                []CommandGroup
-	interactions                 []Interaction
-	jobs                         []Job
-	initHandler                  func()
-	unhandledInteractionCallback InteractionHandler
-	helpDefinition               *CommandDefinition
-	unhandledMessageHandler      CommandHandler
-	unhandledEventHandler        func(socketmode.Event)
-	appID                        string
-	botInteractionMode           BotInteractionMode
-	sanitizeEventText            func(string) string
-	debug                        bool
+	apiClient                   *slack.Client
+	socketModeClient            *socketmode.Client
+	cronClient                  *cron.Cron
+	commandMiddlewares          []CommandMiddlewareHandler
+	commandGroups               []CommandGroup
+	interactions                []Interaction
+	jobs                        []Job
+	initHandler                 func()
+	unhandledInteractionHandler InteractionHandler
+	helpDefinition              *CommandDefinition
+	unhandledMessageHandler     CommandHandler
+	unhandledEventHandler       func(socketmode.Event)
+	appID                       string
+	botInteractionMode          BotInteractionMode
+	sanitizeEventText           func(string) string
+	debug                       bool
 }
 
 // GetGroups returns Groups
@@ -112,9 +112,9 @@ func (s *Slacker) SanitizeEventText(sanitizeEventText func(in string) string) {
 	s.sanitizeEventText = sanitizeEventText
 }
 
-// UnhandledInteractionCallback assigns an interaction callback when none of the interaction callbacks are handled
-func (s *Slacker) UnhandledInteractionCallback(unhanldedInteractionCallback InteractionHandler) {
-	s.unhandledInteractionCallback = unhanldedInteractionCallback
+// UnhandledInteractionHandler assigns an interaction handler when none of the interactions are handled
+func (s *Slacker) UnhandledInteractionHandler(unhanldedInteractionHandler InteractionHandler) {
+	s.unhandledInteractionHandler = unhanldedInteractionHandler
 }
 
 // UnhandledMessageHandler handle messages when none of the commands are matched
@@ -303,7 +303,7 @@ func (s *Slacker) defaultHelp(ctx CommandContext) {
 		}
 	}
 
-	ctx.Response().Reply("", WithBlocks(blocks))
+	ctx.Response().ReplyBlocks(blocks)
 }
 
 func (s *Slacker) prependHelpHandle() {
@@ -345,8 +345,8 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, event *socketmode.
 		}
 	}
 
-	if s.unhandledInteractionCallback != nil {
-		s.unhandledInteractionCallback(interactionCtx)
+	if s.unhandledInteractionHandler != nil {
+		s.unhandledInteractionHandler(interactionCtx)
 	}
 }
 

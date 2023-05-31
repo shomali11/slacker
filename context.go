@@ -14,7 +14,7 @@ type CommandContext interface {
 	Definition() *CommandDefinition
 	Event() *MessageEvent
 	Request() Request
-	Response() ResponseWriter
+	Response() PosterReplierResponse
 	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
@@ -28,14 +28,19 @@ func newCommandContext(
 	definition *CommandDefinition,
 	parameters *proper.Properties,
 ) CommandContext {
+	request := newRequest(parameters)
+	poster := newPoster(apiClient, socketModeClient)
+	replier := newReplier(event.ChannelID, event.TimeStamp, poster)
+	response := newPosterReplierResponse(poster, replier)
+
 	return &commandContext{
 		ctx:              ctx,
 		event:            event,
 		apiClient:        apiClient,
 		socketModeClient: socketModeClient,
 		definition:       definition,
-		request:          newRequest(parameters),
-		response:         newResponse(event, apiClient, socketModeClient),
+		request:          request,
+		response:         response,
 	}
 }
 
@@ -46,7 +51,7 @@ type commandContext struct {
 	socketModeClient *socketmode.Client
 	definition       *CommandDefinition
 	request          Request
-	response         ResponseWriter
+	response         PosterReplierResponse
 }
 
 // Context returns the context
@@ -79,8 +84,8 @@ func (r *commandContext) Request() Request {
 	return r.request
 }
 
-// Response returns the command response writer
-func (r *commandContext) Response() ResponseWriter {
+// Response returns the command response
+func (r *commandContext) Response() PosterReplierResponse {
 	return r.response
 }
 
@@ -89,6 +94,7 @@ type InteractionContext interface {
 	Context() context.Context
 	Event() *socketmode.Event
 	Callback() *slack.InteractionCallback
+	Response() PosterReplierResponse
 	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
@@ -101,12 +107,16 @@ func newInteractionContext(
 	event *socketmode.Event,
 	callback *slack.InteractionCallback,
 ) InteractionContext {
+	poster := newPoster(apiClient, socketModeClient)
+	replier := newReplier(callback.Channel.ID, callback.MessageTs, poster)
+	response := newPosterReplierResponse(poster, replier)
 	return &interactionContext{
 		ctx:              ctx,
 		event:            event,
 		apiClient:        apiClient,
 		socketModeClient: socketModeClient,
 		callback:         callback,
+		response:         response,
 	}
 }
 
@@ -116,6 +126,7 @@ type interactionContext struct {
 	apiClient        *slack.Client
 	socketModeClient *socketmode.Client
 	callback         *slack.InteractionCallback
+	response         PosterReplierResponse
 }
 
 // Context returns the context
@@ -126,6 +137,11 @@ func (r *interactionContext) Context() context.Context {
 // Event returns the socket event
 func (r *interactionContext) Event() *socketmode.Event {
 	return r.event
+}
+
+// Response returns the command response
+func (r *interactionContext) Response() PosterReplierResponse {
+	return r.response
 }
 
 // APIClient returns the slack API client
@@ -146,24 +162,38 @@ func (r *interactionContext) Callback() *slack.InteractionCallback {
 // JobContext interface is for job command contexts
 type JobContext interface {
 	Context() context.Context
+	Response() PosterResponse
 	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
 }
 
 // newJobContext creates a new bot context
 func newJobContext(ctx context.Context, apiClient *slack.Client, socketModeClient *socketmode.Client) JobContext {
-	return &jobContext{ctx: ctx, apiClient: apiClient, socketModeClient: socketModeClient}
+	poster := newPoster(apiClient, socketModeClient)
+	response := newPosterResponse(poster)
+	return &jobContext{
+		ctx:              ctx,
+		apiClient:        apiClient,
+		socketModeClient: socketModeClient,
+		response:         response,
+	}
 }
 
 type jobContext struct {
 	ctx              context.Context
 	apiClient        *slack.Client
 	socketModeClient *socketmode.Client
+	response         PosterResponse
 }
 
 // Context returns the context
 func (r *jobContext) Context() context.Context {
 	return r.ctx
+}
+
+// Response returns the command response
+func (r *jobContext) Response() PosterResponse {
+	return r.response
 }
 
 // APIClient returns the slack API client

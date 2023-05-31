@@ -24,8 +24,7 @@ func main() {
 				slack.NewTextBlockObject("mrkdwn", word, false, false)),
 			)
 
-			// When using blocks the message argument will be thrown away and can be left blank.
-			ctx.Response().Reply("", slacker.WithBlocks(blocks))
+			ctx.Response().ReplyBlocks(blocks)
 		},
 	}
 
