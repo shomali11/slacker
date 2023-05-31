@@ -12,13 +12,13 @@ type Replier interface {
 }
 
 // newReplier creates a new replier structure
-func newReplier(channelID string, eventTs string, poster Poster) Replier {
-	return &replier{channelID: channelID, eventTs: eventTs, poster: poster}
+func newReplier(channelID string, eventTS string, poster Poster) Replier {
+	return &replier{channelID: channelID, eventTS: eventTS, poster: poster}
 }
 
 type replier struct {
 	channelID string
-	eventTs   string
+	eventTS   string
 	poster    Poster
 }
 
@@ -47,7 +47,7 @@ func (r *replier) convertOptions(options ...ReplyOption) []PostOption {
 	}
 
 	if replyOptions.InThread {
-		responseOptions = append(responseOptions, SetThreadTs(r.eventTs))
+		responseOptions = append(responseOptions, SetThreadTS(r.eventTS))
 	}
 	return responseOptions
 }

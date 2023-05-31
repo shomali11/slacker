@@ -49,8 +49,8 @@ func (r *poster) post(channel string, message string, blocks []slack.Block, opti
 		slack.MsgOptionBlocks(blocks...),
 	}
 
-	if len(postOptions.ThreadTs) > 0 {
-		opts = append(opts, slack.MsgOptionTS(postOptions.ThreadTs))
+	if len(postOptions.ThreadTS) > 0 {
+		opts = append(opts, slack.MsgOptionTS(postOptions.ThreadTS))
 	}
 
 	_, _, err := r.apiClient.PostMessage(

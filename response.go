@@ -63,7 +63,7 @@ type PosterResponse interface {
 
 // newPosterResponse creates a new response structure
 func newPosterResponse(poster Poster) PosterResponse {
-	return &posterReplierResponse{poster: poster}
+	return &posterResponse{poster: poster}
 }
 
 type posterResponse struct {

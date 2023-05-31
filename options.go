@@ -92,24 +92,24 @@ func SetAttachments(attachments []slack.Attachment) PostOption {
 	}
 }
 
-// SetThreadTs specifies whether to reply inside a thread
-func SetThreadTs(threadTs string) PostOption {
+// SetThreadTS specifies whether to reply inside a thread
+func SetThreadTS(threadTS string) PostOption {
 	return func(defaults *PostOptions) {
-		defaults.ThreadTs = threadTs
+		defaults.ThreadTS = threadTS
 	}
 }
 
 // PostOptions configuration
 type PostOptions struct {
 	Attachments []slack.Attachment
-	ThreadTs    string
+	ThreadTS    string
 }
 
 // newPostOptions builds our PostOptions from zero or more PostOption.
 func newPostOptions(options ...PostOption) *PostOptions {
 	config := &PostOptions{
 		Attachments: []slack.Attachment{},
-		ThreadTs:    "",
+		ThreadTS:    "",
 	}
 
 	for _, option := range options {
