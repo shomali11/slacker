@@ -63,10 +63,26 @@ func WithInThread() ReplyOption {
 	}
 }
 
+// WithReplace replaces the original message
+func WithReplace(originalMessageTS string) ReplyOption {
+	return func(defaults *ReplyOptions) {
+		defaults.ReplaceMessageTS = originalMessageTS
+	}
+}
+
+// WithEphemeral sets the message as ephemeral
+func WithEphemeral() ReplyOption {
+	return func(defaults *ReplyOptions) {
+		defaults.IsEphemeral = true
+	}
+}
+
 // ReplyOptions configuration
 type ReplyOptions struct {
-	Attachments []slack.Attachment
-	InThread    bool
+	Attachments      []slack.Attachment
+	InThread         bool
+	ReplaceMessageTS string
+	IsEphemeral      bool
 }
 
 // newReplyOptions builds our ReplyOptions from zero or more ReplyOption.
@@ -99,10 +115,26 @@ func SetThreadTS(threadTS string) PostOption {
 	}
 }
 
+// SetReplace sets message url to be replaced
+func SetReplace(originalMessageTS string) PostOption {
+	return func(defaults *PostOptions) {
+		defaults.ReplaceMessageTS = originalMessageTS
+	}
+}
+
+// SetEphemeral sets the user who receives the ephemeral message
+func SetEphemeral(userID string) PostOption {
+	return func(defaults *PostOptions) {
+		defaults.EphemeralUserID = userID
+	}
+}
+
 // PostOptions configuration
 type PostOptions struct {
-	Attachments []slack.Attachment
-	ThreadTS    string
+	Attachments      []slack.Attachment
+	ThreadTS         string
+	ReplaceMessageTS string
+	EphemeralUserID  string
 }
 
 // newPostOptions builds our PostOptions from zero or more PostOption.

@@ -4,83 +4,95 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// PosterReplierResponse interface is used to respond to an event
-type PosterReplierResponse interface {
-	Reply(message string, options ...ReplyOption)
-	ReplyError(err error, options ...ReplyOption)
-	ReplyBlocks(blocks []slack.Block, options ...ReplyOption)
-	Post(channel string, message string, options ...PostOption)
-	PostError(channel string, err error, options ...PostOption)
-	PostBlocks(channel string, blocks []slack.Block, options ...PostOption)
+// WriterReplierResponse interface is used to respond to an event
+type WriterReplierResponse interface {
+	Reply(message string, options ...ReplyOption) (string, error)
+	ReplyError(err error, options ...ReplyOption) (string, error)
+	ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error)
+	Post(channel string, message string, options ...PostOption) (string, error)
+	PostError(channel string, err error, options ...PostOption) (string, error)
+	PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error)
+	Delete(channel string, messageTimestamp string) (string, error)
 }
 
-// newPosterReplierResponse creates a new response structure
-func newPosterReplierResponse(poster Poster, replier Replier) PosterReplierResponse {
-	return &posterReplierResponse{poster: poster, replier: replier}
+// newWriterReplierResponse creates a new response structure
+func newWriterReplierResponse(poster Writer, replier Replier) WriterReplierResponse {
+	return &writerReplierResponse{poster: poster, replier: replier}
 }
 
-type posterReplierResponse struct {
-	poster  Poster
+type writerReplierResponse struct {
+	poster  Writer
 	replier Replier
 }
 
 // Reply send a message to the current channel
-func (r *posterReplierResponse) Reply(message string, options ...ReplyOption) {
-	r.replier.Reply(message, options...)
+func (r *writerReplierResponse) Reply(message string, options ...ReplyOption) (string, error) {
+	return r.replier.Reply(message, options...)
 }
 
 // ReplyError send an error to the current channel
-func (r *posterReplierResponse) ReplyError(err error, options ...ReplyOption) {
-	r.replier.ReplyError(err, options...)
+func (r *writerReplierResponse) ReplyError(err error, options ...ReplyOption) (string, error) {
+	return r.replier.ReplyError(err, options...)
 }
 
 // ReplyBlocks send blocks to the current channel
-func (r *posterReplierResponse) ReplyBlocks(blocks []slack.Block, options ...ReplyOption) {
-	r.replier.ReplyBlocks(blocks, options...)
+func (r *writerReplierResponse) ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error) {
+	return r.replier.ReplyBlocks(blocks, options...)
 }
 
 // Post send a message to a channel
-func (r *posterReplierResponse) Post(channel string, message string, options ...PostOption) {
-	r.poster.Post(channel, message, options...)
+func (r *writerReplierResponse) Post(channel string, message string, options ...PostOption) (string, error) {
+	return r.poster.Post(channel, message, options...)
 }
 
 // PostError send an error to a channel
-func (r *posterReplierResponse) PostError(channel string, err error, options ...PostOption) {
-	r.poster.PostError(channel, err, options...)
+func (r *writerReplierResponse) PostError(channel string, err error, options ...PostOption) (string, error) {
+	return r.poster.PostError(channel, err, options...)
 }
 
 // PostBlocks send blocks to a channel
-func (r *posterReplierResponse) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) {
-	r.poster.PostBlocks(channel, blocks, options...)
+func (r *writerReplierResponse) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
+	return r.poster.PostBlocks(channel, blocks, options...)
 }
 
-// PosterResponse interface is used to respond to an event
-type PosterResponse interface {
-	Post(channel string, message string, options ...PostOption)
-	PostError(channel string, err error, options ...PostOption)
-	PostBlocks(channel string, blocks []slack.Block, options ...PostOption)
+// Delete deletes a message in a channel
+func (r *writerReplierResponse) Delete(channel string, messageTimestamp string) (string, error) {
+	return r.poster.Delete(channel, messageTimestamp)
 }
 
-// newPosterResponse creates a new response structure
-func newPosterResponse(poster Poster) PosterResponse {
-	return &posterResponse{poster: poster}
+// WriterResponse interface is used to respond to an event
+type WriterResponse interface {
+	Post(channel string, message string, options ...PostOption) (string, error)
+	PostError(channel string, err error, options ...PostOption) (string, error)
+	PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error)
+	Delete(channel string, messageTimestamp string) (string, error)
 }
 
-type posterResponse struct {
-	poster Poster
+// newWriterResponse creates a new response structure
+func newWriterResponse(poster Writer) WriterResponse {
+	return &writerResponse{poster: poster}
+}
+
+type writerResponse struct {
+	poster Writer
 }
 
 // Post send a message to a channel
-func (r *posterResponse) Post(channel string, message string, options ...PostOption) {
-	r.poster.Post(channel, message, options...)
+func (r *writerResponse) Post(channel string, message string, options ...PostOption) (string, error) {
+	return r.poster.Post(channel, message, options...)
 }
 
 // PostError send an error to a channel
-func (r *posterResponse) PostError(channel string, err error, options ...PostOption) {
-	r.poster.PostError(channel, err, options...)
+func (r *writerResponse) PostError(channel string, err error, options ...PostOption) (string, error) {
+	return r.poster.PostError(channel, err, options...)
 }
 
 // PostBlocks send blocks to a channel
-func (r *posterResponse) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) {
-	r.poster.PostBlocks(channel, blocks, options...)
+func (r *writerResponse) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
+	return r.poster.PostBlocks(channel, blocks, options...)
+}
+
+// Delete deletes a message in a channel
+func (r *writerResponse) Delete(channel string, messageTimestamp string) (string, error) {
+	return r.poster.Delete(channel, messageTimestamp)
 }

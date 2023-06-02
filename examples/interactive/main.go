@@ -59,6 +59,5 @@ func slackerInteractive(ctx slacker.InteractionContext) {
 		text = "I don't understand your mood..."
 	}
 
-	_, _, _ = ctx.APIClient().PostMessage(ctx.Callback().Channel.ID, slack.MsgOptionText(text, false),
-		slack.MsgOptionReplaceOriginal(ctx.Callback().ResponseURL))
+	ctx.Response().Reply(text, slacker.WithReplace(ctx.Callback().Message.Timestamp))
 }

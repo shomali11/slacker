@@ -37,8 +37,7 @@ func main() {
 			text = "I don't understand your mood..."
 		}
 
-		_, _, _ = ctx.APIClient().PostMessage(callback.Channel.ID, slack.MsgOptionText(text, false),
-			slack.MsgOptionReplaceOriginal(callback.ResponseURL))
+		ctx.Response().Reply(text, slacker.WithReplace(callback.Message.Timestamp))
 	})
 
 	definition := &slacker.CommandDefinition{
