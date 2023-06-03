@@ -23,8 +23,6 @@ func newInteraction(blockID string, definition *InteractionDefinition) Interacti
 // Interaction interface
 type Interaction interface {
 	Definition() *InteractionDefinition
-
-	Handler(InteractionContext, ...InteractionMiddlewareHandler)
 }
 
 // interaction structure contains the bot's interaction, description and handler
@@ -35,18 +33,4 @@ type interaction struct {
 // Definition returns the interaction definition
 func (c *interaction) Definition() *InteractionDefinition {
 	return c.definition
-}
-
-// Handler executes the handler logic
-func (c *interaction) Handler(ctx InteractionContext, middlewares ...InteractionMiddlewareHandler) {
-	if c.definition == nil || c.definition.Handler == nil {
-		return
-	}
-
-	handler := c.definition.Handler
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
-	}
-
-	handler(ctx)
 }

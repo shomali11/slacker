@@ -9,7 +9,7 @@ import (
 	"github.com/shomali11/slacker/v2"
 )
 
-// Replacing messages via timestamp
+// Scheduling messages
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))

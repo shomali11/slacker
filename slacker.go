@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
@@ -74,7 +74,9 @@ type Slacker struct {
 	cronClient                  *cron.Cron
 	commandMiddlewares          []CommandMiddlewareHandler
 	commandGroups               []CommandGroup
+	interactionMiddlewares      []InteractionMiddlewareHandler
 	interactions                []Interaction
+	jobMiddlewares              []JobMiddlewareHandler
 	jobs                        []Job
 	initHandler                 func()
 	unhandledInteractionHandler InteractionHandler
@@ -137,13 +139,13 @@ func (s *Slacker) AddCommand(usage string, definition *CommandDefinition) {
 	s.commandGroups[0].AddCommand(usage, definition)
 }
 
-// AddMiddleware define a new middleware and append it to the list of root level middlewares
-func (s *Slacker) AddMiddleware(middleware CommandMiddlewareHandler) {
+// AddCommandMiddleware appends a new command middleware to the list of root level command middlewares
+func (s *Slacker) AddCommandMiddleware(middleware CommandMiddlewareHandler) {
 	s.commandMiddlewares = append(s.commandMiddlewares, middleware)
 }
 
-// AddGroup define a new group and append it to the list of groups
-func (s *Slacker) AddGroup(prefix string) CommandGroup {
+// AddCommandGroup define a new group and append it to the list of groups
+func (s *Slacker) AddCommandGroup(prefix string) CommandGroup {
 	group := newGroup(prefix)
 	s.commandGroups = append(s.commandGroups, group)
 	return group
@@ -154,9 +156,19 @@ func (s *Slacker) AddInteraction(blockID string, definition *InteractionDefiniti
 	s.interactions = append(s.interactions, newInteraction(blockID, definition))
 }
 
+// AddInteractionMiddleware appends a new interaction middleware to the list of root level interaction middlewares
+func (s *Slacker) AddInteractionMiddleware(middleware InteractionMiddlewareHandler) {
+	s.interactionMiddlewares = append(s.interactionMiddlewares, middleware)
+}
+
 // AddJob define a new cron job and append it to the list of jobs
 func (s *Slacker) AddJob(spec string, definition *JobDefinition) {
 	s.jobs = append(s.jobs, newJob(spec, definition))
+}
+
+// AddJobMiddleware appends a new job middleware to the list of root level job middlewares
+func (s *Slacker) AddJobMiddleware(middleware JobMiddlewareHandler) {
+	s.jobMiddlewares = append(s.jobMiddlewares, middleware)
 }
 
 // Listen receives events from Slack and each is handled as needed
@@ -261,7 +273,6 @@ func (s *Slacker) Listen(ctx context.Context) error {
 }
 
 func (s *Slacker) defaultHelp(ctx CommandContext) {
-
 	blocks := []slack.Block{}
 
 	for _, group := range s.commandGroups {
@@ -324,8 +335,17 @@ func (s *Slacker) prependHelpHandle() {
 
 func (s *Slacker) startCronJobs(ctx context.Context) {
 	jobCtx := newJobContext(ctx, s.apiClient, s.socketModeClient)
+
+	middlewares := make([]JobMiddlewareHandler, 0)
+	middlewares = append(middlewares, s.jobMiddlewares...)
+
 	for _, job := range s.jobs {
-		s.cronClient.AddFunc(job.Definition().Spec, job.Callback(jobCtx))
+		definition := job.Definition()
+		_, err := s.cronClient.AddFunc(definition.Spec, executeJob(jobCtx, definition.Handler, middlewares...))
+		if err != nil {
+			infof(err.Error())
+		}
+
 	}
 
 	s.cronClient.Start()
@@ -334,19 +354,24 @@ func (s *Slacker) startCronJobs(ctx context.Context) {
 func (s *Slacker) handleInteractionEvent(ctx context.Context, event *socketmode.Event, callback *slack.InteractionCallback) {
 	interactionCtx := newInteractionContext(ctx, s.apiClient, s.socketModeClient, event, callback)
 
+	middlewares := make([]InteractionMiddlewareHandler, 0)
+	middlewares = append(middlewares, s.interactionMiddlewares...)
+
 	for _, interaction := range s.interactions {
 		for _, action := range callback.ActionCallback.BlockActions {
-			if action.BlockID != interaction.Definition().BlockID {
+			definition := interaction.Definition()
+			if action.BlockID != definition.BlockID {
 				continue
 			}
 
-			interaction.Handler(interactionCtx)
+			middlewares = append(middlewares, definition.Middlewares...)
+			executeInteraction(interactionCtx, definition.Handler, middlewares...)
 			return
 		}
 	}
 
 	if s.unhandledInteractionHandler != nil {
-		s.unhandledInteractionHandler(interactionCtx)
+		executeInteraction(interactionCtx, s.unhandledInteractionHandler, middlewares...)
 	}
 }
 
@@ -363,6 +388,9 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *so
 		}
 	}
 
+	middlewares := make([]CommandMiddlewareHandler, 0)
+	middlewares = append(middlewares, s.commandMiddlewares...)
+
 	eventText := s.sanitizeEventText(messageEvent.Text)
 	for _, group := range s.commandGroups {
 		for _, cmd := range group.GetCommands() {
@@ -371,19 +399,19 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *so
 				continue
 			}
 
-			ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, cmd.Definition(), parameters)
-			middlewares := make([]CommandMiddlewareHandler, 0)
-			middlewares = append(middlewares, s.commandMiddlewares...)
+			definition := cmd.Definition()
+			ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, definition, parameters)
+
 			middlewares = append(middlewares, group.GetMiddlewares()...)
-			middlewares = append(middlewares, cmd.Definition().Middlewares...)
-			cmd.Handler(ctx, middlewares...)
+			middlewares = append(middlewares, definition.Middlewares...)
+			executeCommand(ctx, definition.Handler, middlewares...)
 			return
 		}
 	}
 
 	if s.unhandledMessageHandler != nil {
 		ctx := newCommandContext(ctx, s.apiClient, s.socketModeClient, messageEvent, nil, nil)
-		s.unhandledMessageHandler(ctx)
+		executeCommand(ctx, s.unhandledMessageHandler, middlewares...)
 	}
 }
 

@@ -16,15 +16,15 @@ func main() {
 		},
 	})
 
-	bot.AddMiddleware(slacker.LoggingMiddleware())
-	bot.AddMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
+	bot.AddCommandMiddleware(slacker.LoggingCommandMiddleware())
+	bot.AddCommandMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
 		return func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("Root Middleware!")
 			next(ctx)
 		}
 	})
 
-	group := bot.AddGroup("cool")
+	group := bot.AddCommandGroup("cool")
 	group.AddMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
 		return func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("Group Middleware!")

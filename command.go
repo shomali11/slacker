@@ -33,7 +33,6 @@ type Command interface {
 
 	Match(string) (*proper.Properties, bool)
 	Tokenize() []*commander.Token
-	Handler(CommandContext, ...CommandMiddlewareHandler)
 }
 
 // command structure contains the bot's command, description and handler
@@ -55,18 +54,4 @@ func (c *command) Match(text string) (*proper.Properties, bool) {
 // Tokenize returns the command format's tokens
 func (c *command) Tokenize() []*commander.Token {
 	return c.cmd.Tokenize()
-}
-
-// Handler executes the handler logic
-func (c *command) Handler(ctx CommandContext, middlewares ...CommandMiddlewareHandler) {
-	if c.definition == nil || c.definition.Handler == nil {
-		return
-	}
-
-	handler := c.definition.Handler
-	for i := len(middlewares) - 1; i >= 0; i-- {
-		handler = middlewares[i](handler)
-	}
-
-	handler(ctx)
 }

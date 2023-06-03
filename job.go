@@ -21,7 +21,6 @@ func newJob(spec string, definition *JobDefinition) Job {
 // Job interface
 type Job interface {
 	Definition() *JobDefinition
-	Callback(JobContext) func()
 }
 
 // job structure contains the job's spec and handler
@@ -32,11 +31,4 @@ type job struct {
 // Definition returns the job's definition
 func (c *job) Definition() *JobDefinition {
 	return c.definition
-}
-
-// Callback returns cron job callback
-func (c *job) Callback(jobCtx JobContext) func() {
-	return func() {
-		c.Definition().Handler(jobCtx)
-	}
 }

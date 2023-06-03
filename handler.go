@@ -16,4 +16,4 @@ type InteractionHandler func(InteractionContext)
 type JobMiddlewareHandler func(JobHandler) JobHandler
 
 // JobHandler represents the job handler function
-type JobHandler func(JobContext) error
+type JobHandler func(JobContext)

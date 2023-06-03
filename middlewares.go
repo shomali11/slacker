@@ -1,7 +1,7 @@
 package slacker
 
-// LoggingMiddleware middleware that logs requests
-func LoggingMiddleware() CommandMiddlewareHandler {
+// LoggingCommandMiddleware middleware that logs requests
+func LoggingCommandMiddleware() CommandMiddlewareHandler {
 	return func(next CommandHandler) CommandHandler {
 		return func(ctx CommandContext) {
 			infof(

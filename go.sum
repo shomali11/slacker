@@ -11,6 +11,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/robfig/cron v1.2.0 h1:ZjScXvvxeQ63Dbyxy76Fj3AT3Ut0aKsyd2/tl3DTMuQ=
 github.com/robfig/cron v1.2.0/go.mod h1:JGuDeoQd7Z6yL4zQhZ3OPEVHB7fL6Ka6skscFHfmt2k=
+github.com/robfig/cron/v3 v3.0.1 h1:WdRxkvbJztn8LMz/QEvLN5sBU+xKpSqwwUO1Pjr4qDs=
+github.com/robfig/cron/v3 v3.0.1/go.mod h1:eQICP3HwyT7UooqI/z+Ov+PtYAWygg1TEWWzGIFLtro=
 github.com/shomali11/commander v0.0.0-20220716022157-b5248c76541a h1:NCmAZOmyqKwf+0KzhY6I6CPndU3qkLRp47RwTyLdMW8=
 github.com/shomali11/commander v0.0.0-20220716022157-b5248c76541a/go.mod h1:bYyJw/Aj9fK+qoFmRbPJeWsDgq7WGO8f/Qof95qPug4=
 github.com/shomali11/proper v0.0.0-20180607004733-233a9a872c30 h1:56awf1OXG6Jc2Pk1saojpCzpzkoBvlqecCyNLY+wwkc=
