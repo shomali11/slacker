@@ -1,6 +1,8 @@
 package slacker
 
 import (
+	"fmt"
+
 	"github.com/slack-go/slack"
 	"github.com/slack-go/slack/socketmode"
 )
@@ -73,6 +75,11 @@ func (r *writer) post(channel string, message string, blocks []slack.Block, opti
 
 	if len(postOptions.EphemeralUserID) > 0 {
 		opts = append(opts, slack.MsgOptionPostEphemeral(postOptions.EphemeralUserID))
+	}
+
+	if postOptions.ScheduleTime != nil {
+		postAt := fmt.Sprintf("%d", postOptions.ScheduleTime.Unix())
+		opts = append(opts, slack.MsgOptionSchedule(postAt))
 	}
 
 	_, timestamp, err := r.apiClient.PostMessage(

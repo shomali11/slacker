@@ -58,5 +58,9 @@ func (r *replier) convertOptions(options ...ReplyOption) []PostOption {
 	if replyOptions.IsEphemeral {
 		responseOptions = append(responseOptions, SetEphemeral(r.userID))
 	}
+
+	if replyOptions.ScheduleTime != nil {
+		responseOptions = append(responseOptions, SetSchedule(*replyOptions.ScheduleTime))
+	}
 	return responseOptions
 }

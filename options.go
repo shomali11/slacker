@@ -1,6 +1,10 @@
 package slacker
 
-import "github.com/slack-go/slack"
+import (
+	"time"
+
+	"github.com/slack-go/slack"
+)
 
 // ClientOption an option for client values
 type ClientOption func(*ClientOptions)
@@ -77,12 +81,20 @@ func WithEphemeral() ReplyOption {
 	}
 }
 
+// WithSchedule sets message's schedule
+func WithSchedule(timestamp time.Time) ReplyOption {
+	return func(defaults *ReplyOptions) {
+		defaults.ScheduleTime = &timestamp
+	}
+}
+
 // ReplyOptions configuration
 type ReplyOptions struct {
 	Attachments      []slack.Attachment
 	InThread         bool
 	ReplaceMessageTS string
 	IsEphemeral      bool
+	ScheduleTime     *time.Time
 }
 
 // newReplyOptions builds our ReplyOptions from zero or more ReplyOption.
@@ -129,19 +141,26 @@ func SetEphemeral(userID string) PostOption {
 	}
 }
 
+// SetSchedule sets message's schedule
+func SetSchedule(timestamp time.Time) PostOption {
+	return func(defaults *PostOptions) {
+		defaults.ScheduleTime = &timestamp
+	}
+}
+
 // PostOptions configuration
 type PostOptions struct {
 	Attachments      []slack.Attachment
 	ThreadTS         string
 	ReplaceMessageTS string
 	EphemeralUserID  string
+	ScheduleTime     *time.Time
 }
 
 // newPostOptions builds our PostOptions from zero or more PostOption.
 func newPostOptions(options ...PostOption) *PostOptions {
 	config := &PostOptions{
 		Attachments: []slack.Attachment{},
-		ThreadTS:    "",
 	}
 
 	for _, option := range options {
