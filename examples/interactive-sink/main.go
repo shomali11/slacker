@@ -13,7 +13,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	bot.UnhandledInteractionHandler(func(ctx slacker.InteractionContext) {
-		callback := ctx.Callback()
+		callback := ctx.Event()
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
 		}

@@ -5,7 +5,6 @@ import (
 
 	"github.com/shomali11/proper"
 	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/socketmode"
 )
 
 // CommandContext interface is for bot command contexts
@@ -84,8 +83,7 @@ func (r *commandContext) Response() WriterReplierResponse {
 // InteractionContext interface is interaction bot contexts
 type InteractionContext interface {
 	Context() context.Context
-	Event() *socketmode.Event
-	Callback() *slack.InteractionCallback
+	Event() *slack.InteractionCallback
 	Response() WriterReplierResponse
 	APIClient() *slack.Client
 }
@@ -95,26 +93,23 @@ func newInteractionContext(
 	ctx context.Context,
 	logger Logger,
 	apiClient *slack.Client,
-	event *socketmode.Event,
-	callback *slack.InteractionCallback,
+	event *slack.InteractionCallback,
 ) InteractionContext {
 	poster := newWriter(logger, apiClient)
-	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, poster)
+	replier := newReplier(event.Channel.ID, event.User.ID, event.MessageTs, poster)
 	response := newWriterReplierResponse(poster, replier)
 	return &interactionContext{
 		ctx:       ctx,
 		event:     event,
 		apiClient: apiClient,
-		callback:  callback,
 		response:  response,
 	}
 }
 
 type interactionContext struct {
 	ctx       context.Context
-	event     *socketmode.Event
+	event     *slack.InteractionCallback
 	apiClient *slack.Client
-	callback  *slack.InteractionCallback
 	response  WriterReplierResponse
 }
 
@@ -124,7 +119,7 @@ func (r *interactionContext) Context() context.Context {
 }
 
 // Event returns the socket event
-func (r *interactionContext) Event() *socketmode.Event {
+func (r *interactionContext) Event() *slack.InteractionCallback {
 	return r.event
 }
 
@@ -136,11 +131,6 @@ func (r *interactionContext) Response() WriterReplierResponse {
 // APIClient returns the slack API client
 func (r *interactionContext) APIClient() *slack.Client {
 	return r.apiClient
-}
-
-// Callback returns the command callback
-func (r *interactionContext) Callback() *slack.InteractionCallback {
-	return r.callback
 }
 
 // JobContext interface is for job command contexts

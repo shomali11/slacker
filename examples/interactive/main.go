@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"os"
+	//"os"
 
 	"github.com/shomali11/slacker/v2"
 	"github.com/slack-go/slack"
@@ -13,7 +13,9 @@ import (
 // This assumes that a slash command `/mood` is defined for your app.
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot := slacker.NewClient("xoxb-13360094916-2243791173942-Xl56AaFTAHLnNJXTV5VQ2O1A", "xapp-1-A027JMM1RV2-5371200676276-829e2afbe83227c95c67cae993c9645fd60010e2541812b87d207c781822b124")
+
+	//bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 	bot.AddCommand("mood", &slacker.CommandDefinition{
 		Handler:  slackerCmd("mood"),
 		HideHelp: true,
@@ -49,7 +51,7 @@ func slackerCmd(blockID string) slacker.CommandHandler {
 
 func slackerInteractive(ctx slacker.InteractionContext) {
 	text := ""
-	action := ctx.Callback().ActionCallback.BlockActions[0]
+	action := ctx.Event().ActionCallback.BlockActions[0]
 	switch action.ActionID {
 	case "happy":
 		text = "I'm happy to hear you are happy!"
@@ -59,5 +61,5 @@ func slackerInteractive(ctx slacker.InteractionContext) {
 		text = "I don't understand your mood..."
 	}
 
-	ctx.Response().Reply(text, slacker.WithReplace(ctx.Callback().Message.Timestamp))
+	ctx.Response().Reply(text, slacker.WithReplace(ctx.Event().Message.Timestamp))
 }

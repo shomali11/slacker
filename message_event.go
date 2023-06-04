@@ -60,11 +60,11 @@ func (e *MessageEvent) IsThread() bool {
 
 // IsBot indicates if the message was sent by a bot
 func (e *MessageEvent) IsBot() bool {
-	return e.BotID != ""
+	return len(e.BotID) > 0
 }
 
 // newMessageEvent creates a new message event structure
-func newMessageEvent(logger Logger, apiClient *slack.Client, event any, req *socketmode.Request) *MessageEvent {
+func newMessageEvent(logger Logger, apiClient *slack.Client, event any) *MessageEvent {
 	var messageEvent *MessageEvent
 
 	switch ev := event.(type) {
@@ -101,8 +101,8 @@ func newMessageEvent(logger Logger, apiClient *slack.Client, event any, req *soc
 			UserID:      ev.UserID,
 			UserProfile: getUserProfile(logger, apiClient, ev.UserID),
 			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
-			Data:        req,
-			Type:        req.Type,
+			Data:        event,
+			Type:        socketmode.RequestTypeSlashCommands,
 		}
 	default:
 		return nil

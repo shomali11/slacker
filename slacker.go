@@ -201,7 +201,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					switch event.InnerEvent.Type {
 					case "message", "app_mention": // message-based events
-						go s.handleMessageEvent(ctx, event.InnerEvent.Data, nil)
+						go s.handleMessageEvent(ctx, event.InnerEvent.Data)
 
 					default:
 						if s.unhandledEventHandler != nil {
@@ -212,7 +212,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					}
 
 				case socketmode.EventTypeSlashCommand:
-					callback, ok := socketEvent.Data.(slack.SlashCommand)
+					event, ok := socketEvent.Data.(slack.SlashCommand)
 					if !ok {
 						s.logger.Debugf("ignored %+v\n", socketEvent)
 						continue
@@ -221,7 +221,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					// Acknowledge receiving the request
 					s.socketModeClient.Ack(*socketEvent.Request)
 
-					go s.handleMessageEvent(ctx, &callback, socketEvent.Request)
+					go s.handleMessageEvent(ctx, &event)
 
 				case socketmode.EventTypeInteractive:
 					callback, ok := socketEvent.Data.(slack.InteractionCallback)
@@ -233,7 +233,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					// Acknowledge receiving the request
 					s.socketModeClient.Ack(*socketEvent.Request)
 
-					go s.handleInteractionEvent(ctx, &socketEvent, &callback)
+					go s.handleInteractionEvent(ctx, &callback)
 
 				default:
 					if s.unhandledEventHandler != nil {
@@ -333,8 +333,8 @@ func (s *Slacker) startCronJobs(ctx context.Context) {
 	s.cronClient.Start()
 }
 
-func (s *Slacker) handleInteractionEvent(ctx context.Context, event *socketmode.Event, callback *slack.InteractionCallback) {
-	interactionCtx := newInteractionContext(ctx, s.logger, s.apiClient, event, callback)
+func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.InteractionCallback) {
+	interactionCtx := newInteractionContext(ctx, s.logger, s.apiClient, callback)
 
 	middlewares := make([]InteractionMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.interactionMiddlewares...)
@@ -357,8 +357,8 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, event *socketmode.
 	}
 }
 
-func (s *Slacker) handleMessageEvent(ctx context.Context, event any, request *socketmode.Request) {
-	messageEvent := newMessageEvent(s.logger, s.apiClient, event, request)
+func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
+	messageEvent := newMessageEvent(s.logger, s.apiClient, event)
 	if messageEvent == nil {
 		// event doesn't appear to be a valid message type
 		return
