@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -16,7 +17,7 @@ func main() {
 		},
 	})
 
-	bot.AddCommandMiddleware(slacker.LoggingCommandMiddleware())
+	bot.AddCommandMiddleware(LoggingCommandMiddleware())
 	bot.AddCommandMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
 		return func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("Root Middleware!")
@@ -62,5 +63,20 @@ func main() {
 	err := bot.Listen(ctx)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func LoggingCommandMiddleware() slacker.CommandMiddlewareHandler {
+	return func(next slacker.CommandHandler) slacker.CommandHandler {
+		return func(ctx slacker.CommandContext) {
+			fmt.Printf(
+				"%s executed \"%s\" with parameters %v in channel %s\n",
+				ctx.Event().UserID,
+				ctx.Definition().Usage,
+				ctx.Request().Properties(),
+				ctx.Event().Channel.ID,
+			)
+			next(ctx)
+		}
 	}
 }

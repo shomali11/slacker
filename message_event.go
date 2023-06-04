@@ -64,16 +64,16 @@ func (e *MessageEvent) IsBot() bool {
 }
 
 // newMessageEvent creates a new message event structure
-func newMessageEvent(apiClient *slack.Client, event any, req *socketmode.Request) *MessageEvent {
+func newMessageEvent(logger Logger, apiClient *slack.Client, event any, req *socketmode.Request) *MessageEvent {
 	var messageEvent *MessageEvent
 
 	switch ev := event.(type) {
 	case *slackevents.MessageEvent:
 		messageEvent = &MessageEvent{
 			ChannelID:       ev.Channel,
-			Channel:         getChannel(apiClient, ev.Channel),
+			Channel:         getChannel(logger, apiClient, ev.Channel),
 			UserID:          ev.User,
-			UserProfile:     getUserProfile(apiClient, ev.User),
+			UserProfile:     getUserProfile(logger, apiClient, ev.User),
 			Text:            ev.Text,
 			Data:            event,
 			Type:            ev.Type,
@@ -84,9 +84,9 @@ func newMessageEvent(apiClient *slack.Client, event any, req *socketmode.Request
 	case *slackevents.AppMentionEvent:
 		messageEvent = &MessageEvent{
 			ChannelID:       ev.Channel,
-			Channel:         getChannel(apiClient, ev.Channel),
+			Channel:         getChannel(logger, apiClient, ev.Channel),
 			UserID:          ev.User,
-			UserProfile:     getUserProfile(apiClient, ev.User),
+			UserProfile:     getUserProfile(logger, apiClient, ev.User),
 			Text:            ev.Text,
 			Data:            event,
 			Type:            ev.Type,
@@ -97,9 +97,9 @@ func newMessageEvent(apiClient *slack.Client, event any, req *socketmode.Request
 	case *slack.SlashCommand:
 		messageEvent = &MessageEvent{
 			ChannelID:   ev.ChannelID,
-			Channel:     getChannel(apiClient, ev.ChannelID),
+			Channel:     getChannel(logger, apiClient, ev.ChannelID),
 			UserID:      ev.UserID,
-			UserProfile: getUserProfile(apiClient, ev.UserID),
+			UserProfile: getUserProfile(logger, apiClient, ev.UserID),
 			Text:        fmt.Sprintf("%s %s", ev.Command[1:], ev.Text),
 			Data:        req,
 			Type:        req.Type,
@@ -111,7 +111,7 @@ func newMessageEvent(apiClient *slack.Client, event any, req *socketmode.Request
 	return messageEvent
 }
 
-func getChannel(apiClient *slack.Client, channelID string) *slack.Channel {
+func getChannel(logger Logger, apiClient *slack.Client, channelID string) *slack.Channel {
 	if len(channelID) == 0 {
 		return nil
 	}
@@ -121,20 +121,20 @@ func getChannel(apiClient *slack.Client, channelID string) *slack.Channel {
 		IncludeLocale:     false,
 		IncludeNumMembers: false})
 	if err != nil {
-		infof("unable to get channel info for %s: %v\n", channelID, err)
+		logger.Errorf("unable to get channel info for %s: %v\n", channelID, err)
 		return nil
 	}
 	return channel
 }
 
-func getUserProfile(apiClient *slack.Client, userID string) *slack.UserProfile {
+func getUserProfile(logger Logger, apiClient *slack.Client, userID string) *slack.UserProfile {
 	if len(userID) == 0 {
 		return nil
 	}
 
 	user, err := apiClient.GetUserInfo(userID)
 	if err != nil {
-		infof("unable to get user info for %s: %v\n", userID, err)
+		logger.Errorf("unable to get user info for %s: %v\n", userID, err)
 		return nil
 	}
 	return &user.Profile

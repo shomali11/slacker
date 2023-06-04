@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/slack-go/slack"
-	"github.com/slack-go/slack/socketmode"
 )
 
 // Writer interface is used to respond to an event
@@ -17,13 +16,13 @@ type Writer interface {
 }
 
 // newWriter creates a new poster structure
-func newWriter(apiClient *slack.Client, socketModeClient *socketmode.Client) Writer {
-	return &writer{apiClient: apiClient, socketModeClient: socketModeClient}
+func newWriter(logger Logger, apiClient *slack.Client) Writer {
+	return &writer{logger: logger, apiClient: apiClient}
 }
 
 type writer struct {
-	apiClient        *slack.Client
-	socketModeClient *socketmode.Client
+	logger    Logger
+	apiClient *slack.Client
 }
 
 // Post send a message to a channel
@@ -51,7 +50,7 @@ func (r *writer) Delete(channel string, messageTimestamp string) (string, error)
 		messageTimestamp,
 	)
 	if err != nil {
-		infof("failed to delete message: %v\n", err)
+		r.logger.Errorf("failed to delete message: %v\n", err)
 	}
 	return timestamp, err
 }
@@ -87,7 +86,7 @@ func (r *writer) post(channel string, message string, blocks []slack.Block, opti
 		opts...,
 	)
 	if err != nil {
-		infof("failed to post message: %v\n", err)
+		r.logger.Errorf("failed to post message: %v\n", err)
 	}
 	return timestamp, err
 }

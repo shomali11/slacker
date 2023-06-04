@@ -25,6 +25,16 @@ func main() {
 		}
 	})
 
+	// ┌───────────── minute (0 - 59)
+	// │ ┌───────────── hour (0 - 23)
+	// │ │ ┌───────────── day of the month (1 - 31)
+	// │ │ │ ┌───────────── month (1 - 12)
+	// │ │ │ │ ┌───────────── day of the week (0 - 6) (Sunday to Saturday)
+	// │ │ │ │ │
+	// │ │ │ │ │
+	// │ │ │ │ │
+	// * * * * * (spec)
+
 	// Run every minute
 	bot.AddJob("*/1 * * * *", &slacker.JobDefinition{
 		Description: "A cron job that runs every minute",
