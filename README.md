@@ -6,23 +6,23 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 
 - Supports Slack Apps using [Socket Mode](https://api.slack.com/apis/connections/socket)
 - Easy definitions of commands and their input
-- Simple parsing of String, Integer, Float and Boolean parameters
 - Built-in `help` command
-- Slash Command and Block Interactions supported
-- Available bot initialization, errors and default handlers
-- Contains support for `context.Context`
-- Replies can be new messages or in threads
-- Supports authorization
-- Supports Cron Jobs using [https://github.com/robfig/cron](https://github.com/robfig/cron)
 - Bot responds to mentions and direct messages
+- Simple parsing of String, Integer, Float and Boolean parameters
+- Customizable, intuitive and with many examples to follow
+- Replies can be new messages or in threads
+- Replies can be ephemeral, scheduled, updated or deleted
+- Supports Slash Commands and Interactive Messages
+- Supports `context.Context`
+- Supports middlewares & grouping of commands
+- Supports Cron Jobs using [https://github.com/robfig/cron](https://github.com/robfig/cron)
 - Handlers run concurrently via goroutines
-- Produces events for executed commands
 - Full access to the Slack API [github.com/slack-go/slack](https://github.com/slack-go/slack)
 
 # Install
 
 ```
-go get github.com/shomali11/slacker
+go get github.com/shomali11/slacker/v2
 ```
 
 # Examples
