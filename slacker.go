@@ -38,7 +38,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 	)
 
 	slacker := &Slacker{
-		apiClient:          slackAPI,
+		slackClient:          slackAPI,
 		socketModeClient:   socketModeClient,
 		cronClient:         cron.New(),
 		commandGroups:      []CommandGroup{newGroup("")},
@@ -51,7 +51,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	apiClient                   *slack.Client
+	slackClient                   *slack.Client
 	socketModeClient            *socketmode.Client
 	cronClient                  *cron.Cron
 	commandMiddlewares          []CommandMiddlewareHandler
@@ -76,9 +76,9 @@ func (s *Slacker) GetGroups() []CommandGroup {
 	return s.commandGroups
 }
 
-// APIClient returns the internal slack.Client of Slacker struct
-func (s *Slacker) APIClient() *slack.Client {
-	return s.apiClient
+// SlackClient returns the internal slack.Client of Slacker struct
+func (s *Slacker) SlackClient() *slack.Client {
+	return s.slackClient
 }
 
 // SocketModeClient returns the internal socketmode.Client of Slacker struct
@@ -316,7 +316,7 @@ func (s *Slacker) prependHelpHandle() {
 }
 
 func (s *Slacker) startCronJobs(ctx context.Context) {
-	jobCtx := newJobContext(ctx, s.logger, s.apiClient)
+	jobCtx := newJobContext(ctx, s.logger, s.slackClient)
 
 	middlewares := make([]JobMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.jobMiddlewares...)
@@ -334,7 +334,7 @@ func (s *Slacker) startCronJobs(ctx context.Context) {
 }
 
 func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.InteractionCallback) {
-	interactionCtx := newInteractionContext(ctx, s.logger, s.apiClient, callback)
+	interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback)
 
 	middlewares := make([]InteractionMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.interactionMiddlewares...)
@@ -358,7 +358,7 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 }
 
 func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
-	messageEvent := newMessageEvent(s.logger, s.apiClient, event)
+	messageEvent := newMessageEvent(s.logger, s.slackClient, event)
 	if messageEvent == nil {
 		// event doesn't appear to be a valid message type
 		return
@@ -382,7 +382,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 			}
 
 			definition := cmd.Definition()
-			ctx := newCommandContext(ctx, s.logger, s.apiClient, messageEvent, definition, parameters)
+			ctx := newCommandContext(ctx, s.logger, s.slackClient, messageEvent, definition, parameters)
 
 			middlewares = append(middlewares, group.GetMiddlewares()...)
 			middlewares = append(middlewares, definition.Middlewares...)
@@ -392,7 +392,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 	}
 
 	if s.unhandledMessageHandler != nil {
-		ctx := newCommandContext(ctx, s.logger, s.apiClient, messageEvent, nil, nil)
+		ctx := newCommandContext(ctx, s.logger, s.slackClient, messageEvent, nil, nil)
 		executeCommand(ctx, s.unhandledMessageHandler, middlewares...)
 	}
 }
@@ -400,7 +400,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 func (s *Slacker) ignoreBotMessage(messageEvent *MessageEvent) bool {
 	switch s.botInteractionMode {
 	case BotInteractionModeIgnoreApp:
-		bot, err := s.apiClient.GetBotInfo(messageEvent.BotID)
+		bot, err := s.slackClient.GetBotInfo(messageEvent.BotID)
 		if err != nil {
 			if err.Error() == "missing_scope" {
 				s.logger.Errorf("unable to determine if bot response is from me -- please add users:read scope to your app\n")

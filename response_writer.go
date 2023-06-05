@@ -16,13 +16,13 @@ type Writer interface {
 }
 
 // newWriter creates a new poster structure
-func newWriter(logger Logger, apiClient *slack.Client) Writer {
-	return &writer{logger: logger, apiClient: apiClient}
+func newWriter(logger Logger, slackClient *slack.Client) Writer {
+	return &writer{logger: logger, slackClient: slackClient}
 }
 
 type writer struct {
 	logger    Logger
-	apiClient *slack.Client
+	slackClient *slack.Client
 }
 
 // Post send a message to a channel
@@ -45,7 +45,7 @@ func (r *writer) PostBlocks(channel string, blocks []slack.Block, options ...Pos
 
 // Delete deletes message
 func (r *writer) Delete(channel string, messageTimestamp string) (string, error) {
-	_, timestamp, err := r.apiClient.DeleteMessage(
+	_, timestamp, err := r.slackClient.DeleteMessage(
 		channel,
 		messageTimestamp,
 	)
@@ -81,7 +81,7 @@ func (r *writer) post(channel string, message string, blocks []slack.Block, opti
 		opts = append(opts, slack.MsgOptionSchedule(postAt))
 	}
 
-	_, timestamp, err := r.apiClient.PostMessage(
+	_, timestamp, err := r.slackClient.PostMessage(
 		channel,
 		opts...,
 	)

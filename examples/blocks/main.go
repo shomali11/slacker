@@ -21,7 +21,7 @@ func main() {
 
 			blocks := []slack.Block{}
 			blocks = append(blocks, slack.NewContextBlock("1",
-				slack.NewTextBlockObject("mrkdwn", word, false, false)),
+				slack.NewTextBlockObject(slack.MarkdownType, word, false, false)),
 			)
 
 			ctx.Response().ReplyBlocks(blocks)

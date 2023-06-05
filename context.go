@@ -14,27 +14,27 @@ type CommandContext interface {
 	Event() *MessageEvent
 	Request() Request
 	Response() WriterReplierResponse
-	APIClient() *slack.Client
+	SlackClient() *slack.Client
 }
 
 // newCommandContext creates a new bot context
 func newCommandContext(
 	ctx context.Context,
 	logger Logger,
-	apiClient *slack.Client,
+	slackClient *slack.Client,
 	event *MessageEvent,
 	definition *CommandDefinition,
 	parameters *proper.Properties,
 ) CommandContext {
 	request := newRequest(parameters)
-	poster := newWriter(logger, apiClient)
+	poster := newWriter(logger, slackClient)
 	replier := newReplier(event.ChannelID, event.UserID, event.TimeStamp, poster)
 	response := newWriterReplierResponse(poster, replier)
 
 	return &commandContext{
 		ctx:        ctx,
 		event:      event,
-		apiClient:  apiClient,
+		slackClient:  slackClient,
 		definition: definition,
 		request:    request,
 		response:   response,
@@ -44,7 +44,7 @@ func newCommandContext(
 type commandContext struct {
 	ctx        context.Context
 	event      *MessageEvent
-	apiClient  *slack.Client
+	slackClient  *slack.Client
 	definition *CommandDefinition
 	request    Request
 	response   WriterReplierResponse
@@ -65,9 +65,9 @@ func (r *commandContext) Event() *MessageEvent {
 	return r.event
 }
 
-// APIClient returns the slack API client
-func (r *commandContext) APIClient() *slack.Client {
-	return r.apiClient
+// SlackClient returns the slack API client
+func (r *commandContext) SlackClient() *slack.Client {
+	return r.slackClient
 }
 
 // Request returns the command request
@@ -85,23 +85,23 @@ type InteractionContext interface {
 	Context() context.Context
 	Callback() *slack.InteractionCallback
 	Response() WriterReplierResponse
-	APIClient() *slack.Client
+	SlackClient() *slack.Client
 }
 
 // newInteractionContext creates a new interaction bot context
 func newInteractionContext(
 	ctx context.Context,
 	logger Logger,
-	apiClient *slack.Client,
+	slackClient *slack.Client,
 	callback *slack.InteractionCallback,
 ) InteractionContext {
-	poster := newWriter(logger, apiClient)
+	poster := newWriter(logger, slackClient)
 	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, poster)
 	response := newWriterReplierResponse(poster, replier)
 	return &interactionContext{
 		ctx:       ctx,
 		callback:  callback,
-		apiClient: apiClient,
+		slackClient: slackClient,
 		response:  response,
 	}
 }
@@ -109,7 +109,7 @@ func newInteractionContext(
 type interactionContext struct {
 	ctx       context.Context
 	callback  *slack.InteractionCallback
-	apiClient *slack.Client
+	slackClient *slack.Client
 	response  WriterReplierResponse
 }
 
@@ -128,32 +128,32 @@ func (r *interactionContext) Response() WriterReplierResponse {
 	return r.response
 }
 
-// APIClient returns the slack API client
-func (r *interactionContext) APIClient() *slack.Client {
-	return r.apiClient
+// SlackClient returns the slack API client
+func (r *interactionContext) SlackClient() *slack.Client {
+	return r.slackClient
 }
 
 // JobContext interface is for job command contexts
 type JobContext interface {
 	Context() context.Context
 	Response() WriterResponse
-	APIClient() *slack.Client
+	SlackClient() *slack.Client
 }
 
 // newJobContext creates a new bot context
-func newJobContext(ctx context.Context, logger Logger, apiClient *slack.Client) JobContext {
-	poster := newWriter(logger, apiClient)
+func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client) JobContext {
+	poster := newWriter(logger, slackClient)
 	response := newWriterResponse(poster)
 	return &jobContext{
 		ctx:       ctx,
-		apiClient: apiClient,
+		slackClient: slackClient,
 		response:  response,
 	}
 }
 
 type jobContext struct {
 	ctx       context.Context
-	apiClient *slack.Client
+	slackClient *slack.Client
 	response  WriterResponse
 }
 
@@ -167,7 +167,7 @@ func (r *jobContext) Response() WriterResponse {
 	return r.response
 }
 
-// APIClient returns the slack API client
-func (r *jobContext) APIClient() *slack.Client {
-	return r.apiClient
+// SlackClient returns the slack API client
+func (r *jobContext) SlackClient() *slack.Client {
+	return r.slackClient
 }

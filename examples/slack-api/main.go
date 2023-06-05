@@ -18,12 +18,14 @@ func main() {
 		Description: "Upload a sentence!",
 		Handler: func(ctx slacker.CommandContext) {
 			sentence := ctx.Request().Param("sentence")
-			apiClient := ctx.APIClient()
+			slackClient := ctx.SlackClient()
 			event := ctx.Event()
 
-			apiClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
-			_, err := apiClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
-			ctx.Response().ReplyError(err)
+			slackClient.PostMessage(event.ChannelID, slack.MsgOptionText("Uploading file ...", false))
+			_, err := slackClient.UploadFile(slack.FileUploadParameters{Content: sentence, Channels: []string{event.ChannelID}})
+			if err != nil {
+				ctx.Response().ReplyError(err)
+			}
 		},
 	}
 
