@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -9,7 +10,7 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// Implements a basic interactive command.
+// Show cases interaction middlewares
 // This assumes that a slash command `/mood` is defined for your app.
 
 func main() {
@@ -19,9 +20,9 @@ func main() {
 		HideHelp: true,
 	})
 
+	bot.AddInteractionMiddleware(LoggingInteractionMiddleware())
 	bot.AddInteraction("mood", &slacker.InteractionDefinition{
-		Handler:  slackerInteractive,
-		HideHelp: true,
+		Handler: slackerInteractive,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -60,4 +61,19 @@ func slackerInteractive(ctx slacker.InteractionContext) {
 	}
 
 	ctx.Response().Reply(text, slacker.WithReplace(ctx.Callback().Message.Timestamp))
+}
+
+func LoggingInteractionMiddleware() slacker.InteractionMiddlewareHandler {
+	return func(next slacker.InteractionHandler) slacker.InteractionHandler {
+		return func(ctx slacker.InteractionContext) {
+			fmt.Printf(
+				"%s initiated \"%s\" with action \"%v\" in channel %s\n",
+				ctx.Callback().User.ID,
+				ctx.Definition().BlockID,
+				ctx.Callback().ActionCallback.BlockActions[0].ActionID,
+				ctx.Callback().Channel.ID,
+			)
+			next(ctx)
+		}
+	}
 }

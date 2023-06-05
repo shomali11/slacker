@@ -23,8 +23,8 @@ func WithDebug(debug bool) ClientOption {
 	}
 }
 
-// WithBotInteractionMode instructs Slacker on how to handle message events coming from a bot.
-func WithBotInteractionMode(mode BotInteractionMode) ClientOption {
+// WithBotMode instructs Slacker on how to handle message events coming from a bot.
+func WithBotMode(mode BotMode) ClientOption {
 	return func(defaults *clientOptions) {
 		defaults.BotMode = mode
 	}
@@ -40,7 +40,7 @@ func WithLogger(logger Logger) ClientOption {
 type clientOptions struct {
 	APIURL  string
 	Debug   bool
-	BotMode BotInteractionMode
+	BotMode BotMode
 	Logger  Logger
 }
 
@@ -48,7 +48,7 @@ func newClientOptions(options ...ClientOption) *clientOptions {
 	config := &clientOptions{
 		APIURL:  slack.APIURL,
 		Debug:   false,
-		BotMode: BotInteractionModeIgnoreAll,
+		BotMode: BotModeIgnoreAll,
 	}
 
 	for _, option := range options {

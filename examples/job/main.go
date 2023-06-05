@@ -30,6 +30,7 @@ func main() {
 
 	// Run every minute
 	bot.AddJob("*/1 * * * *", &slacker.JobDefinition{
+		JobName:     "SomeJob",
 		Description: "A cron job that runs every minute",
 		Handler: func(jobCtx slacker.JobContext) {
 			jobCtx.Response().Post("#test", "Hello!")

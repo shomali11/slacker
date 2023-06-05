@@ -3,12 +3,8 @@ package slacker
 // InteractionDefinition structure contains definition of the bot interaction
 type InteractionDefinition struct {
 	BlockID     string
-	Description string
 	Middlewares []InteractionMiddlewareHandler
 	Handler     InteractionHandler
-
-	// HideHelp will hide this interaction definition from appearing in the `help` results.
-	HideHelp bool
 }
 
 // newInteraction creates a new bot interaction object

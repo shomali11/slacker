@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -18,12 +19,7 @@ func main() {
 		},
 	})
 
-	bot.AddJobMiddleware(func(next slacker.JobHandler) slacker.JobHandler {
-		return func(ctx slacker.JobContext) {
-			ctx.Response().Post("#test", "Root Middleware!")
-			next(ctx)
-		}
-	})
+	bot.AddJobMiddleware(LoggingJobMiddleware())
 
 	// ┌───────────── minute (0 - 59)
 	// │ ┌───────────── hour (0 - 23)
@@ -37,6 +33,7 @@ func main() {
 
 	// Run every minute
 	bot.AddJob("*/1 * * * *", &slacker.JobDefinition{
+		JobName:     "SomeJob",
 		Description: "A cron job that runs every minute",
 		Handler: func(jobCtx slacker.JobContext) {
 			jobCtx.Response().Post("#test", "Hello!")
@@ -49,5 +46,21 @@ func main() {
 	err := bot.Listen(ctx)
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func LoggingJobMiddleware() slacker.JobMiddlewareHandler {
+	return func(next slacker.JobHandler) slacker.JobHandler {
+		return func(ctx slacker.JobContext) {
+			fmt.Printf(
+				"%s started\n",
+				ctx.Definition().JobName,
+			)
+			next(ctx)
+			fmt.Printf(
+				"%s ended\n",
+				ctx.Definition().JobName,
+			)
+		}
 	}
 }

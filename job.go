@@ -3,6 +3,7 @@ package slacker
 // JobDefinition structure contains definition of the job
 type JobDefinition struct {
 	Spec        string
+	JobName     string
 	Description string
 	Handler     JobHandler
 

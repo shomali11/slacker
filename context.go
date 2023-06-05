@@ -32,22 +32,22 @@ func newCommandContext(
 	response := newWriterReplierResponse(poster, replier)
 
 	return &commandContext{
-		ctx:        ctx,
-		event:      event,
-		slackClient:  slackClient,
-		definition: definition,
-		request:    request,
-		response:   response,
+		ctx:         ctx,
+		event:       event,
+		slackClient: slackClient,
+		definition:  definition,
+		request:     request,
+		response:    response,
 	}
 }
 
 type commandContext struct {
-	ctx        context.Context
-	event      *MessageEvent
-	slackClient  *slack.Client
-	definition *CommandDefinition
-	request    Request
-	response   WriterReplierResponse
+	ctx         context.Context
+	event       *MessageEvent
+	slackClient *slack.Client
+	definition  *CommandDefinition
+	request     Request
+	response    WriterReplierResponse
 }
 
 // Context returns the context
@@ -75,7 +75,7 @@ func (r *commandContext) Request() Request {
 	return r.request
 }
 
-// Response returns the command response
+// Response returns the response writer
 func (r *commandContext) Response() WriterReplierResponse {
 	return r.response
 }
@@ -83,6 +83,7 @@ func (r *commandContext) Response() WriterReplierResponse {
 // InteractionContext interface is interaction bot contexts
 type InteractionContext interface {
 	Context() context.Context
+	Definition() *InteractionDefinition
 	Callback() *slack.InteractionCallback
 	Response() WriterReplierResponse
 	SlackClient() *slack.Client
@@ -94,23 +95,26 @@ func newInteractionContext(
 	logger Logger,
 	slackClient *slack.Client,
 	callback *slack.InteractionCallback,
+	definition *InteractionDefinition,
 ) InteractionContext {
 	poster := newWriter(logger, slackClient)
 	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, poster)
 	response := newWriterReplierResponse(poster, replier)
 	return &interactionContext{
-		ctx:       ctx,
-		callback:  callback,
+		ctx:         ctx,
+		definition:  definition,
+		callback:    callback,
 		slackClient: slackClient,
-		response:  response,
+		response:    response,
 	}
 }
 
 type interactionContext struct {
-	ctx       context.Context
-	callback  *slack.InteractionCallback
+	ctx         context.Context
+	definition  *InteractionDefinition
+	callback    *slack.InteractionCallback
 	slackClient *slack.Client
-	response  WriterReplierResponse
+	response    WriterReplierResponse
 }
 
 // Context returns the context
@@ -118,12 +122,17 @@ func (r *interactionContext) Context() context.Context {
 	return r.ctx
 }
 
+// Definition returns the interaction definition
+func (r *interactionContext) Definition() *InteractionDefinition {
+	return r.definition
+}
+
 // Callback returns the interaction callback
 func (r *interactionContext) Callback() *slack.InteractionCallback {
 	return r.callback
 }
 
-// Response returns the command response
+// Response returns the response writer
 func (r *interactionContext) Response() WriterReplierResponse {
 	return r.response
 }
@@ -136,25 +145,28 @@ func (r *interactionContext) SlackClient() *slack.Client {
 // JobContext interface is for job command contexts
 type JobContext interface {
 	Context() context.Context
+	Definition() *JobDefinition
 	Response() WriterResponse
 	SlackClient() *slack.Client
 }
 
 // newJobContext creates a new bot context
-func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client) JobContext {
+func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client, definition *JobDefinition) JobContext {
 	poster := newWriter(logger, slackClient)
 	response := newWriterResponse(poster)
 	return &jobContext{
-		ctx:       ctx,
+		ctx:         ctx,
+		definition:  definition,
 		slackClient: slackClient,
-		response:  response,
+		response:    response,
 	}
 }
 
 type jobContext struct {
-	ctx       context.Context
+	ctx         context.Context
+	definition  *JobDefinition
 	slackClient *slack.Client
-	response  WriterResponse
+	response    WriterResponse
 }
 
 // Context returns the context
@@ -162,7 +174,12 @@ func (r *jobContext) Context() context.Context {
 	return r.ctx
 }
 
-// Response returns the command response
+// Definition returns the job definition
+func (r *jobContext) Definition() *JobDefinition {
+	return r.definition
+}
+
+// Response returns the response writer
 func (r *jobContext) Response() WriterResponse {
 	return r.response
 }

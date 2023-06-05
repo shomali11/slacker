@@ -25,15 +25,15 @@ func executeInteraction(ctx InteractionContext, handler InteractionHandler, midd
 }
 
 func executeJob(ctx JobContext, handler JobHandler, middlewares ...JobMiddlewareHandler) func() {
+	if handler == nil {
+		return func() {}
+	}
+
+	for i := len(middlewares) - 1; i >= 0; i-- {
+		handler = middlewares[i](handler)
+	}
+
 	return func() {
-		if handler == nil {
-			return
-		}
-
-		for i := len(middlewares) - 1; i >= 0; i-- {
-			handler = middlewares[i](handler)
-		}
-
 		handler(ctx)
 	}
 }

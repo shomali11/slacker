@@ -14,7 +14,7 @@ func main() {
 	bot := slacker.NewClient(
 		os.Getenv("SLACK_BOT_TOKEN"),
 		os.Getenv("SLACK_APP_TOKEN"),
-		slacker.WithBotInteractionMode(slacker.BotInteractionModeIgnoreApp),
+		slacker.WithBotMode(slacker.BotModeIgnoreApp),
 	)
 
 	bot.AddCommand("hello", &slacker.CommandDefinition{

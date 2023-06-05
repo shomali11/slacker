@@ -21,7 +21,7 @@ func newWriter(logger Logger, slackClient *slack.Client) Writer {
 }
 
 type writer struct {
-	logger    Logger
+	logger      Logger
 	slackClient *slack.Client
 }
 
