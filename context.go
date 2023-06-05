@@ -83,7 +83,7 @@ func (r *commandContext) Response() WriterReplierResponse {
 // InteractionContext interface is interaction bot contexts
 type InteractionContext interface {
 	Context() context.Context
-	Event() *slack.InteractionCallback
+	Callback() *slack.InteractionCallback
 	Response() WriterReplierResponse
 	APIClient() *slack.Client
 }
@@ -93,14 +93,14 @@ func newInteractionContext(
 	ctx context.Context,
 	logger Logger,
 	apiClient *slack.Client,
-	event *slack.InteractionCallback,
+	callback *slack.InteractionCallback,
 ) InteractionContext {
 	poster := newWriter(logger, apiClient)
-	replier := newReplier(event.Channel.ID, event.User.ID, event.MessageTs, poster)
+	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, poster)
 	response := newWriterReplierResponse(poster, replier)
 	return &interactionContext{
 		ctx:       ctx,
-		event:     event,
+		callback:  callback,
 		apiClient: apiClient,
 		response:  response,
 	}
@@ -108,7 +108,7 @@ func newInteractionContext(
 
 type interactionContext struct {
 	ctx       context.Context
-	event     *slack.InteractionCallback
+	callback  *slack.InteractionCallback
 	apiClient *slack.Client
 	response  WriterReplierResponse
 }
@@ -118,9 +118,9 @@ func (r *interactionContext) Context() context.Context {
 	return r.ctx
 }
 
-// Event returns the socket event
-func (r *interactionContext) Event() *slack.InteractionCallback {
-	return r.event
+// Callback returns the interaction callback
+func (r *interactionContext) Callback() *slack.InteractionCallback {
+	return r.callback
 }
 
 // Response returns the command response

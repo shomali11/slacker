@@ -49,7 +49,7 @@ func slackerCmd(blockID string) slacker.CommandHandler {
 
 func slackerInteractive(ctx slacker.InteractionContext) {
 	text := ""
-	action := ctx.Event().ActionCallback.BlockActions[0]
+	action := ctx.Callback().ActionCallback.BlockActions[0]
 	switch action.ActionID {
 	case "happy":
 		text = "I'm happy to hear you are happy!"
@@ -59,5 +59,5 @@ func slackerInteractive(ctx slacker.InteractionContext) {
 		text = "I don't understand your mood..."
 	}
 
-	ctx.Response().Reply(text, slacker.WithReplace(ctx.Event().Message.Timestamp))
+	ctx.Response().Reply(text, slacker.WithReplace(ctx.Callback().Message.Timestamp))
 }
