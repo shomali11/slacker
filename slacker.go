@@ -276,7 +276,6 @@ func (s *Slacker) Listen(ctx context.Context) error {
 func (s *Slacker) defaultHelp(ctx CommandContext) {
 	blocks := []slack.Block{}
 
-	blocks = append(blocks, slack.NewHeaderBlock(slack.NewTextBlockObject(slack.PlainTextType, "Commands", false, false)))
 	for _, group := range s.GetCommandGroups() {
 		for _, command := range group.GetCommands() {
 			if command.Definition().HideHelp {
@@ -321,7 +320,7 @@ func (s *Slacker) defaultHelp(ctx CommandContext) {
 		return
 	}
 
-	blocks = append(blocks, slack.NewHeaderBlock(slack.NewTextBlockObject(slack.PlainTextType, "Jobs", false, false)))
+	blocks = append(blocks, slack.NewDividerBlock())
 	for _, job := range s.GetJobs() {
 		if job.Definition().HideHelp {
 			continue
