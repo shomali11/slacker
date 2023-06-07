@@ -27,9 +27,9 @@ func newCommandContext(
 	parameters *proper.Properties,
 ) CommandContext {
 	request := newRequest(parameters)
-	poster := newWriter(logger, slackClient)
-	replier := newReplier(event.ChannelID, event.UserID, event.TimeStamp, poster)
-	response := newWriterReplierResponse(poster, replier)
+	writer := newWriter(ctx, logger, slackClient)
+	replier := newReplier(event.ChannelID, event.UserID, event.TimeStamp, writer)
+	response := newWriterReplierResponse(writer, replier)
 
 	return &commandContext{
 		ctx:         ctx,
@@ -97,9 +97,9 @@ func newInteractionContext(
 	callback *slack.InteractionCallback,
 	definition *InteractionDefinition,
 ) InteractionContext {
-	poster := newWriter(logger, slackClient)
-	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, poster)
-	response := newWriterReplierResponse(poster, replier)
+	writer := newWriter(ctx, logger, slackClient)
+	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, writer)
+	response := newWriterReplierResponse(writer, replier)
 	return &interactionContext{
 		ctx:         ctx,
 		definition:  definition,
@@ -152,8 +152,8 @@ type JobContext interface {
 
 // newJobContext creates a new bot context
 func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client, definition *JobDefinition) JobContext {
-	poster := newWriter(logger, slackClient)
-	response := newWriterResponse(poster)
+	writer := newWriter(ctx, logger, slackClient)
+	response := newWriterResponse(writer)
 	return &jobContext{
 		ctx:         ctx,
 		definition:  definition,

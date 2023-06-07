@@ -37,18 +37,27 @@ func WithLogger(logger Logger) ClientOption {
 	}
 }
 
+// WithCronLocation overrides the timezone of the cron instance.
+func WithCronLocation(location *time.Location) ClientOption {
+	return func(defaults *clientOptions) {
+		defaults.CronLocation = location
+	}
+}
+
 type clientOptions struct {
-	APIURL  string
-	Debug   bool
-	BotMode BotMode
-	Logger  Logger
+	APIURL       string
+	Debug        bool
+	BotMode      BotMode
+	Logger       Logger
+	CronLocation *time.Location
 }
 
 func newClientOptions(options ...ClientOption) *clientOptions {
 	config := &clientOptions{
-		APIURL:  slack.APIURL,
-		Debug:   false,
-		BotMode: BotModeIgnoreAll,
+		APIURL:       slack.APIURL,
+		Debug:        false,
+		BotMode:      BotModeIgnoreAll,
+		CronLocation: time.Local,
 	}
 
 	for _, option := range options {

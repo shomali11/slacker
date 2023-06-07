@@ -1,6 +1,7 @@
 package slacker
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/slack-go/slack"
@@ -16,11 +17,12 @@ type Writer interface {
 }
 
 // newWriter creates a new poster structure
-func newWriter(logger Logger, slackClient *slack.Client) Writer {
-	return &writer{logger: logger, slackClient: slackClient}
+func newWriter(ctx context.Context, logger Logger, slackClient *slack.Client) Writer {
+	return &writer{ctx: ctx, logger: logger, slackClient: slackClient}
 }
 
 type writer struct {
+	ctx         context.Context
 	logger      Logger
 	slackClient *slack.Client
 }
@@ -81,7 +83,8 @@ func (r *writer) post(channel string, message string, blocks []slack.Block, opti
 		opts = append(opts, slack.MsgOptionSchedule(postAt))
 	}
 
-	_, timestamp, err := r.slackClient.PostMessage(
+	_, timestamp, err := r.slackClient.PostMessageContext(
+		r.ctx,
 		channel,
 		opts...,
 	)

@@ -40,7 +40,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 	slacker := &Slacker{
 		slackClient:        slackAPI,
 		socketModeClient:   socketModeClient,
-		cronClient:         cron.New(),
+		cronClient:         cron.New(cron.WithLocation(options.CronLocation)),
 		commandGroups:      []CommandGroup{newGroup("")},
 		botInteractionMode: options.BotMode,
 		sanitizeEventText:  defaultEventTextSanitizer,
@@ -208,6 +208,15 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					// Acknowledge receiving the request
 					s.socketModeClient.Ack(*socketEvent.Request)
+
+					if event.Type != slackevents.CallbackEvent {
+						if s.unhandledEventHandler != nil {
+							s.unhandledEventHandler(socketEvent)
+						} else {
+							s.logger.Debugf("unsupported event received %+v\n", socketEvent)
+						}
+						continue
+					}
 
 					switch event.InnerEvent.Type {
 					case "message", "app_mention": // message-based events
