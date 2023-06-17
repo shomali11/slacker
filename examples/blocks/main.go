@@ -15,6 +15,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
+		Command:     "echo {word}",
 		Description: "Echo a word!",
 		Handler: func(ctx slacker.CommandContext) {
 			word := ctx.Request().Param("word")
@@ -28,7 +29,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("echo {word}", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

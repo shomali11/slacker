@@ -17,7 +17,8 @@ func main() {
 		slacker.WithBotMode(slacker.BotModeIgnoreApp),
 	)
 
-	bot.AddCommand("hello", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "hello",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("hai!")
 		},

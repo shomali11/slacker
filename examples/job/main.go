@@ -12,7 +12,8 @@ import (
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
-	bot.AddCommand("ping", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "ping",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("pong")
 		},
@@ -26,12 +27,13 @@ func main() {
 	// │ │ │ │ │
 	// │ │ │ │ │
 	// │ │ │ │ │
-	// * * * * * (spec)
+	// * * * * * (cron expression)
 
 	// Run every minute
-	bot.AddJob("*/1 * * * *", &slacker.JobDefinition{
-		JobName:     "SomeJob",
-		Description: "A cron job that runs every minute",
+	bot.AddJob(&slacker.JobDefinition{
+		CronExpression: "*/1 * * * *",
+		Name:           "SomeJob",
+		Description:    "A cron job that runs every minute",
 		Handler: func(jobCtx slacker.JobContext) {
 			jobCtx.Response().Post("#test", "Hello!")
 		},

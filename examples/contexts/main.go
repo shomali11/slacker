@@ -17,6 +17,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
+		Command:     "process",
 		Description: "Process!",
 		Handler: func(ctx slacker.CommandContext) {
 			timedContext, cancel := context.WithTimeout(ctx.Context(), 5*time.Second)
@@ -33,7 +34,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("process", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

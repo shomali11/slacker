@@ -18,7 +18,8 @@ func main() {
 		slacker.WithDebug(true),
 	)
 
-	bot.AddCommand("ping", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "ping",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("pong")
 		},

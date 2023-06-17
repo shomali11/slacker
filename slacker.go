@@ -17,13 +17,10 @@ const (
 	newLine              = "\n"
 	invalidToken         = "invalid token"
 	helpCommand          = "help"
-	directChannelMarker  = "D"
-	userMentionFormat    = "<@%s>"
 	codeMessageFormat    = "`%s`"
 	boldMessageFormat    = "*%s*"
 	italicMessageFormat  = "_%s_"
 	exampleMessageFormat = "_*Example:*_ %s"
-	slackBotUser         = "USLACKBOT"
 )
 
 // NewClient creates a new client using the Slack API
@@ -123,12 +120,20 @@ func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Ev
 
 // Help handle the help message, it will use the default if not set
 func (s *Slacker) Help(definition *CommandDefinition) {
+	if len(definition.Command) == 0 {
+		s.logger.Error("Missing `Command`")
+		return
+	}
 	s.helpDefinition = definition
 }
 
 // AddCommand define a new command and append it to the list of bot commands
-func (s *Slacker) AddCommand(usage string, definition *CommandDefinition) {
-	s.commandGroups[0].AddCommand(usage, definition)
+func (s *Slacker) AddCommand(definition *CommandDefinition) {
+	if len(definition.Command) == 0 {
+		s.logger.Error("Missing `Command`")
+		return
+	}
+	s.commandGroups[0].AddCommand(definition)
 }
 
 // AddCommandMiddleware appends a new command middleware to the list of root level command middlewares
@@ -144,8 +149,12 @@ func (s *Slacker) AddCommandGroup(prefix string) CommandGroup {
 }
 
 // AddInteraction define a new interaction and append it to the list of interactions
-func (s *Slacker) AddInteraction(blockID string, definition *InteractionDefinition) {
-	s.interactions = append(s.interactions, newInteraction(blockID, definition))
+func (s *Slacker) AddInteraction(definition *InteractionDefinition) {
+	if len(definition.BlockID) == 0 {
+		s.logger.Error("Missing `BlockID`")
+		return
+	}
+	s.interactions = append(s.interactions, newInteraction(definition))
 }
 
 // AddInteractionMiddleware appends a new interaction middleware to the list of root level interaction middlewares
@@ -154,8 +163,12 @@ func (s *Slacker) AddInteractionMiddleware(middleware InteractionMiddlewareHandl
 }
 
 // AddJob define a new cron job and append it to the list of jobs
-func (s *Slacker) AddJob(spec string, definition *JobDefinition) {
-	s.jobs = append(s.jobs, newJob(spec, definition))
+func (s *Slacker) AddJob(definition *JobDefinition) {
+	if len(definition.CronExpression) == 0 {
+		s.logger.Error("missing `CronExpression`")
+		return
+	}
+	s.jobs = append(s.jobs, newJob(definition))
 }
 
 // AddJobMiddleware appends a new job middleware to the list of root level job middlewares
@@ -326,10 +339,10 @@ func (s *Slacker) defaultHelp(ctx CommandContext) {
 			continue
 		}
 
-		helpMessage := fmt.Sprintf(codeMessageFormat, job.Definition().Spec)
+		helpMessage := fmt.Sprintf(codeMessageFormat, job.Definition().CronExpression)
 
-		if len(job.Definition().JobName) > 0 {
-			helpMessage += space + dash + space + fmt.Sprintf(codeMessageFormat, job.Definition().JobName)
+		if len(job.Definition().Name) > 0 {
+			helpMessage += space + dash + space + fmt.Sprintf(codeMessageFormat, job.Definition().Name)
 		}
 
 		if len(job.Definition().Description) > 0 {
@@ -348,18 +361,14 @@ func (s *Slacker) defaultHelp(ctx CommandContext) {
 
 func (s *Slacker) prependHelpHandle() {
 	if s.helpDefinition == nil {
-		s.helpDefinition = &CommandDefinition{}
+		s.helpDefinition = &CommandDefinition{
+			Command:     helpCommand,
+			Description: helpCommand,
+			Handler:     s.defaultHelp,
+		}
 	}
 
-	if s.helpDefinition.Handler == nil {
-		s.helpDefinition.Handler = s.defaultHelp
-	}
-
-	if len(s.helpDefinition.Description) == 0 {
-		s.helpDefinition.Description = helpCommand
-	}
-
-	s.commandGroups[0].PrependCommand(helpCommand, s.helpDefinition)
+	s.commandGroups[0].PrependCommand(s.helpDefinition)
 }
 
 func (s *Slacker) startCronJobs(ctx context.Context) {
@@ -368,8 +377,9 @@ func (s *Slacker) startCronJobs(ctx context.Context) {
 
 	for _, job := range s.jobs {
 		definition := job.Definition()
+		middlewares = append(middlewares, definition.Middlewares...)
 		jobCtx := newJobContext(ctx, s.logger, s.slackClient, definition)
-		_, err := s.cronClient.AddFunc(definition.Spec, executeJob(jobCtx, definition.Handler, middlewares...))
+		_, err := s.cronClient.AddFunc(definition.CronExpression, executeJob(jobCtx, definition.Handler, middlewares...))
 		if err != nil {
 			s.logger.Errorf(err.Error())
 		}

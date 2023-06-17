@@ -7,8 +7,8 @@ import (
 
 // CommandGroup a group of commands
 type CommandGroup interface {
-	AddCommand(usage string, definition *CommandDefinition)
-	PrependCommand(usage string, definition *CommandDefinition)
+	AddCommand(definition *CommandDefinition)
+	PrependCommand(definition *CommandDefinition)
 	AddMiddleware(middleware CommandMiddlewareHandler)
 
 	GetPrefix() string
@@ -32,15 +32,15 @@ func (g *commandGroup) AddMiddleware(middleware CommandMiddlewareHandler) {
 }
 
 // AddCommand define a new command and append it to the list of group bot commands
-func (g *commandGroup) AddCommand(usage string, definition *CommandDefinition) {
-	fullUsage := strings.TrimSpace(fmt.Sprintf("%s %s", g.prefix, usage))
-	g.commands = append(g.commands, newCommand(fullUsage, definition))
+func (g *commandGroup) AddCommand(definition *CommandDefinition) {
+	definition.Command = strings.TrimSpace(fmt.Sprintf("%s %s", g.prefix, definition.Command))
+	g.commands = append(g.commands, newCommand(definition))
 }
 
 // PrependCommand define a new command and prepend it to the list of group bot commands
-func (g *commandGroup) PrependCommand(usage string, definition *CommandDefinition) {
-	fullUsage := strings.TrimSpace(fmt.Sprintf("%s %s", g.prefix, usage))
-	g.commands = append([]Command{newCommand(fullUsage, definition)}, g.commands...)
+func (g *commandGroup) PrependCommand(definition *CommandDefinition) {
+	definition.Command = strings.TrimSpace(fmt.Sprintf("%s %s", g.prefix, definition.Command))
+	g.commands = append([]Command{newCommand(definition)}, g.commands...)
 }
 
 // GetPrefix returns the group's prefix

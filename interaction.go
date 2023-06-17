@@ -8,9 +8,7 @@ type InteractionDefinition struct {
 }
 
 // newInteraction creates a new bot interaction object
-func newInteraction(blockID string, definition *InteractionDefinition) Interaction {
-	definition.BlockID = blockID
-
+func newInteraction(definition *InteractionDefinition) Interaction {
 	return &interaction{
 		definition: definition,
 	}

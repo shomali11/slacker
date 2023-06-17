@@ -7,7 +7,7 @@ import (
 
 // CommandDefinition structure contains definition of the bot command
 type CommandDefinition struct {
-	Usage       string
+	Command     string
 	Description string
 	Examples    []string
 	Middlewares []CommandMiddlewareHandler
@@ -18,12 +18,10 @@ type CommandDefinition struct {
 }
 
 // newCommand creates a new bot command object
-func newCommand(usage string, definition *CommandDefinition) Command {
-	definition.Usage = usage
-
+func newCommand(definition *CommandDefinition) Command {
 	return &command{
 		definition: definition,
-		cmd:        commander.NewCommand(usage),
+		cmd:        commander.NewCommand(definition.Command),
 	}
 }
 

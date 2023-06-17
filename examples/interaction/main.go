@@ -14,12 +14,14 @@ import (
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
-	bot.AddCommand("mood", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command:  "mood",
 		Handler:  slackerCmd("mood"),
 		HideHelp: true,
 	})
 
-	bot.AddInteraction("mood", &slacker.InteractionDefinition{
+	bot.AddInteraction(&slacker.InteractionDefinition{
+		BlockID: "mood",
 		Handler: slackerInteractive,
 	})
 

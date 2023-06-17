@@ -19,7 +19,8 @@ func main() {
 		return strings.ReplaceAll(text, "`", "")
 	})
 
-	bot.AddCommand("my-command", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "my-command",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("it works!")
 		},

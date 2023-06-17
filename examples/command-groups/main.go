@@ -11,7 +11,8 @@ import (
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
-	bot.AddCommand("ping", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "ping",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("pong")
 		},
@@ -40,7 +41,8 @@ func main() {
 		}
 	}
 
-	group.AddCommand("weather", &slacker.CommandDefinition{
+	group.AddCommand(&slacker.CommandDefinition{
+		Command:     "weather",
 		Description: "Find me a cool weather",
 		Examples:    []string{"cool weather"},
 		Middlewares: []slacker.CommandMiddlewareHandler{commandMiddleware},
@@ -49,7 +51,8 @@ func main() {
 		},
 	})
 
-	group.AddCommand("person", &slacker.CommandDefinition{
+	group.AddCommand(&slacker.CommandDefinition{
+		Command:     "person",
 		Description: "Find me a cool person",
 		Examples:    []string{"cool person"},
 		Handler: func(ctx slacker.CommandContext) {
@@ -72,7 +75,7 @@ func LoggingCommandMiddleware() slacker.CommandMiddlewareHandler {
 			fmt.Printf(
 				"%s executed \"%s\" with parameters %v in channel %s\n",
 				ctx.Event().UserID,
-				ctx.Definition().Usage,
+				ctx.Definition().Command,
 				ctx.Request().Properties(),
 				ctx.Event().Channel.ID,
 			)

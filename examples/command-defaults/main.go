@@ -15,6 +15,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
+		Command:     "repeat {word} {number}",
 		Description: "Repeat a word a number of times!",
 		Examples:    []string{"repeat hello 10"},
 		Handler: func(ctx slacker.CommandContext) {
@@ -26,7 +27,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("repeat {word} {number}", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

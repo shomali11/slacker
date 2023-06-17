@@ -16,6 +16,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	authorizedDefinitionByName := &slacker.CommandDefinition{
+		Command:     "secret",
 		Description: "Very secret stuff",
 		Examples:    []string{"secret"},
 		Middlewares: []slacker.CommandMiddlewareHandler{authorizationMiddleware()},
@@ -24,7 +25,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("secret", authorizedDefinitionByName)
+	bot.AddCommand(authorizedDefinitionByName)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

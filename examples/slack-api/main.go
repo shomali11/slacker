@@ -15,6 +15,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
+		Command:     "upload <sentence>",
 		Description: "Upload a sentence!",
 		Handler: func(ctx slacker.CommandContext) {
 			sentence := ctx.Request().Param("sentence")
@@ -29,7 +30,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("upload <sentence>", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

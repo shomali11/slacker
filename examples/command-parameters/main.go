@@ -14,7 +14,8 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.AddCommand("echo {word}", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command:     "echo {word}",
 		Description: "Echo a word!",
 		Examples:    []string{"echo hello"},
 		Handler: func(ctx slacker.CommandContext) {
@@ -23,7 +24,8 @@ func main() {
 		},
 	})
 
-	bot.AddCommand("say <sentence>", &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command:     "say <sentence>",
 		Description: "Say a sentence!",
 		Examples:    []string{"say hello there everyone!"},
 		Handler: func(ctx slacker.CommandContext) {

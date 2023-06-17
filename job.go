@@ -2,18 +2,18 @@ package slacker
 
 // JobDefinition structure contains definition of the job
 type JobDefinition struct {
-	Spec        string
-	JobName     string
-	Description string
-	Handler     JobHandler
+	CronExpression string
+	Name           string
+	Description    string
+	Middlewares    []JobMiddlewareHandler
+	Handler        JobHandler
 
 	// HideHelp will hide this job definition from appearing in the `help` results.
 	HideHelp bool
 }
 
 // newJob creates a new job object
-func newJob(spec string, definition *JobDefinition) Job {
-	definition.Spec = spec
+func newJob(definition *JobDefinition) Job {
 	return &job{
 		definition: definition,
 	}

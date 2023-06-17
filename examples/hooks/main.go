@@ -30,6 +30,7 @@ func main() {
 	})
 
 	definition := &slacker.CommandDefinition{
+		Command:     "help",
 		Description: "help!",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().Reply("Your own help function...")

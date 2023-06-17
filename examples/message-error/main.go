@@ -16,6 +16,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	messageReplyDefinition := &slacker.CommandDefinition{
+		Command:     "message",
 		Description: "Tests errors in new messages",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().ReplyError(errors.New("oops, an error occurred"))
@@ -23,14 +24,15 @@ func main() {
 	}
 
 	threadReplyDefinition := &slacker.CommandDefinition{
+		Command:     "thread",
 		Description: "Tests errors in threads",
 		Handler: func(ctx slacker.CommandContext) {
 			ctx.Response().ReplyError(errors.New("oops, an error occurred"), slacker.WithInThread())
 		},
 	}
 
-	bot.AddCommand("message", messageReplyDefinition)
-	bot.AddCommand("thread", threadReplyDefinition)
+	bot.AddCommand(messageReplyDefinition)
+	bot.AddCommand(threadReplyDefinition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

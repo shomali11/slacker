@@ -41,6 +41,7 @@ func main() {
 	})
 
 	definition := &slacker.CommandDefinition{
+		Command: "mood",
 		Handler: func(ctx slacker.CommandContext) {
 			happyBtn := slack.NewButtonBlockElement("happy", "true", slack.NewTextBlockObject("plain_text", "Happy 🙂", true, false))
 			happyBtn.Style = slack.StylePrimary
@@ -54,7 +55,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("mood", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

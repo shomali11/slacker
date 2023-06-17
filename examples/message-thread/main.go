@@ -14,6 +14,7 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
 	definition := &slacker.CommandDefinition{
+		Command:     "ping",
 		Description: "Ping!",
 		Examples:    []string{"ping"},
 		Handler: func(ctx slacker.CommandContext) {
@@ -21,7 +22,7 @@ func main() {
 		},
 	}
 
-	bot.AddCommand("ping", definition)
+	bot.AddCommand(definition)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
