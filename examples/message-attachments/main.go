@@ -22,7 +22,7 @@ func main() {
 
 			attachments := []slack.Attachment{}
 			attachments = append(attachments, slack.Attachment{
-				Color:      "red",
+				Color:      "good",
 				AuthorName: "Raed Shomali",
 				Title:      "Attachment Title",
 				Text:       "Attachment Text",

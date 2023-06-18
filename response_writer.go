@@ -34,10 +34,12 @@ func (r *writer) Post(channel string, message string, options ...PostOption) (st
 
 // PostError send an error to a channel
 func (r *writer) PostError(channel string, err error, options ...PostOption) (string, error) {
-	blocks := []slack.Block{
-		slack.NewContextBlock("", slack.NewTextBlockObject(slack.MarkdownType, err.Error(), false, false)),
-	}
-	return r.PostBlocks(channel, blocks, options...)
+	attachments := []slack.Attachment{}
+	attachments = append(attachments, slack.Attachment{
+		Color:      "danger",
+		Text:       err.Error(),
+	})
+	return r.post(channel, "", []slack.Block{}, SetAttachments(attachments))
 }
 
 // PostBlocks send blocks to a channel
