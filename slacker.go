@@ -121,7 +121,7 @@ func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Ev
 // Help handle the help message, it will use the default if not set
 func (s *Slacker) Help(definition *CommandDefinition) {
 	if len(definition.Command) == 0 {
-		s.logger.Error("Missing `Command`")
+		s.logger.Error("missing `Command`")
 		return
 	}
 	s.helpDefinition = definition
@@ -130,7 +130,7 @@ func (s *Slacker) Help(definition *CommandDefinition) {
 // AddCommand define a new command and append it to the list of bot commands
 func (s *Slacker) AddCommand(definition *CommandDefinition) {
 	if len(definition.Command) == 0 {
-		s.logger.Error("Missing `Command`")
+		s.logger.Error("missing `Command`")
 		return
 	}
 	s.commandGroups[0].AddCommand(definition)
@@ -151,7 +151,7 @@ func (s *Slacker) AddCommandGroup(prefix string) CommandGroup {
 // AddInteraction define a new interaction and append it to the list of interactions
 func (s *Slacker) AddInteraction(definition *InteractionDefinition) {
 	if len(definition.BlockID) == 0 {
-		s.logger.Error("Missing `BlockID`")
+		s.logger.Error("missing `BlockID`")
 		return
 	}
 	s.interactions = append(s.interactions, newInteraction(definition))
