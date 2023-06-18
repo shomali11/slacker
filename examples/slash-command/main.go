@@ -9,13 +9,13 @@ import (
 )
 
 // Implements a simple slash command.
-// Assumes you have the slash command `/ping` defined for your app.
+// In this example, we hide the command from `help`'s results.
+// This assumes you have the slash command `/ping` defined for your app.
 
 func main() {
 	bot := slacker.NewClient(
 		os.Getenv("SLACK_BOT_TOKEN"),
 		os.Getenv("SLACK_APP_TOKEN"),
-		slacker.WithDebug(true),
 	)
 
 	bot.AddCommand(&slacker.CommandDefinition{

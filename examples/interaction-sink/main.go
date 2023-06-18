@@ -9,6 +9,8 @@ import (
 	"github.com/slack-go/slack"
 )
 
+// Show cases having one handler for all interactions
+
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 

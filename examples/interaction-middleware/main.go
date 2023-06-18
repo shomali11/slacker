@@ -11,14 +11,12 @@ import (
 )
 
 // Show cases interaction middlewares
-// This assumes that a slash command `/mood` is defined for your app.
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 	bot.AddCommand(&slacker.CommandDefinition{
 		Command:  "mood",
 		Handler:  slackerCmd("mood"),
-		HideHelp: true,
 	})
 
 	bot.AddInteractionMiddleware(LoggingInteractionMiddleware())
