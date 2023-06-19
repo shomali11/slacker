@@ -14,7 +14,7 @@ import (
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
-	bot.SanitizeEventText(func(text string) string {
+	bot.SanitizeEventTextHandler(func(text string) string {
 		fmt.Println("My slack bot does not like backticks!")
 		return strings.ReplaceAll(text, "`", "")
 	})

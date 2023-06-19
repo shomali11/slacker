@@ -36,8 +36,8 @@ func (r *writer) Post(channel string, message string, options ...PostOption) (st
 func (r *writer) PostError(channel string, err error, options ...PostOption) (string, error) {
 	attachments := []slack.Attachment{}
 	attachments = append(attachments, slack.Attachment{
-		Color:      "danger",
-		Text:       err.Error(),
+		Color: "danger",
+		Text:  err.Error(),
 	})
 	return r.post(channel, "", []slack.Block{}, SetAttachments(attachments))
 }

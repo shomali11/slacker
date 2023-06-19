@@ -35,37 +35,41 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 	)
 
 	slacker := &Slacker{
-		slackClient:        slackAPI,
-		socketModeClient:   socketModeClient,
-		cronClient:         cron.New(cron.WithLocation(options.CronLocation)),
-		commandGroups:      []CommandGroup{newGroup("")},
-		botInteractionMode: options.BotMode,
-		sanitizeEventText:  defaultEventTextSanitizer,
-		logger:             options.Logger,
+		slackClient:              slackAPI,
+		socketModeClient:         socketModeClient,
+		cronClient:               cron.New(cron.WithLocation(options.CronLocation)),
+		commandGroups:            []CommandGroup{newGroup("")},
+		botInteractionMode:       options.BotMode,
+		sanitizeEventTextHandler: defaultEventTextSanitizer,
+		logger:                   options.Logger,
 	}
 	return slacker
 }
 
 // Slacker contains the Slack API, botCommands, and handlers
 type Slacker struct {
-	slackClient                 *slack.Client
-	socketModeClient            *socketmode.Client
-	cronClient                  *cron.Cron
-	commandMiddlewares          []CommandMiddlewareHandler
-	commandGroups               []CommandGroup
-	interactionMiddlewares      []InteractionMiddlewareHandler
-	interactions                []Interaction
-	jobMiddlewares              []JobMiddlewareHandler
-	jobs                        []Job
-	initHandler                 func()
-	unhandledInteractionHandler InteractionHandler
-	helpDefinition              *CommandDefinition
-	unhandledMessageHandler     CommandHandler
-	unhandledEventHandler       func(socketmode.Event)
-	appID                       string
-	botInteractionMode          BotMode
-	sanitizeEventText           func(string) string
-	logger                      Logger
+	slackClient                   *slack.Client
+	socketModeClient              *socketmode.Client
+	cronClient                    *cron.Cron
+	commandMiddlewares            []CommandMiddlewareHandler
+	commandGroups                 []CommandGroup
+	interactionMiddlewares        []InteractionMiddlewareHandler
+	interactions                  []Interaction
+	jobMiddlewares                []JobMiddlewareHandler
+	jobs                          []Job
+	onHello                       func(socketmode.Event)
+	onConnected                   func(socketmode.Event)
+	onConnecting                  func(socketmode.Event)
+	onConnectionError             func(socketmode.Event)
+	onDisconnected                func(socketmode.Event)
+	unsupportedInteractionHandler InteractionHandler
+	helpDefinition                *CommandDefinition
+	unsupportedCommandHandler     CommandHandler
+	unsupportedEventHandler       func(socketmode.Event)
+	appID                         string
+	botInteractionMode            BotMode
+	sanitizeEventTextHandler      func(string) string
+	logger                        Logger
 }
 
 // GetCommandGroups returns Command Groups
@@ -93,29 +97,49 @@ func (s *Slacker) SocketModeClient() *socketmode.Client {
 	return s.socketModeClient
 }
 
-// Init handle the event when the bot is first connected
-func (s *Slacker) Init(initHandler func()) {
-	s.initHandler = initHandler
+// OnHello handle the event when slack sends the bot "hello"
+func (s *Slacker) OnHello(onHello func(socketmode.Event)) {
+	s.onHello = onHello
 }
 
-// SanitizeEventText allows the api consumer to override the default event text sanitization
-func (s *Slacker) SanitizeEventText(sanitizeEventText func(in string) string) {
-	s.sanitizeEventText = sanitizeEventText
+// OnConnected handle the event when the bot is connected
+func (s *Slacker) OnConnected(onConnected func(socketmode.Event)) {
+	s.onConnected = onConnected
 }
 
-// UnhandledInteractionHandler assigns an interaction handler when none of the interactions are handled
-func (s *Slacker) UnhandledInteractionHandler(unhanldedInteractionHandler InteractionHandler) {
-	s.unhandledInteractionHandler = unhanldedInteractionHandler
+// OnConnecting handle the event when the bot is connecting
+func (s *Slacker) OnConnecting(onConnecting func(socketmode.Event)) {
+	s.onConnecting = onConnecting
 }
 
-// UnhandledMessageHandler handle messages when none of the commands are matched
-func (s *Slacker) UnhandledMessageHandler(unhandledMessageHandler CommandHandler) {
-	s.unhandledMessageHandler = unhandledMessageHandler
+// OnConnectionError handle the event when the bot fails to connect
+func (s *Slacker) OnConnectionError(onConnectionError func(socketmode.Event)) {
+	s.onConnectionError = onConnectionError
 }
 
-// UnhandledEventHandler handle events when an unknown event is seen
-func (s *Slacker) UnhandledEventHandler(unhandledEventHandler func(socketmode.Event)) {
-	s.unhandledEventHandler = unhandledEventHandler
+// OnDisconnected handle the event when the bot is disconnected
+func (s *Slacker) OnDisconnected(onDisconnected func(socketmode.Event)) {
+	s.onDisconnected = onDisconnected
+}
+
+// UnsupportedInteractionHandler handles interactions when none of the callbacks are matched
+func (s *Slacker) UnsupportedInteractionHandler(unsupportedInteractionHandler InteractionHandler) {
+	s.unsupportedInteractionHandler = unsupportedInteractionHandler
+}
+
+// UnsupportedCommandHandler handles messages when none of the commands are matched
+func (s *Slacker) UnsupportedCommandHandler(unsupportedCommandHandler CommandHandler) {
+	s.unsupportedCommandHandler = unsupportedCommandHandler
+}
+
+// UnsupportedEventHandler handles events when an unknown event is seen
+func (s *Slacker) UnsupportedEventHandler(unsupportedEventHandler func(socketmode.Event)) {
+	s.unsupportedEventHandler = unsupportedEventHandler
+}
+
+// SanitizeEventTextHandler overrides the default event text sanitization
+func (s *Slacker) SanitizeEventTextHandler(sanitizeEventTextHandler func(in string) string) {
+	s.sanitizeEventTextHandler = sanitizeEventTextHandler
 }
 
 // Help handle the help message, it will use the default if not set
@@ -194,23 +218,43 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				case socketmode.EventTypeConnecting:
 					s.logger.Infof("connecting to Slack with Socket Mode...\n")
 
+					if s.onConnecting == nil {
+						continue
+					}
+					go s.onConnecting(socketEvent)
+
 				case socketmode.EventTypeConnectionError:
 					s.logger.Infof("connection failed. Retrying later...\n")
+
+					if s.onConnectionError == nil {
+						continue
+					}
+					go s.onConnectionError(socketEvent)
 
 				case socketmode.EventTypeConnected:
 					s.logger.Infof("connected to Slack with Socket Mode.\n")
 
-					if s.initHandler == nil {
+					if s.onConnected == nil {
 						continue
 					}
-					go s.initHandler()
+					go s.onConnected(socketEvent)
 
 				case socketmode.EventTypeHello:
 					s.appID = socketEvent.Request.ConnectionInfo.AppID
 					s.logger.Infof("connected as App ID %v\n", s.appID)
 
+					if s.onHello == nil {
+						continue
+					}
+					go s.onHello(socketEvent)
+
 				case socketmode.EventTypeDisconnect:
 					s.logger.Infof("disconnected due to %v\n", socketEvent.Request.Reason)
+
+					if s.onDisconnected == nil {
+						continue
+					}
+					go s.onDisconnected(socketEvent)
 
 				case socketmode.EventTypeEventsAPI:
 					event, ok := socketEvent.Data.(slackevents.EventsAPIEvent)
@@ -223,8 +267,8 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					s.socketModeClient.Ack(*socketEvent.Request)
 
 					if event.Type != slackevents.CallbackEvent {
-						if s.unhandledEventHandler != nil {
-							s.unhandledEventHandler(socketEvent)
+						if s.unsupportedEventHandler != nil {
+							s.unsupportedEventHandler(socketEvent)
 						} else {
 							s.logger.Debugf("unsupported event received %+v\n", socketEvent)
 						}
@@ -236,8 +280,8 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						go s.handleMessageEvent(ctx, event.InnerEvent.Data)
 
 					default:
-						if s.unhandledEventHandler != nil {
-							s.unhandledEventHandler(socketEvent)
+						if s.unsupportedEventHandler != nil {
+							s.unsupportedEventHandler(socketEvent)
 						} else {
 							s.logger.Debugf("unsupported event received %+v\n", socketEvent)
 						}
@@ -268,8 +312,8 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					go s.handleInteractionEvent(ctx, &callback)
 
 				default:
-					if s.unhandledEventHandler != nil {
-						s.unhandledEventHandler(socketEvent)
+					if s.unsupportedEventHandler != nil {
+						s.unsupportedEventHandler(socketEvent)
 					} else {
 						s.logger.Debugf("unsupported event received %+v\n", socketEvent)
 					}
@@ -408,9 +452,9 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 		}
 	}
 
-	if s.unhandledInteractionHandler != nil {
+	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
-		executeInteraction(interactionCtx, s.unhandledInteractionHandler, middlewares...)
+		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
 	}
 }
 
@@ -430,7 +474,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 	middlewares := make([]CommandMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.commandMiddlewares...)
 
-	eventText := s.sanitizeEventText(messageEvent.Text)
+	eventText := s.sanitizeEventTextHandler(messageEvent.Text)
 	for _, group := range s.commandGroups {
 		for _, cmd := range group.GetCommands() {
 			parameters, isMatch := cmd.Match(eventText)
@@ -448,9 +492,9 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 		}
 	}
 
-	if s.unhandledMessageHandler != nil {
+	if s.unsupportedCommandHandler != nil {
 		ctx := newCommandContext(ctx, s.logger, s.slackClient, messageEvent, nil, nil)
-		executeCommand(ctx, s.unhandledMessageHandler, middlewares...)
+		executeCommand(ctx, s.unsupportedCommandHandler, middlewares...)
 	}
 }
 

@@ -17,15 +17,36 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.Init(func() {
-		log.Println("Connected!")
+	bot.OnHello(func(event socketmode.Event) {
+		log.Println("On Hello!")
+		fmt.Println(event)
 	})
 
-	bot.UnhandledMessageHandler(func(ctx slacker.CommandContext) {
+	bot.OnConnected(func(event socketmode.Event) {
+		log.Println("On Connected!")
+		fmt.Println(event)
+	})
+
+	bot.OnConnecting(func(event socketmode.Event) {
+		log.Println("On Connecting!")
+		fmt.Println(event)
+	})
+
+	bot.OnConnectionError(func(event socketmode.Event) {
+		log.Println("On Connection Error!")
+		fmt.Println(event)
+	})
+
+	bot.OnDisconnected(func(event socketmode.Event) {
+		log.Println("On Disconnected!")
+		fmt.Println(event)
+	})
+
+	bot.UnsupportedCommandHandler(func(ctx slacker.CommandContext) {
 		ctx.Response().Reply("Say what?")
 	})
 
-	bot.UnhandledEventHandler(func(event socketmode.Event) {
+	bot.UnsupportedEventHandler(func(event socketmode.Event) {
 		fmt.Println(event)
 	})
 
