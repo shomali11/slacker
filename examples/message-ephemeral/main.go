@@ -15,7 +15,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Command: "ping",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("pong", slacker.WithEphemeral())
 		},
 	}

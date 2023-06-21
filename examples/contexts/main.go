@@ -19,7 +19,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Command:     "process",
 		Description: "Process!",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			timedContext, cancel := context.WithTimeout(ctx.Context(), 5*time.Second)
 			defer cancel()
 

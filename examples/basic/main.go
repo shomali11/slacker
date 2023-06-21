@@ -8,19 +8,28 @@ import (
 	"github.com/shomali11/slacker/v2"
 )
 
-// Defining a command using slacker
+// Defining commands using slacker
 
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	definition := &slacker.CommandDefinition{
+	bot.AddCommand(&slacker.CommandDefinition{
 		Command: "ping",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("pong")
 		},
-	}
+	})
 
-	bot.AddCommand(definition)
+	// You could define a simple slash command.
+	// In this example, we hide the command from `help`'s results.
+	// This assumes you have the slash command `/hello` defined for your app.
+	bot.AddCommand(&slacker.CommandDefinition{
+		Command: "hello",
+		Handler: func(ctx *slacker.CommandContext) {
+			ctx.Response().Reply("hi!")
+		},
+		HideHelp: true,
+	})
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

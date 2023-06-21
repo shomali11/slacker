@@ -13,23 +13,18 @@ type JobDefinition struct {
 }
 
 // newJob creates a new job object
-func newJob(definition *JobDefinition) Job {
-	return &job{
+func newJob(definition *JobDefinition) *Job {
+	return &Job{
 		definition: definition,
 	}
 }
 
-// Job interface
-type Job interface {
-	Definition() *JobDefinition
-}
-
-// job structure contains the job's spec and handler
-type job struct {
+// Job structure contains the job's spec and handler
+type Job struct {
 	definition *JobDefinition
 }
 
 // Definition returns the job's definition
-func (c *job) Definition() *JobDefinition {
+func (c *Job) Definition() *JobDefinition {
 	return c.definition
 }

@@ -42,7 +42,7 @@ func main() {
 		fmt.Println(event)
 	})
 
-	bot.UnsupportedCommandHandler(func(ctx slacker.CommandContext) {
+	bot.UnsupportedCommandHandler(func(ctx *slacker.CommandContext) {
 		ctx.Response().Reply("Say what?")
 	})
 
@@ -53,7 +53,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Command:     "help",
 		Description: "help!",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("Your own help function...")
 		},
 	}

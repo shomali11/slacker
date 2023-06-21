@@ -38,7 +38,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 		slackClient:              slackAPI,
 		socketModeClient:         socketModeClient,
 		cronClient:               cron.New(cron.WithLocation(options.CronLocation)),
-		commandGroups:            []CommandGroup{newGroup("")},
+		commandGroups:            []*CommandGroup{newGroup("")},
 		botInteractionMode:       options.BotMode,
 		sanitizeEventTextHandler: defaultEventTextSanitizer,
 		logger:                   options.Logger,
@@ -52,11 +52,11 @@ type Slacker struct {
 	socketModeClient              *socketmode.Client
 	cronClient                    *cron.Cron
 	commandMiddlewares            []CommandMiddlewareHandler
-	commandGroups                 []CommandGroup
+	commandGroups                 []*CommandGroup
 	interactionMiddlewares        []InteractionMiddlewareHandler
-	interactions                  []Interaction
+	interactions                  []*Interaction
 	jobMiddlewares                []JobMiddlewareHandler
-	jobs                          []Job
+	jobs                          []*Job
 	onHello                       func(socketmode.Event)
 	onConnected                   func(socketmode.Event)
 	onConnecting                  func(socketmode.Event)
@@ -73,17 +73,17 @@ type Slacker struct {
 }
 
 // GetCommandGroups returns Command Groups
-func (s *Slacker) GetCommandGroups() []CommandGroup {
+func (s *Slacker) GetCommandGroups() []*CommandGroup {
 	return s.commandGroups
 }
 
 // GetInteractions returns Groups
-func (s *Slacker) GetInteractions() []Interaction {
+func (s *Slacker) GetInteractions() []*Interaction {
 	return s.interactions
 }
 
 // GetJobs returns Jobs
-func (s *Slacker) GetJobs() []Job {
+func (s *Slacker) GetJobs() []*Job {
 	return s.jobs
 }
 
@@ -166,7 +166,7 @@ func (s *Slacker) AddCommandMiddleware(middleware CommandMiddlewareHandler) {
 }
 
 // AddCommandGroup define a new group and append it to the list of groups
-func (s *Slacker) AddCommandGroup(prefix string) CommandGroup {
+func (s *Slacker) AddCommandGroup(prefix string) *CommandGroup {
 	group := newGroup(prefix)
 	s.commandGroups = append(s.commandGroups, group)
 	return group
@@ -330,7 +330,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 	return s.socketModeClient.RunContext(ctx)
 }
 
-func (s *Slacker) defaultHelp(ctx CommandContext) {
+func (s *Slacker) defaultHelp(ctx *CommandContext) {
 	blocks := []slack.Block{}
 
 	for _, group := range s.GetCommandGroups() {

@@ -33,7 +33,7 @@ func main() {
 }
 
 func slackerCmd(blockID string) slacker.CommandHandler {
-	return func(ctx slacker.CommandContext) {
+	return func(ctx *slacker.CommandContext) {
 		happyBtn := slack.NewButtonBlockElement("happy", "true", slack.NewTextBlockObject("plain_text", "Happy 🙂", true, false))
 		happyBtn.Style = slack.StylePrimary
 		sadBtn := slack.NewButtonBlockElement("sad", "false", slack.NewTextBlockObject("plain_text", "Sad ☹️", true, false))
@@ -46,7 +46,7 @@ func slackerCmd(blockID string) slacker.CommandHandler {
 	}
 }
 
-func slackerInteractive(ctx slacker.InteractionContext) {
+func slackerInteractive(ctx *slacker.InteractionContext) {
 	text := ""
 	action := ctx.Callback().ActionCallback.BlockActions[0]
 	switch action.ActionID {

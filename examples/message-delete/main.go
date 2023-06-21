@@ -16,7 +16,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Command: "ping",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			t1, _ := ctx.Response().Reply("about to be deleted")
 
 			time.Sleep(time.Second)

@@ -20,7 +20,7 @@ func main() {
 		Description: "Very secret stuff",
 		Examples:    []string{"secret"},
 		Middlewares: []slacker.CommandMiddlewareHandler{authorizationMiddleware()},
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("You are authorized!")
 		},
 	}
@@ -38,7 +38,7 @@ func main() {
 
 func authorizationMiddleware() slacker.CommandMiddlewareHandler {
 	return func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(ctx slacker.CommandContext) {
+		return func(ctx *slacker.CommandContext) {
 			if contains(authorizedUserNames, ctx.Event().UserProfile.DisplayName) {
 				next(ctx)
 			}

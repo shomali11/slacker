@@ -14,7 +14,7 @@ import (
 func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 
-	bot.UnsupportedInteractionHandler(func(ctx slacker.InteractionContext) {
+	bot.UnsupportedInteractionHandler(func(ctx *slacker.InteractionContext) {
 		callback := ctx.Callback()
 		if callback.Type != slack.InteractionTypeBlockActions {
 			return
@@ -44,7 +44,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Command: "mood",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			happyBtn := slack.NewButtonBlockElement("happy", "true", slack.NewTextBlockObject("plain_text", "Happy 🙂", true, false))
 			happyBtn.Style = slack.StylePrimary
 			sadBtn := slack.NewButtonBlockElement("sad", "false", slack.NewTextBlockObject("plain_text", "Sad ☹️", true, false))

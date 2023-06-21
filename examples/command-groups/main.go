@@ -13,14 +13,14 @@ func main() {
 	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
 	bot.AddCommand(&slacker.CommandDefinition{
 		Command: "ping",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("pong")
 		},
 	})
 
 	bot.AddCommandMiddleware(LoggingCommandMiddleware())
 	bot.AddCommandMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(ctx slacker.CommandContext) {
+		return func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("Root Middleware!")
 			next(ctx)
 		}
@@ -28,14 +28,14 @@ func main() {
 
 	group := bot.AddCommandGroup("cool")
 	group.AddMiddleware(func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(ctx slacker.CommandContext) {
+		return func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("Group Middleware!")
 			next(ctx)
 		}
 	})
 
 	commandMiddleware := func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(ctx slacker.CommandContext) {
+		return func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("Command Middleware!")
 			next(ctx)
 		}
@@ -46,7 +46,7 @@ func main() {
 		Description: "Find me a cool weather",
 		Examples:    []string{"cool weather"},
 		Middlewares: []slacker.CommandMiddlewareHandler{commandMiddleware},
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("San Francisco")
 		},
 	})
@@ -55,7 +55,7 @@ func main() {
 		Command:     "person",
 		Description: "Find me a cool person",
 		Examples:    []string{"cool person"},
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("Dwayne Johnson")
 		},
 	})
@@ -71,7 +71,7 @@ func main() {
 
 func LoggingCommandMiddleware() slacker.CommandMiddlewareHandler {
 	return func(next slacker.CommandHandler) slacker.CommandHandler {
-		return func(ctx slacker.CommandContext) {
+		return func(ctx *slacker.CommandContext) {
 			fmt.Printf(
 				"%s executed \"%s\" with parameters %v in channel %s\n",
 				ctx.Event().UserID,

@@ -17,7 +17,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Command:     "echo {word}",
 		Description: "Echo a word!",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			word := ctx.Request().Param("word")
 
 			attachments := []slack.Attachment{}

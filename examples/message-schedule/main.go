@@ -16,7 +16,7 @@ func main() {
 
 	definition := &slacker.CommandDefinition{
 		Command: "ping",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			now := time.Now()
 			later := now.Add(time.Second * 20)
 

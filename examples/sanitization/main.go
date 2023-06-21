@@ -21,7 +21,7 @@ func main() {
 
 	bot.AddCommand(&slacker.CommandDefinition{
 		Command: "my-command",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			ctx.Response().Reply("it works!")
 		},
 	})

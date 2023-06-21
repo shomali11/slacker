@@ -8,23 +8,18 @@ type InteractionDefinition struct {
 }
 
 // newInteraction creates a new bot interaction object
-func newInteraction(definition *InteractionDefinition) Interaction {
-	return &interaction{
+func newInteraction(definition *InteractionDefinition) *Interaction {
+	return &Interaction{
 		definition: definition,
 	}
 }
 
-// Interaction interface
-type Interaction interface {
-	Definition() *InteractionDefinition
-}
-
-// interaction structure contains the bot's interaction, description and handler
-type interaction struct {
+// Interaction structure contains the bot's interaction, description and handler
+type Interaction struct {
 	definition *InteractionDefinition
 }
 
 // Definition returns the interaction definition
-func (c *interaction) Definition() *InteractionDefinition {
+func (c *Interaction) Definition() *InteractionDefinition {
 	return c.definition
 }

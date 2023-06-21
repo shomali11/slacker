@@ -17,7 +17,7 @@ func main() {
 	definition := &slacker.CommandDefinition{
 		Command:     "upload <sentence>",
 		Description: "Upload a sentence!",
-		Handler: func(ctx slacker.CommandContext) {
+		Handler: func(ctx *slacker.CommandContext) {
 			sentence := ctx.Request().Param("sentence")
 			slackClient := ctx.SlackClient()
 			event := ctx.Event()

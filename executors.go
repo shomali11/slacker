@@ -1,6 +1,6 @@
 package slacker
 
-func executeCommand(ctx CommandContext, handler CommandHandler, middlewares ...CommandMiddlewareHandler) {
+func executeCommand(ctx *CommandContext, handler CommandHandler, middlewares ...CommandMiddlewareHandler) {
 	if handler == nil {
 		return
 	}
@@ -12,7 +12,7 @@ func executeCommand(ctx CommandContext, handler CommandHandler, middlewares ...C
 	handler(ctx)
 }
 
-func executeInteraction(ctx InteractionContext, handler InteractionHandler, middlewares ...InteractionMiddlewareHandler) {
+func executeInteraction(ctx *InteractionContext, handler InteractionHandler, middlewares ...InteractionMiddlewareHandler) {
 	if handler == nil {
 		return
 	}
@@ -24,7 +24,7 @@ func executeInteraction(ctx InteractionContext, handler InteractionHandler, midd
 	handler(ctx)
 }
 
-func executeJob(ctx JobContext, handler JobHandler, middlewares ...JobMiddlewareHandler) func() {
+func executeJob(ctx *JobContext, handler JobHandler, middlewares ...JobMiddlewareHandler) func() {
 	if handler == nil {
 		return func() {}
 	}
