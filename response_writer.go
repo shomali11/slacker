@@ -7,33 +7,25 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// Writer interface is used to respond to an event
-type Writer interface {
-	Post(channel string, message string, options ...PostOption) (string, error)
-	PostError(channel string, err error, options ...PostOption) (string, error)
-	PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error)
-
-	Delete(channel string, messageTimestamp string) (string, error)
-}
-
 // newWriter creates a new poster structure
-func newWriter(ctx context.Context, logger Logger, slackClient *slack.Client) Writer {
-	return &writer{ctx: ctx, logger: logger, slackClient: slackClient}
+func newWriter(ctx context.Context, logger Logger, slackClient *slack.Client) *Writer {
+	return &Writer{ctx: ctx, logger: logger, slackClient: slackClient}
 }
 
-type writer struct {
+// Writer sends messages to Slack
+type Writer struct {
 	ctx         context.Context
 	logger      Logger
 	slackClient *slack.Client
 }
 
 // Post send a message to a channel
-func (r *writer) Post(channel string, message string, options ...PostOption) (string, error) {
+func (r *Writer) Post(channel string, message string, options ...PostOption) (string, error) {
 	return r.post(channel, message, []slack.Block{}, options...)
 }
 
 // PostError send an error to a channel
-func (r *writer) PostError(channel string, err error, options ...PostOption) (string, error) {
+func (r *Writer) PostError(channel string, err error, options ...PostOption) (string, error) {
 	attachments := []slack.Attachment{}
 	attachments = append(attachments, slack.Attachment{
 		Color: "danger",
@@ -43,12 +35,12 @@ func (r *writer) PostError(channel string, err error, options ...PostOption) (st
 }
 
 // PostBlocks send blocks to a channel
-func (r *writer) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
+func (r *Writer) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
 	return r.post(channel, "", blocks, options...)
 }
 
 // Delete deletes message
-func (r *writer) Delete(channel string, messageTimestamp string) (string, error) {
+func (r *Writer) Delete(channel string, messageTimestamp string) (string, error) {
 	_, timestamp, err := r.slackClient.DeleteMessage(
 		channel,
 		messageTimestamp,
@@ -59,7 +51,7 @@ func (r *writer) Delete(channel string, messageTimestamp string) (string, error)
 	return timestamp, err
 }
 
-func (r *writer) post(channel string, message string, blocks []slack.Block, options ...PostOption) (string, error) {
+func (r *Writer) post(channel string, message string, blocks []slack.Block, options ...PostOption) (string, error) {
 	postOptions := newPostOptions(options...)
 
 	opts := []slack.MsgOption{

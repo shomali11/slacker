@@ -19,7 +19,7 @@ func newCommandContext(
 	request := newRequest(parameters)
 	writer := newWriter(ctx, logger, slackClient)
 	replier := newReplier(event.ChannelID, event.UserID, event.TimeStamp, writer)
-	response := newWriterReplierResponse(writer, replier)
+	response := newResponseReplier(writer, replier)
 
 	return &CommandContext{
 		ctx:         ctx,
@@ -37,8 +37,8 @@ type CommandContext struct {
 	event       *MessageEvent
 	slackClient *slack.Client
 	definition  *CommandDefinition
-	request     Request
-	response    WriterReplierResponse
+	request     *Request
+	response    *ResponseReplier
 }
 
 // Context returns the context
@@ -62,12 +62,12 @@ func (r *CommandContext) SlackClient() *slack.Client {
 }
 
 // Request returns the command request
-func (r *CommandContext) Request() Request {
+func (r *CommandContext) Request() *Request {
 	return r.request
 }
 
 // Response returns the response writer
-func (r *CommandContext) Response() WriterReplierResponse {
+func (r *CommandContext) Response() *ResponseReplier {
 	return r.response
 }
 
@@ -81,7 +81,7 @@ func newInteractionContext(
 ) *InteractionContext {
 	writer := newWriter(ctx, logger, slackClient)
 	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, writer)
-	response := newWriterReplierResponse(writer, replier)
+	response := newResponseReplier(writer, replier)
 	return &InteractionContext{
 		ctx:         ctx,
 		definition:  definition,
@@ -97,7 +97,7 @@ type InteractionContext struct {
 	definition  *InteractionDefinition
 	callback    *slack.InteractionCallback
 	slackClient *slack.Client
-	response    WriterReplierResponse
+	response    *ResponseReplier
 }
 
 // Context returns the context
@@ -116,7 +116,7 @@ func (r *InteractionContext) Callback() *slack.InteractionCallback {
 }
 
 // Response returns the response writer
-func (r *InteractionContext) Response() WriterReplierResponse {
+func (r *InteractionContext) Response() *ResponseReplier {
 	return r.response
 }
 
@@ -142,7 +142,7 @@ type JobContext struct {
 	ctx         context.Context
 	definition  *JobDefinition
 	slackClient *slack.Client
-	response    WriterResponse
+	response    *ResponseWriter
 }
 
 // Context returns the context
@@ -156,7 +156,7 @@ func (r *JobContext) Definition() *JobDefinition {
 }
 
 // Response returns the response writer
-func (r *JobContext) Response() WriterResponse {
+func (r *JobContext) Response() *ResponseWriter {
 	return r.response
 }
 

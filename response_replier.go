@@ -4,44 +4,38 @@ import (
 	"github.com/slack-go/slack"
 )
 
-// A Replier interface is used to respond to an event
-type Replier interface {
-	Reply(message string, options ...ReplyOption) (string, error)
-	ReplyError(err error, options ...ReplyOption) (string, error)
-	ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error)
-}
-
 // newReplier creates a new replier structure
-func newReplier(channelID string, userID string, eventTS string, poster Writer) Replier {
-	return &replier{channelID: channelID, userID: userID, eventTS: eventTS, poster: poster}
+func newReplier(channelID string, userID string, eventTS string, writer *Writer) *Replier {
+	return &Replier{channelID: channelID, userID: userID, eventTS: eventTS, writer: writer}
 }
 
-type replier struct {
+// Replier sends messages to the same channel the event came from
+type Replier struct {
 	channelID string
 	userID    string
 	eventTS   string
-	poster    Writer
+	writer    *Writer
 }
 
 // Reply send a message to the current channel
-func (r *replier) Reply(message string, options ...ReplyOption) (string, error) {
+func (r *Replier) Reply(message string, options ...ReplyOption) (string, error) {
 	responseOptions := r.convertOptions(options...)
-	return r.poster.Post(r.channelID, message, responseOptions...)
+	return r.writer.Post(r.channelID, message, responseOptions...)
 }
 
 // ReplyError send an error to the current channel
-func (r *replier) ReplyError(err error, options ...ReplyOption) (string, error) {
+func (r *Replier) ReplyError(err error, options ...ReplyOption) (string, error) {
 	responseOptions := r.convertOptions(options...)
-	return r.poster.PostError(r.channelID, err, responseOptions...)
+	return r.writer.PostError(r.channelID, err, responseOptions...)
 }
 
 // ReplyBlocks send blocks to the current channel
-func (r *replier) ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error) {
+func (r *Replier) ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error) {
 	responseOptions := r.convertOptions(options...)
-	return r.poster.PostBlocks(r.channelID, blocks, responseOptions...)
+	return r.writer.PostBlocks(r.channelID, blocks, responseOptions...)
 }
 
-func (r *replier) convertOptions(options ...ReplyOption) []PostOption {
+func (r *Replier) convertOptions(options ...ReplyOption) []PostOption {
 	replyOptions := newReplyOptions(options...)
 	responseOptions := []PostOption{
 		SetAttachments(replyOptions.Attachments),
