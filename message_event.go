@@ -60,7 +60,7 @@ func (e *MessageEvent) IsThread() bool {
 
 // IsBot indicates if the message was sent by a bot
 func (e *MessageEvent) IsBot() bool {
-	return len(e.BotID) > 0
+	return e.BotID != ""
 }
 
 // newMessageEvent creates a new message event structure
