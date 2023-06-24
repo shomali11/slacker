@@ -1,85 +1,81 @@
 package slacker
 
 import (
-	"fmt"
-	"log"
-
 	"github.com/slack-go/slack"
 )
 
-const (
-	errorFormat = "*Error:* _%s_"
-)
-
-// A ResponseWriter interface is used to respond to an event
-type ResponseWriter interface {
-	Post(channel string, message string, options ...ReplyOption) error
-	Reply(text string, options ...ReplyOption) error
-	ReportError(err error, options ...ReportErrorOption)
+// newResponseReplier creates a new response structure
+func newResponseReplier(writer *Writer, replier *Replier) *ResponseReplier {
+	return &ResponseReplier{writer: writer, replier: replier}
 }
 
-// NewResponse creates a new response structure
-func NewResponse(botCtx BotContext) ResponseWriter {
-	return &response{botCtx: botCtx}
-}
-
-type response struct {
-	botCtx BotContext
-}
-
-// ReportError sends back a formatted error message to the channel where we received the event from
-func (r *response) ReportError(err error, options ...ReportErrorOption) {
-	defaults := NewReportErrorDefaults(options...)
-
-	apiClient := r.botCtx.APIClient()
-	event := r.botCtx.Event()
-
-	opts := []slack.MsgOption{
-		slack.MsgOptionText(fmt.Sprintf(errorFormat, err.Error()), false),
-	}
-
-	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
-	}
-
-	_, _, err = apiClient.PostMessage(event.ChannelID, opts...)
-	if err != nil {
-		log.Printf("failed posting message: %v\n", err)
-	}
+// ResponseReplier sends messages to Slack
+type ResponseReplier struct {
+	writer  *Writer
+	replier *Replier
 }
 
 // Reply send a message to the current channel
-func (r *response) Reply(message string, options ...ReplyOption) error {
-	ev := r.botCtx.Event()
-	if ev == nil {
-		return fmt.Errorf("unable to get message event details")
-	}
-	return r.Post(ev.ChannelID, message, options...)
+func (r *ResponseReplier) Reply(message string, options ...ReplyOption) (string, error) {
+	return r.replier.Reply(message, options...)
+}
+
+// ReplyError send an error to the current channel
+func (r *ResponseReplier) ReplyError(err error, options ...ReplyOption) (string, error) {
+	return r.replier.ReplyError(err, options...)
+}
+
+// ReplyBlocks send blocks to the current channel
+func (r *ResponseReplier) ReplyBlocks(blocks []slack.Block, options ...ReplyOption) (string, error) {
+	return r.replier.ReplyBlocks(blocks, options...)
 }
 
 // Post send a message to a channel
-func (r *response) Post(channel string, message string, options ...ReplyOption) error {
-	defaults := NewReplyDefaults(options...)
+func (r *ResponseReplier) Post(channel string, message string, options ...PostOption) (string, error) {
+	return r.writer.Post(channel, message, options...)
+}
 
-	apiClient := r.botCtx.APIClient()
-	event := r.botCtx.Event()
-	if event == nil {
-		return fmt.Errorf("unable to get message event details")
-	}
+// PostError send an error to a channel
+func (r *ResponseReplier) PostError(channel string, err error, options ...PostOption) (string, error) {
+	return r.writer.PostError(channel, err, options...)
+}
 
-	opts := []slack.MsgOption{
-		slack.MsgOptionText(message, false),
-		slack.MsgOptionAttachments(defaults.Attachments...),
-		slack.MsgOptionBlocks(defaults.Blocks...),
-	}
+// PostBlocks send blocks to a channel
+func (r *ResponseReplier) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
+	return r.writer.PostBlocks(channel, blocks, options...)
+}
 
-	if defaults.ThreadResponse {
-		opts = append(opts, slack.MsgOptionTS(event.TimeStamp))
-	}
+// Delete deletes a message in a channel
+func (r *ResponseReplier) Delete(channel string, messageTimestamp string) (string, error) {
+	return r.writer.Delete(channel, messageTimestamp)
+}
 
-	_, _, err := apiClient.PostMessage(
-		channel,
-		opts...,
-	)
-	return err
+// newWriterResponse creates a new response structure
+func newWriterResponse(writer *Writer) *ResponseWriter {
+	return &ResponseWriter{writer: writer}
+}
+
+// ResponseWriter sends messages to slack
+type ResponseWriter struct {
+	writer *Writer
+}
+
+// Post send a message to a channel
+func (r *ResponseWriter) Post(channel string, message string, options ...PostOption) (string, error) {
+	return r.writer.Post(channel, message, options...)
+}
+
+// PostError send an error to a channel
+func (r *ResponseWriter) PostError(channel string, err error, options ...PostOption) (string, error) {
+	return r.writer.PostError(channel, err, options...)
+}
+
+// PostBlocks send blocks to a channel
+func (r *ResponseWriter) PostBlocks(channel string, blocks []slack.Block, options ...PostOption) (string, error) {
+	return r.writer.PostBlocks(channel, blocks, options...)
+}
+
+// Delete deletes a message in a channel
+func (r *ResponseWriter) Delete(channel string, messageTimestamp string) (string, error) {
+	return r.writer.Delete(channel, messageTimestamp)
 }
