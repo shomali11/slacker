@@ -18,7 +18,7 @@ func newCommandContext(
 ) *CommandContext {
 	request := newRequest(parameters)
 	writer := newWriter(ctx, logger, slackClient)
-	replier := newReplier(event.ChannelID, event.UserID, event.TimeStamp, writer)
+	replier := newReplier(event.ChannelID, event.UserID, event.InThread(), event.TimeStamp, writer)
 	response := newResponseReplier(writer, replier)
 
 	return &CommandContext{
@@ -28,6 +28,7 @@ func newCommandContext(
 		definition:  definition,
 		request:     request,
 		response:    response,
+		logger:      logger,
 	}
 }
 
@@ -39,6 +40,7 @@ type CommandContext struct {
 	definition  *CommandDefinition
 	request     *Request
 	response    *ResponseReplier
+	logger      Logger
 }
 
 // Context returns the context
@@ -71,6 +73,11 @@ func (r *CommandContext) Response() *ResponseReplier {
 	return r.response
 }
 
+// Logger returns the logger
+func (r *CommandContext) Logger() Logger {
+	return r.logger
+}
+
 // newInteractionContext creates a new interaction context
 func newInteractionContext(
 	ctx context.Context,
@@ -79,8 +86,9 @@ func newInteractionContext(
 	callback *slack.InteractionCallback,
 	definition *InteractionDefinition,
 ) *InteractionContext {
+	inThread := isMessageInThread(callback.OriginalMessage.ThreadTimestamp, callback.OriginalMessage.Timestamp)
 	writer := newWriter(ctx, logger, slackClient)
-	replier := newReplier(callback.Channel.ID, callback.User.ID, callback.MessageTs, writer)
+	replier := newReplier(callback.Channel.ID, callback.User.ID, inThread, callback.MessageTs, writer)
 	response := newResponseReplier(writer, replier)
 	return &InteractionContext{
 		ctx:         ctx,
@@ -88,6 +96,7 @@ func newInteractionContext(
 		callback:    callback,
 		slackClient: slackClient,
 		response:    response,
+		logger:      logger,
 	}
 }
 
@@ -98,6 +107,7 @@ type InteractionContext struct {
 	callback    *slack.InteractionCallback
 	slackClient *slack.Client
 	response    *ResponseReplier
+	logger      Logger
 }
 
 // Context returns the context
@@ -125,6 +135,11 @@ func (r *InteractionContext) SlackClient() *slack.Client {
 	return r.slackClient
 }
 
+// Logger returns the logger
+func (r *InteractionContext) Logger() Logger {
+	return r.logger
+}
+
 // newJobContext creates a new bot context
 func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client, definition *JobDefinition) *JobContext {
 	writer := newWriter(ctx, logger, slackClient)
@@ -134,6 +149,7 @@ func newJobContext(ctx context.Context, logger Logger, slackClient *slack.Client
 		definition:  definition,
 		slackClient: slackClient,
 		response:    response,
+		logger:      logger,
 	}
 }
 
@@ -143,6 +159,7 @@ type JobContext struct {
 	definition  *JobDefinition
 	slackClient *slack.Client
 	response    *ResponseWriter
+	logger      Logger
 }
 
 // Context returns the context
@@ -163,4 +180,9 @@ func (r *JobContext) Response() *ResponseWriter {
 // SlackClient returns the slack API client
 func (r *JobContext) SlackClient() *slack.Client {
 	return r.slackClient
+}
+
+// Logger returns the logger
+func (r *JobContext) Logger() Logger {
+	return r.logger
 }

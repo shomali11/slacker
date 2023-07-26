@@ -27,7 +27,7 @@ func main() {
 		Command:     "thread",
 		Description: "Tests errors in threads",
 		Handler: func(ctx *slacker.CommandContext) {
-			ctx.Response().ReplyError(errors.New("oops, an error occurred"), slacker.WithInThread())
+			ctx.Response().ReplyError(errors.New("oops, an error occurred"), slacker.WithInThread(true))
 		},
 	}
 

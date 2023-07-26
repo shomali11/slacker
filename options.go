@@ -81,9 +81,9 @@ func WithAttachments(attachments []slack.Attachment) ReplyOption {
 }
 
 // WithInThread specifies whether to reply inside a thread of the original message
-func WithInThread() ReplyOption {
+func WithInThread(inThread bool) ReplyOption {
 	return func(defaults *replyOptions) {
-		defaults.InThread = true
+		defaults.InThread = &inThread
 	}
 }
 
@@ -110,7 +110,7 @@ func WithSchedule(timestamp time.Time) ReplyOption {
 
 type replyOptions struct {
 	Attachments      []slack.Attachment
-	InThread         bool
+	InThread         *bool
 	ReplaceMessageTS string
 	IsEphemeral      bool
 	ScheduleTime     *time.Time
@@ -120,7 +120,7 @@ type replyOptions struct {
 func newReplyOptions(options ...ReplyOption) *replyOptions {
 	config := &replyOptions{
 		Attachments: []slack.Attachment{},
-		InThread:    false,
+		InThread:    nil,
 	}
 
 	for _, option := range options {

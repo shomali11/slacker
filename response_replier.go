@@ -5,14 +5,15 @@ import (
 )
 
 // newReplier creates a new replier structure
-func newReplier(channelID string, userID string, eventTS string, writer *Writer) *Replier {
-	return &Replier{channelID: channelID, userID: userID, eventTS: eventTS, writer: writer}
+func newReplier(channelID string, userID string, inThread bool, eventTS string, writer *Writer) *Replier {
+	return &Replier{channelID: channelID, userID: userID, inThread: inThread, eventTS: eventTS, writer: writer}
 }
 
 // Replier sends messages to the same channel the event came from
 type Replier struct {
 	channelID string
 	userID    string
+	inThread  bool
 	eventTS   string
 	writer    *Writer
 }
@@ -41,7 +42,8 @@ func (r *Replier) convertOptions(options ...ReplyOption) []PostOption {
 		SetAttachments(replyOptions.Attachments),
 	}
 
-	if replyOptions.InThread {
+	// If the original message came from a thread, reply in a thread, unless there is an override
+	if (replyOptions.InThread == nil && r.inThread) || (replyOptions.InThread != nil && *replyOptions.InThread) {
 		responseOptions = append(responseOptions, SetThreadTS(r.eventTS))
 	}
 
