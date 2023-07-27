@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os"
 
@@ -54,12 +53,12 @@ func main() {
 func LoggingJobMiddleware() slacker.JobMiddlewareHandler {
 	return func(next slacker.JobHandler) slacker.JobHandler {
 		return func(ctx *slacker.JobContext) {
-			fmt.Printf(
+			ctx.Logger().Infof(
 				"%s started\n",
 				ctx.Definition().Name,
 			)
 			next(ctx)
-			fmt.Printf(
+			ctx.Logger().Infof(
 				"%s ended\n",
 				ctx.Definition().Name,
 			)

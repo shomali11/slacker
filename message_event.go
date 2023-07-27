@@ -50,12 +50,9 @@ type MessageEvent struct {
 	BotID string
 }
 
-// IsThread indicates if a message event took place in a thread.
-func (e *MessageEvent) IsThread() bool {
-	if e.ThreadTimeStamp == "" || e.ThreadTimeStamp == e.TimeStamp {
-		return false
-	}
-	return true
+// InThread indicates if a message event took place in a thread.
+func (e *MessageEvent) InThread() bool {
+	return isMessageInThread(e.ThreadTimeStamp, e.TimeStamp)
 }
 
 // IsBot indicates if the message was sent by a bot
