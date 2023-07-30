@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"log"
-	"os"
+	//"os"
 
 	"github.com/shomali11/slacker/v2"
 )
@@ -11,7 +11,9 @@ import (
 // Defining a command with aliases
 
 func main() {
-	bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	//bot := slacker.NewClient(os.Getenv("SLACK_BOT_TOKEN"), os.Getenv("SLACK_APP_TOKEN"))
+	bot := slacker.NewClient("xoxb-13360094916-2243791173942-I6FwX8kkBNPvANakdfVWm8PF", "xapp-1-A027JMM1RV2-5373599545492-06fa58c972681603e29d44cac9c0f62aa895bc5ccc013256b180dee7961eab23")
+
 	bot.AddCommand(&slacker.CommandDefinition{
 		Command: "echo {word}",
 		Aliases: []string{
