@@ -21,6 +21,7 @@ const (
 	invalidToken        = "invalid token"
 	helpCommand         = "help"
 	directChannelMarker = "D"
+	prefixCommandMarker = "!"
 	userMentionFormat   = "<@%s>"
 	codeMessageFormat   = "`%s`"
 	boldMessageFormat   = "*%s*"
@@ -244,7 +245,10 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 					switch event.InnerEvent.Type {
 					case "message", "app_mention": // message-based events
-						go s.handleMessageEvent(ctx, event.InnerEvent.Data, nil)
+						message := NewMessageEvent(s, event.InnerEvent.Data, nil)
+						if message != nil && s.hasCommandPrefix(message.Text) {
+							go s.handleMessageEvent(ctx, event.InnerEvent.Data, nil)
+						}
 
 					default:
 						if s.defaultInnerEventHandler != nil {
@@ -393,6 +397,10 @@ func (s *Slacker) handleInteractiveEvent(ctx context.Context, event *socketmode.
 	if s.interactiveEventHandler != nil {
 		s.interactiveEventHandler(botCtx, callback)
 	}
+}
+
+func (s *Slacker) hasCommandPrefix(message string) bool {
+	return strings.HasPrefix(message, prefixCommandMarker)
 }
 
 func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req *socketmode.Request) {
