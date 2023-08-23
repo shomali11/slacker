@@ -32,6 +32,7 @@ const (
 
 var (
 	errUnauthorized = errors.New("you are not authorized to execute this command")
+	errInvalidChannel = errors.New("this command is not assigned to this channel")
 )
 
 func defaultCleanEventInput(msg string) string {
@@ -59,6 +60,7 @@ func NewClient(botToken, appToken string, options ...ClientOption) *Slacker {
 		cronClient:         cron.New(),
 		commandChannel:     make(chan *CommandEvent, 100),
 		errUnauthorized:    errUnauthorized,
+		errInvalidChannel:  errInvalidChannel,
 		botInteractionMode: defaults.BotMode,
 		sanitizeEventText:  defaultCleanEventInput,
 	}
@@ -87,6 +89,7 @@ type Slacker struct {
 	defaultEventHandler              func(interface{})
 	defaultInnerEventHandler         func(context.Context, interface{}, *socketmode.Request)
 	errUnauthorized                  error
+	errInvalidChannel				 error
 	commandChannel                   chan *CommandEvent
 	appID                            string
 	botInteractionMode               BotInteractionMode
@@ -176,6 +179,11 @@ func (s *Slacker) DefaultInnerEvent(defaultInnerEventHandler func(ctx context.Co
 // UnAuthorizedError error message
 func (s *Slacker) UnAuthorizedError(errUnauthorized error) {
 	s.errUnauthorized = errUnauthorized
+}
+
+// InvalidChannelError error message
+func (s *Slacker) InvalidChannelError(errInvalidChannel error) {
+	s.errInvalidChannel = errInvalidChannel
 }
 
 // Help handle the help message, it will use the default if not set
@@ -307,14 +315,6 @@ func (s *Slacker) defaultHelp(botCtx BotContext, request Request, response Respo
 		if command.Definition().HideHelp {
 			continue
 		}
-		tokens := command.Tokenize()
-		for _, token := range tokens {
-			if token.IsParameter() {
-				helpMessage += fmt.Sprintf(codeMessageFormat, token.Word) + space
-			} else {
-				helpMessage += fmt.Sprintf(boldMessageFormat, token.Word) + space
-			}
-		}
 
 		if len(command.Definition().Description) > 0 {
 			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Description)
@@ -322,6 +322,12 @@ func (s *Slacker) defaultHelp(botCtx BotContext, request Request, response Respo
 
 		if command.Definition().AuthorizationFunc != nil {
 			helpMessage += space + lock
+		}
+
+		helpMessage += newLine
+
+		if len(command.Definition().Channels) > 0 {
+			helpMessage += dash + space + fmt.Sprintf(italicMessageFormat, command.Definition().Channels)
 		}
 
 		helpMessage += newLine
@@ -460,6 +466,12 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 			return
 		}
 
+		channelName := messageEvent.Channel.Name
+		if cmd.Definition().Channels != nil && !contains(cmd.Definition().Channels, channelName) {
+			response.ReportError(s.errInvalidChannel)
+			return
+		}
+
 		select {
 		case s.commandChannel <- NewCommandEvent(cmd.Usage(), parameters, messageEvent):
 		default:
@@ -474,4 +486,13 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 		request := s.requestConstructor(botCtx, nil)
 		s.defaultMessageHandler(botCtx, request, response)
 	}
+}
+
+func contains(slice []string, element string) bool {
+	for _, value := range slice {
+		if value == element {
+			return true
+		}
+	}
+	return false
 }
