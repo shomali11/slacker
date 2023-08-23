@@ -455,7 +455,7 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event interface{}, req
 
 	eventText := s.sanitizeEventText(messageEvent.Text)
 	for _, cmd := range s.commands {
-		parameters, isMatch := cmd.Match(eventText)
+		parameters, isMatch := s.regexMatch(cmd.Usage(), eventText)
 		if !isMatch {
 			continue
 		}
