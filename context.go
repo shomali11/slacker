@@ -13,6 +13,7 @@ type BotContext interface {
 	Event() *MessageEvent
 	APIClient() *slack.Client
 	SocketModeClient() *socketmode.Client
+	GetUserName() (string, error)
 }
 
 // NewBotContext creates a new bot context
@@ -35,6 +36,14 @@ func (r *botContext) Context() context.Context {
 // Event returns the slack message event
 func (r *botContext) Event() *MessageEvent {
 	return r.event
+}
+
+func (r *botContext) GetUserName() (string, error) {
+	u, err := r.apiClient.GetUserInfo(r.event.UserID)
+	if err != nil {
+		return "", err
+	}
+	return u.Name, nil
 }
 
 // APIClient returns the slack API client

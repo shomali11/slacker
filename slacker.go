@@ -31,7 +31,7 @@ const (
 )
 
 var (
-	errUnauthorized = errors.New("you are not authorized to execute this command")
+	errUnauthorized   = errors.New("you are not authorized to execute this command")
 	errInvalidChannel = errors.New("this command is not assigned to this channel")
 )
 
@@ -89,7 +89,7 @@ type Slacker struct {
 	defaultEventHandler              func(interface{})
 	defaultInnerEventHandler         func(context.Context, interface{}, *socketmode.Request)
 	errUnauthorized                  error
-	errInvalidChannel				 error
+	errInvalidChannel                error
 	commandChannel                   chan *CommandEvent
 	appID                            string
 	botInteractionMode               BotInteractionMode

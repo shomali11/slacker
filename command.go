@@ -12,7 +12,7 @@ type CommandDefinition struct {
 	Description       string
 	Examples          []string
 	BlockID           string
-	Channels 		  []string
+	Channels          []string
 	AuthorizationFunc func(BotContext, Request) bool
 	Handler           func(BotContext, Request, ResponseWriter)
 	Interactive       func(InteractiveBotContext, *socketmode.Request, *slack.InteractionCallback)

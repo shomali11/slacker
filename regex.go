@@ -28,5 +28,5 @@ func (s *Slacker) regexMatch(regex, text string) (*proper.Properties, bool) {
 		valueIndex++
 	}
 
-return proper.NewProperties(parameters), re.MatchString(text)
+	return proper.NewProperties(parameters), re.MatchString(text)
 }
