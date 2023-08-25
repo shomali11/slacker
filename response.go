@@ -14,6 +14,7 @@ const (
 type ResponseWriter interface {
 	Post(channel string, message string, options ...ReplyOption) error
 	Reply(text string, options ...ReplyOption) error
+	ReplyWithMention(text string, options ...ReplyOption) error
 	ReportError(err error, options ...ReportErrorOption)
 }
 
@@ -54,6 +55,15 @@ func (r *response) Reply(message string, options ...ReplyOption) error {
 		return fmt.Errorf("unable to get message event details")
 	}
 	return r.Post(ev.ChannelID, message, options...)
+}
+
+func (r *response) ReplyWithMention(message string, options ...ReplyOption) error {
+	ev := r.botCtx.Event()
+	if ev == nil {
+		return fmt.Errorf("unable to get message event details")
+	}
+	mentionMessage := "<@" + r.botCtx.Event().UserID + ">" + message
+	return r.Post(ev.ChannelID, mentionMessage, options...)
 }
 
 // Post send a message to a channel
