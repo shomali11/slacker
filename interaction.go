@@ -3,6 +3,7 @@ package slacker
 // InteractionDefinition structure contains definition of the bot interaction
 type InteractionDefinition struct {
 	BlockID     string
+	CallbackID  string
 	Middlewares []InteractionMiddlewareHandler
 	Handler     InteractionHandler
 }

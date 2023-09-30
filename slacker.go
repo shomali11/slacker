@@ -77,7 +77,7 @@ func (s *Slacker) GetCommandGroups() []*CommandGroup {
 	return s.commandGroups
 }
 
-// GetInteractions returns Groups
+// GetInteractions returns Interactions
 func (s *Slacker) GetInteractions() []*Interaction {
 	return s.interactions
 }
@@ -174,8 +174,12 @@ func (s *Slacker) AddCommandGroup(prefix string) *CommandGroup {
 
 // AddInteraction define a new interaction and append it to the list of interactions
 func (s *Slacker) AddInteraction(definition *InteractionDefinition) {
-	if len(definition.BlockID) == 0 {
-		s.logger.Error("missing `BlockID`")
+	if len(definition.BlockID) == 0 && len(definition.CallbackID) == 0 {
+		s.logger.Error("missing `BlockID` or `CallbackID`")
+		return
+	}
+	if len(definition.BlockID) != 0 && len(definition.CallbackID) != 0 {
+		s.logger.Error("`BlockID` or `CallbackID` should not be set at the same time")
 		return
 	}
 	s.interactions = append(s.interactions, newInteraction(definition))
@@ -437,21 +441,37 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 	middlewares := make([]InteractionMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.interactionMiddlewares...)
 
-	for _, interaction := range s.interactions {
-		for _, action := range callback.ActionCallback.BlockActions {
+	switch callback.Type {
+	case slack.InteractionTypeBlockActions:
+		for _, interaction := range s.interactions {
 			definition := interaction.Definition()
-			if action.BlockID != definition.BlockID {
-				continue
+			for _, action := range callback.ActionCallback.BlockActions {
+				if action.BlockID == definition.BlockID {
+					interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, definition)
+					middlewares = append(middlewares, definition.Middlewares...)
+					executeInteraction(interactionCtx, definition.Handler, middlewares...)
+					return
+				}
 			}
-
-			interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, definition)
-
-			middlewares = append(middlewares, definition.Middlewares...)
-			executeInteraction(interactionCtx, definition.Handler, middlewares...)
-			return
 		}
+		s.logger.Debugf("unsupported block actions interaction type received %+v\n", callback)
+	case slack.InteractionTypeViewSubmission,
+		slack.InteractionTypeViewClosed,
+		slack.InteractionTypeShortcut,
+		slack.InteractionTypeMessageAction:
+		for _, interaction := range s.interactions {
+			definition := interaction.Definition()
+			if definition.CallbackID == callback.View.CallbackID {
+				interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, definition)
+				middlewares = append(middlewares, definition.Middlewares...)
+				executeInteraction(interactionCtx, definition.Handler, middlewares...)
+				return
+			}
+		}
+		s.logger.Debugf("unsupported interaction type received %+v\n", callback)
+	default:
+		s.logger.Debugf("unsupported interaction type received %+v\n", callback)
 	}
-
 	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
