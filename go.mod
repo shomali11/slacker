@@ -1,4 +1,4 @@
-module github.com/0xArch3r/slacker
+module github.com/0xArch3r/slacker/v2
 
 go 1.18
 
