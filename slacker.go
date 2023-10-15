@@ -54,6 +54,7 @@ type Slacker struct {
 	commandMiddlewares            []CommandMiddlewareHandler
 	commandGroups                 []*CommandGroup
 	interactionMiddlewares        []InteractionMiddlewareHandler
+	suggestionMiddlewares         []SuggestionMiddlewareHandler
 	interactions                  []*Interaction
 	jobMiddlewares                []JobMiddlewareHandler
 	jobs                          []*Job
@@ -63,6 +64,7 @@ type Slacker struct {
 	onConnectionError             func(socketmode.Event)
 	onDisconnected                func(socketmode.Event)
 	unsupportedInteractionHandler InteractionHandler
+	suggestionHandler             SuggestionHandler
 	helpDefinition                *CommandDefinition
 	unsupportedCommandHandler     CommandHandler
 	unsupportedEventHandler       func(socketmode.Event)
@@ -125,6 +127,11 @@ func (s *Slacker) OnDisconnected(onDisconnected func(socketmode.Event)) {
 // UnsupportedInteractionHandler handles interactions when none of the callbacks are matched
 func (s *Slacker) UnsupportedInteractionHandler(unsupportedInteractionHandler InteractionHandler) {
 	s.unsupportedInteractionHandler = unsupportedInteractionHandler
+}
+
+// SuggestionHandler handles block_suggestion handlers since they need to have an Ack with a payload
+func (s *Slacker) SuggestionHandler(suggestionHandler SuggestionHandler) {
+	s.suggestionHandler = suggestionHandler
 }
 
 // UnsupportedCommandHandler handles messages when none of the commands are matched
@@ -306,10 +313,18 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						continue
 					}
 
-					// Acknowledge receiving the request
-					s.socketModeClient.Ack(*socketEvent.Request)
+					//! Adding Custom Code to Allow for Block Suggestion Processing
+					switch callback.Type {
+					case slack.InteractionTypeBlockSuggestion:
+						go s.handleInteractionSuggestion(ctx, &socketEvent, &callback)
+						continue
+					default:
+						// Acknowledge receiving the request
+						s.socketModeClient.Ack(*socketEvent.Request)
 
-					go s.handleInteractionEvent(ctx, &callback)
+						go s.handleInteractionEvent(ctx, &callback)
+					}
+					//! Adding Custom Code to Allow for Block Suggestion Processing
 
 				default:
 					if s.unsupportedEventHandler != nil {
@@ -455,6 +470,16 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
+	}
+}
+
+func (s *Slacker) handleInteractionSuggestion(ctx context.Context, socketEvent *socketmode.Event, callback *slack.InteractionCallback) {
+	middlewares := make([]SuggestionMiddlewareHandler, 0)
+	middlewares = append(middlewares, s.suggestionMiddlewares...)
+
+	if s.suggestionHandler != nil {
+		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
+		executeSuggestion(*socketEvent, interactionCtx, s.suggestionHandler)
 	}
 }
 
