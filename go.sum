@@ -17,11 +17,14 @@ github.com/shomali11/commander v0.0.0-20230730023802-0b64f620037d/go.mod h1:bYyJ
 github.com/shomali11/proper v0.0.0-20180607004733-233a9a872c30/go.mod h1:O723XwIZBX3FR45rBic/Eyp/DKo/YtchYFURzpUWY2c=
 github.com/shomali11/proper v0.0.0-20190608032528-6e70a05688e7 h1:wAyBXFZOcLkbaoDlDbMpTCw9xy3yP2YJDMRrbTVuVKU=
 github.com/shomali11/proper v0.0.0-20190608032528-6e70a05688e7/go.mod h1:cg2VM85Y+0BcVSICzB+OafOlTcJ9QPbtF4qtuhuR/GA=
-github.com/slack-go/slack v0.12.2 h1:x3OppyMyGIbbiyFhsBmpf9pwkUzMhthJMRNmNlA4LaQ=
-github.com/slack-go/slack v0.12.2/go.mod h1:hlGi5oXA+Gt+yWTPP0plCdRKmjsDxecdHxYQdlMQKOw=
+github.com/shomali11/slacker/v2 v2.0.0-alpha4 h1:WxHHGDBg3L8apil+1loweUI50YmU+0rB3NcUDqeaN2w=
+github.com/shomali11/slacker/v2 v2.0.0-alpha4/go.mod h1:tjODmSr6C1BKHN1tA3f0aEjIaOXEAo7rhvPDXdjVeeo=
+github.com/slack-go/slack v0.12.3 h1:92/dfFU8Q5XP6Wp5rr5/T5JHLM5c5Smtn53fhToAP88=
+github.com/slack-go/slack v0.12.3/go.mod h1:hlGi5oXA+Gt+yWTPP0plCdRKmjsDxecdHxYQdlMQKOw=
 github.com/stretchr/testify v1.2.1/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=
 github.com/stretchr/testify v1.8.4 h1:CcVxjf3Q8PM0mHUKJCdn+eZZtm5yQwehR5yeSVQQcUk=
-github.com/stretchr/testify v1.8.4/go.mod h1:sz/lmYIOXD/1dqDmKjjqLyZ2RngseejIcXlSw2iwfAo=
 golang.org/x/xerrors v0.0.0-20191204190536-9bdfabe68543/go.mod h1:I/5z698sn9Ka8TeJc9MKroUUfqBBauWjQqLJ2OPfmY0=
+gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405/go.mod h1:Co6ibVJAznAaIkqp8huTwlJQCZ016jof/cbN4VW5Yz0=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
+gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
