@@ -456,7 +456,7 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 		}
 		s.logger.Debugf("unsupported block actions interaction type received %+v\n", callback)
 	case slack.InteractionTypeViewSubmission,
-		slack.InteractionTypeViewClosed,
+		slack.InteractionTypeViewClosed:
 		for _, interaction := range s.interactions {
 			definition := interaction.Definition()
 			if definition.CallbackID == callback.View.CallbackID {
