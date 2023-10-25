@@ -42,6 +42,7 @@ func NewClient(botToken, appToken string, clientOptions ...ClientOption) *Slacke
 		botInteractionMode:       options.BotMode,
 		sanitizeEventTextHandler: defaultEventTextSanitizer,
 		logger:                   options.Logger,
+		interactions:             make(map[slack.InteractionType][]*Interaction),
 	}
 	return slacker
 }
@@ -54,7 +55,7 @@ type Slacker struct {
 	commandMiddlewares            []CommandMiddlewareHandler
 	commandGroups                 []*CommandGroup
 	interactionMiddlewares        []InteractionMiddlewareHandler
-	interactions                  []*Interaction
+	interactions                  map[slack.InteractionType][]*Interaction
 	jobMiddlewares                []JobMiddlewareHandler
 	jobs                          []*Job
 	onHello                       func(socketmode.Event)
@@ -78,7 +79,7 @@ func (s *Slacker) GetCommandGroups() []*CommandGroup {
 }
 
 // GetInteractions returns Groups
-func (s *Slacker) GetInteractions() []*Interaction {
+func (s *Slacker) GetInteractions() map[slack.InteractionType][]*Interaction {
 	return s.interactions
 }
 
@@ -174,11 +175,15 @@ func (s *Slacker) AddCommandGroup(prefix string) *CommandGroup {
 
 // AddInteraction define a new interaction and append it to the list of interactions
 func (s *Slacker) AddInteraction(definition *InteractionDefinition) {
-	if len(definition.BlockID) == 0 {
-		s.logger.Error("missing `BlockID`")
+	if len(definition.InteractionID) == 0 {
+		s.logger.Error("missing `ID`")
 		return
 	}
-	s.interactions = append(s.interactions, newInteraction(definition))
+	if len(definition.Type) == 0 {
+		s.logger.Error("missing `Type`")
+		return
+	}
+	s.interactions[definition.Type] = append(s.interactions[definition.Type], newInteraction(definition))
 }
 
 // AddInteractionMiddleware appends a new interaction middleware to the list of root level interaction middlewares
@@ -437,21 +442,49 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 	middlewares := make([]InteractionMiddlewareHandler, 0)
 	middlewares = append(middlewares, s.interactionMiddlewares...)
 
-	for _, interaction := range s.interactions {
-		for _, action := range callback.ActionCallback.BlockActions {
-			definition := interaction.Definition()
-			if action.BlockID != definition.BlockID {
-				continue
+	var interaction *Interaction
+	var definition *InteractionDefinition
+
+	switch callback.Type {
+	case slack.InteractionTypeBlockActions:
+		for _, i := range s.interactions[callback.Type] {
+			for _, a := range callback.ActionCallback.BlockActions {
+				definition = i.Definition()
+				if a.BlockID == definition.InteractionID {
+					interaction = i
+					break
+				}
 			}
-
-			interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, definition)
-
-			middlewares = append(middlewares, definition.Middlewares...)
-			executeInteraction(interactionCtx, definition.Handler, middlewares...)
-			return
+			if interaction != nil {
+				break
+			}
+		}
+	case slack.InteractionTypeViewClosed, slack.InteractionTypeViewSubmission:
+		for _, i := range s.interactions[callback.Type] {
+			definition = i.Definition()
+			if definition.InteractionID == callback.View.CallbackID {
+				interaction = i
+				break
+			}
+		}
+	case slack.InteractionTypeShortcut, slack.InteractionTypeMessageAction:
+		for _, i := range s.interactions[callback.Type] {
+			definition = i.Definition()
+			if definition.InteractionID == callback.CallbackID {
+				interaction = i
+				break
+			}
 		}
 	}
 
+	if interaction != nil {
+		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, definition)
+		middlewares = append(middlewares, definition.Middlewares...)
+		executeInteraction(interactionCtx, definition.Handler, middlewares...)
+		return
+	}
+
+	s.logger.Debugf("unsupported interaction type received %s\n", callback.Type)
 	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)

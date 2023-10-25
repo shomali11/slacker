@@ -20,8 +20,9 @@ func main() {
 
 	bot.AddInteractionMiddleware(LoggingInteractionMiddleware())
 	bot.AddInteraction(&slacker.InteractionDefinition{
-		BlockID: "mood",
-		Handler: slackerInteractive,
+		InteractionID: "mood",
+		Handler:       slackerInteractive,
+		Type:          slack.InteractionTypeBlockActions,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
@@ -68,7 +69,7 @@ func LoggingInteractionMiddleware() slacker.InteractionMiddlewareHandler {
 			ctx.Logger().Infof(
 				"%s initiated \"%s\" with action \"%v\" in channel %s\n",
 				ctx.Callback().User.ID,
-				ctx.Definition().BlockID,
+				ctx.Definition().InteractionID,
 				ctx.Callback().ActionCallback.BlockActions[0].ActionID,
 				ctx.Callback().Channel.ID,
 			)
