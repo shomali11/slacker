@@ -19,8 +19,9 @@ func main() {
 	})
 
 	bot.AddInteraction(&slacker.InteractionDefinition{
-		BlockID: "mood",
-		Handler: slackerInteractive,
+		InteractionID: "mood",
+		Handler:       slackerInteractive,
+		Type:          slack.InteractionTypeBlockActions,
 	})
 
 	ctx, cancel := context.WithCancel(context.Background())
