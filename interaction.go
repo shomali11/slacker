@@ -1,10 +1,13 @@
 package slacker
 
+import "github.com/slack-go/slack"
+
 // InteractionDefinition structure contains definition of the bot interaction
 type InteractionDefinition struct {
-	BlockID     string
-	Middlewares []InteractionMiddlewareHandler
-	Handler     InteractionHandler
+	InteractionID string
+	Middlewares   []InteractionMiddlewareHandler
+	Handler       InteractionHandler
+	Type          slack.InteractionType
 }
 
 // newInteraction creates a new bot interaction object
