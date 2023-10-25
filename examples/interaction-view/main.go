@@ -96,7 +96,7 @@ func moodCmdHandler(ctx *slacker.CommandContext) {
 		moodSurveyView,
 	)
 	if err != nil {
-		fmt.Printf("ERROR openEscalationModal: %v\n", err)
+		log.Printf("ERROR openEscalationModal: %v", err)
 	}
 }
 
@@ -111,6 +111,8 @@ func moodViewHandler(ctx *slacker.InteractionContext) {
 			)
 		}
 	case slack.InteractionTypeViewClosed:
-		fmt.Print("Mood view closed.\n")
+		{
+			fmt.Print("Mood view closed.\n")
+		}
 	}
 }
