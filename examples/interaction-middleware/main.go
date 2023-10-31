@@ -65,8 +65,8 @@ func slackerInteractive(ctx *slacker.InteractionContext) {
 func LoggingInteractionMiddleware() slacker.InteractionMiddlewareHandler {
 	return func(next slacker.InteractionHandler) slacker.InteractionHandler {
 		return func(ctx *slacker.InteractionContext) {
-			ctx.Logger().Infof(
-				"%s initiated \"%s\" with action \"%v\" in channel %s\n",
+			ctx.Logger().Info(
+				"%s initiated \"%s\" with action \"%v\" in channel %s",
 				ctx.Callback().User.ID,
 				ctx.Definition().BlockID,
 				ctx.Callback().ActionCallback.BlockActions[0].ActionID,

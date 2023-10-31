@@ -46,7 +46,7 @@ func (r *Writer) Delete(channel string, messageTimestamp string) (string, error)
 		messageTimestamp,
 	)
 	if err != nil {
-		r.logger.Errorf("failed to delete message: %v\n", err)
+		r.logger.Error("failed to delete message: %v", err)
 	}
 	return timestamp, err
 }
@@ -83,7 +83,7 @@ func (r *Writer) post(channel string, message string, blocks []slack.Block, opti
 		opts...,
 	)
 	if err != nil {
-		r.logger.Errorf("failed to post message: %v\n", err)
+		r.logger.Error("failed to post message: %v", err)
 	}
 	return timestamp, err
 }

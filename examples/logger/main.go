@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/shomali11/slacker/v2"
@@ -35,40 +36,27 @@ func main() {
 }
 
 type MyLogger struct {
-	debugMode bool
-	logger    *log.Logger
+	logger *slog.Logger
 }
 
 func newLogger() *MyLogger {
 	return &MyLogger{
-		logger: log.New(os.Stdout, "something ", log.LstdFlags|log.Lshortfile|log.Lmsgprefix),
+		logger: slog.New(slog.NewTextHandler(os.Stdout, nil)),
 	}
 }
 
-func (l *MyLogger) Info(args ...interface{}) {
-	l.logger.Println(args...)
+func (l *MyLogger) Info(msg string, args ...any) {
+	l.logger.Info(msg, args...)
 }
 
-func (l *MyLogger) Infof(format string, args ...interface{}) {
-	l.logger.Printf(format, args...)
+func (l *MyLogger) Debug(msg string, args ...any) {
+	l.logger.Debug(msg, args...)
 }
 
-func (l *MyLogger) Debug(args ...interface{}) {
-	if l.debugMode {
-		l.logger.Println(args...)
-	}
+func (l *MyLogger) Warn(msg string, args ...any) {
+	l.logger.Warn(msg, args...)
 }
 
-func (l *MyLogger) Debugf(format string, args ...interface{}) {
-	if l.debugMode {
-		l.logger.Printf(format, args...)
-	}
-}
-
-func (l *MyLogger) Error(args ...interface{}) {
-	l.logger.Println(args...)
-}
-
-func (l *MyLogger) Errorf(format string, args ...interface{}) {
-	l.logger.Printf(format, args...)
+func (l *MyLogger) Error(msg string, args ...any) {
+	l.logger.Error(msg, args...)
 }
