@@ -13,6 +13,7 @@ Built on top of the Slack API [github.com/slack-go/slack](https://github.com/sla
 - Replies can be new messages or in threads
 - Replies can be ephemeral, scheduled, updated or deleted
 - Supports Slash Commands and Interactive Messages
+- Supports `slog.Logger`
 - Supports `context.Context`
 - Supports middlewares & grouping of commands
 - Supports Cron Jobs using [https://github.com/robfig/cron](https://github.com/robfig/cron)
