@@ -54,6 +54,7 @@ type Slacker struct {
 	commandMiddlewares            []CommandMiddlewareHandler
 	commandGroups                 []*CommandGroup
 	interactionMiddlewares        []InteractionMiddlewareHandler
+	suggestionMiddlewares         []SuggestionMiddlewareHandler
 	interactions                  []*Interaction
 	jobMiddlewares                []JobMiddlewareHandler
 	jobs                          []*Job
@@ -63,6 +64,7 @@ type Slacker struct {
 	onConnectionError             func(socketmode.Event)
 	onDisconnected                func(socketmode.Event)
 	unsupportedInteractionHandler InteractionHandler
+	suggestionHandler             SuggestionHandler
 	helpDefinition                *CommandDefinition
 	unsupportedCommandHandler     CommandHandler
 	unsupportedEventHandler       func(socketmode.Event)
@@ -306,10 +308,17 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						continue
 					}
 
-					// Acknowledge receiving the request
-					s.socketModeClient.Ack(*socketEvent.Request)
+					switch callback.Type {
+					case slack.InteractionTypeBlockSuggestion:
+						// pass the socketEvent Request so that it can be Ack'd after the OptionsResponse is created
+						go s.handleInteractionSuggestion(ctx, *socketEvent.Request, &callback)
+						continue
+					default:
+						// Acknowledge receiving the request
+						s.socketModeClient.Ack(*socketEvent.Request)
 
-					go s.handleInteractionEvent(ctx, &callback)
+						go s.handleInteractionEvent(ctx, &callback)
+					}
 
 				default:
 					if s.unsupportedEventHandler != nil {
@@ -456,6 +465,18 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
 	}
+}
+
+func (s *Slacker) handleInteractionSuggestion(ctx context.Context, req socketmode.Request, callback *slack.InteractionCallback) {
+	blockResponse := slack.OptionsResponse{}
+	middlewares := make([]SuggestionMiddlewareHandler, 0)
+	middlewares = append(middlewares, s.suggestionMiddlewares...)
+
+	if s.suggestionHandler != nil {
+		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
+		blockResponse = executeSuggestion(interactionCtx, s.suggestionHandler, middlewares...)
+	}
+	s.socketModeClient.Ack(req, blockResponse)
 }
 
 func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
