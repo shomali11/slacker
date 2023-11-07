@@ -118,7 +118,7 @@ func getChannel(logger Logger, slackClient *slack.Client, channelID string) *sla
 		IncludeLocale:     false,
 		IncludeNumMembers: false})
 	if err != nil {
-		logger.Error("unable to get channel info for %s: %v", channelID, err)
+		logger.Error("unable to get channel info", "channel_id", channelID, "error", err)
 		return nil
 	}
 	return channel
@@ -131,7 +131,7 @@ func getUserProfile(logger Logger, slackClient *slack.Client, userID string) *sl
 
 	user, err := slackClient.GetUserInfo(userID)
 	if err != nil {
-		logger.Error("unable to get user info for %s: %v", userID, err)
+		logger.Error("unable to get user info", "user_id", userID, "error", err)
 		return nil
 	}
 	return &user.Profile

@@ -54,13 +54,13 @@ func LoggingJobMiddleware() slacker.JobMiddlewareHandler {
 	return func(next slacker.JobHandler) slacker.JobHandler {
 		return func(ctx *slacker.JobContext) {
 			ctx.Logger().Info(
-				"%s started",
-				ctx.Definition().Name,
+				"job middleware before",
+				"job_name", ctx.Definition().Name,
 			)
 			next(ctx)
 			ctx.Logger().Info(
-				"%s ended",
-				ctx.Definition().Name,
+				"job middleware after",
+				"job_name", ctx.Definition().Name,
 			)
 		}
 	}

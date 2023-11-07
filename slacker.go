@@ -176,7 +176,7 @@ func (s *Slacker) AddCommandGroup(prefix string) *CommandGroup {
 // AddInteraction define a new interaction and append it to the list of interactions
 func (s *Slacker) AddInteraction(definition *InteractionDefinition) {
 	if len(definition.InteractionID) == 0 {
-		s.logger.Error("missing `ID`")
+		s.logger.Error("missing `InteractionID`")
 		return
 	}
 	if len(definition.Type) == 0 {
@@ -237,7 +237,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					go s.onConnectionError(socketEvent)
 
 				case socketmode.EventTypeConnected:
-					s.logger.Info("connected to Slack with Socket Mode.")
+					s.logger.Info("connected to Slack with Socket Mode")
 
 					if s.onConnected == nil {
 						continue
@@ -246,7 +246,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 
 				case socketmode.EventTypeHello:
 					s.appID = socketEvent.Request.ConnectionInfo.AppID
-					s.logger.Info("connected as App ID %v", s.appID)
+					s.logger.Info("connected", "app_id", s.appID)
 
 					if s.onHello == nil {
 						continue
@@ -254,7 +254,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					go s.onHello(socketEvent)
 
 				case socketmode.EventTypeDisconnect:
-					s.logger.Info("disconnected due to %v", socketEvent.Request.Reason)
+					s.logger.Info("disconnected", "reason", socketEvent.Request.Reason)
 
 					if s.onDisconnected == nil {
 						continue
@@ -264,7 +264,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				case socketmode.EventTypeEventsAPI:
 					event, ok := socketEvent.Data.(slackevents.EventsAPIEvent)
 					if !ok {
-						s.logger.Debug("ignored %+v", socketEvent)
+						s.logger.Debug("ignored event", "event", socketEvent)
 						continue
 					}
 
@@ -275,7 +275,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						if s.unsupportedEventHandler != nil {
 							s.unsupportedEventHandler(socketEvent)
 						} else {
-							s.logger.Debug("unsupported event received %+v", socketEvent)
+							s.logger.Debug("unsupported event", "event", socketEvent)
 						}
 						continue
 					}
@@ -288,14 +288,14 @@ func (s *Slacker) Listen(ctx context.Context) error {
 						if s.unsupportedEventHandler != nil {
 							s.unsupportedEventHandler(socketEvent)
 						} else {
-							s.logger.Debug("unsupported event received %+v", socketEvent)
+							s.logger.Debug("unsupported event", "event", socketEvent)
 						}
 					}
 
 				case socketmode.EventTypeSlashCommand:
 					event, ok := socketEvent.Data.(slack.SlashCommand)
 					if !ok {
-						s.logger.Debug("ignored %+v", socketEvent)
+						s.logger.Debug("ignored event", "event", socketEvent)
 						continue
 					}
 
@@ -307,7 +307,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 				case socketmode.EventTypeInteractive:
 					callback, ok := socketEvent.Data.(slack.InteractionCallback)
 					if !ok {
-						s.logger.Debug("ignored %+v", socketEvent)
+						s.logger.Debug("ignored event", "event", socketEvent)
 						continue
 					}
 
@@ -320,7 +320,7 @@ func (s *Slacker) Listen(ctx context.Context) error {
 					if s.unsupportedEventHandler != nil {
 						s.unsupportedEventHandler(socketEvent)
 					} else {
-						s.logger.Debug("unsupported event received %+v", socketEvent)
+						s.logger.Debug("unsupported event.", "event", socketEvent)
 					}
 				}
 			}
@@ -484,7 +484,7 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 		return
 	}
 
-	s.logger.Debug("unsupported interaction type received %s\n", callback.Type)
+	s.logger.Debug("unsupported interaction type", "type", callback.Type)
 	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
@@ -539,16 +539,16 @@ func (s *Slacker) ignoreBotMessage(messageEvent *MessageEvent) bool {
 			if err.Error() == "missing_scope" {
 				s.logger.Error("unable to determine if bot response is from me -- please add users:read scope to your app")
 			} else {
-				s.logger.Debug("unable to get information on the bot that sent message: %v", err)
+				s.logger.Debug("unable to get information on the bot that sent message", "error", err)
 			}
 			return true
 		}
 		if bot.AppID == s.appID {
-			s.logger.Debug("ignoring event that originated from my App ID: %v", bot.AppID)
+			s.logger.Debug("ignoring event that originated from my app", "app_id", bot.AppID)
 			return true
 		}
 	case BotModeIgnoreAll:
-		s.logger.Debug("ignoring event that originated from Bot ID: %v", messageEvent.BotID)
+		s.logger.Debug("ignoring event that originated from bot", "bot_id", messageEvent.BotID)
 		return true
 	default:
 		// BotInteractionModeIgnoreNone is handled in the default case
