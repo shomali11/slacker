@@ -484,6 +484,7 @@ func (s *Slacker) handleInteractionEvent(ctx context.Context, callback *slack.In
 		return
 	}
 
+	s.logger.Debugf("unsupported interaction type received %s\n", callback.Type)
 	if s.unsupportedInteractionHandler != nil {
 		interactionCtx := newInteractionContext(ctx, s.logger, s.slackClient, callback, nil)
 		executeInteraction(interactionCtx, s.unsupportedInteractionHandler, middlewares...)
