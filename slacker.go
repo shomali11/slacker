@@ -21,6 +21,8 @@ const (
 	boldMessageFormat    = "*%s*"
 	italicMessageFormat  = "_%s_"
 	exampleMessageFormat = "_*Example:*_ %s"
+
+	slackBotID = "B01" // Hardcoded SlackBot ID
 )
 
 // NewClient creates a new client using the Slack API
@@ -534,6 +536,14 @@ func (s *Slacker) handleMessageEvent(ctx context.Context, event any) {
 func (s *Slacker) ignoreBotMessage(messageEvent *MessageEvent) bool {
 	switch s.botInteractionMode {
 	case BotModeIgnoreApp:
+
+		// Special case the official SlackBot ID, the API returns an error if
+		// we look this up and the Go package doesn't handle it for us. See
+		// https://github.com/slackapi/python-slack-sdk/issues/1260#issuecomment-1236715741
+		// for more discussion effecting other users of the API.
+		if messageEvent.BotID == slackBotID {
+			return false
+		}
 		bot, err := s.slackClient.GetBotInfo(messageEvent.BotID)
 		if err != nil {
 			if err.Error() == "missing_scope" {
