@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os"
 
@@ -65,13 +66,13 @@ func slackerInteractive(ctx *slacker.InteractionContext) {
 func LoggingInteractionMiddleware() slacker.InteractionMiddlewareHandler {
 	return func(next slacker.InteractionHandler) slacker.InteractionHandler {
 		return func(ctx *slacker.InteractionContext) {
-			ctx.Logger().Info(
+			ctx.Logger().Info(fmt.Sprintf(
 				"%s initiated \"%s\" with action \"%v\" in channel %s",
 				ctx.Callback().User.ID,
 				ctx.Definition().BlockID,
 				ctx.Callback().ActionCallback.BlockActions[0].ActionID,
 				ctx.Callback().Channel.ID,
-			)
+			))
 			next(ctx)
 		}
 	}
